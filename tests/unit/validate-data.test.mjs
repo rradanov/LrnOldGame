@@ -50,7 +50,9 @@ test('data/catalog.json: 31 курса по ARCH_T-014 §7, 9 ★ (5 бели + 
   assert.equal(eco.pirc, 'B07');
   assert.equal(CATALOG.courses.find((c) => c.id === 'petrov').name.en, "Petrov's Defense");
   assert.equal(CATALOG.courses.find((c) => c.id === 'english').start, '');
-  for (const c of CATALOG.courses) assert.deepEqual(c.params, {});
+  // T-017: гамбитът 2.f4 е повече от 60 cp под 2.Nf3 при 500k възли → по-широк допуск за book.
+  const PARAMS = { 'kings-gambit': { bookToleranceCp: 150 } };
+  for (const c of CATALOG.courses) assert.deepEqual(c.params, PARAMS[c.id] ?? {});
 });
 
 test('parseStrictPgn: форматът на lichess „1. e4 e5 2. Nf3“', () => {
