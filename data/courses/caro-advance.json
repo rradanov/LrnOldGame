@@ -2,7 +2,7 @@
   "v": 1,
   "id": "caro-advance",
   "side": "w",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","c6"],
   "lines": [
     {"id":"0a818f76","n":1,"m":["e4","c6","d4","d5","e5","c5","c3","Nc6","Bb5","Bf5","dxc5"],"p":0.0498787,"end":"adv","cp":143,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},

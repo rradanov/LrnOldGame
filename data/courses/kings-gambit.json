@@ -2,7 +2,7 @@
   "v": 1,
   "id": "kings-gambit",
   "side": "w",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","e5"],
   "lines": [
     {"id":"02ebb74c","n":1,"m":["e4","e5","f4","Nc6","Nf3","exf4","d4"],"p":0.0702428,"end":"transpose","to":"43404690","cp":23,"eco":"C34","name":"King's Gambit Accepted: MacLeod Defense","c":null},

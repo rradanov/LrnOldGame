@@ -2,7 +2,7 @@
   "v": 1,
   "id": "french",
   "side": "b",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","e6"],
   "lines": [
     {"id":"4f066628","n":1,"m":["e4","e6","d4","d5","exd5","exd5","Nf3","Nf6"],"p":0.0505512,"end":"transpose","to":"f69f3362","cp":-21,"eco":"C01","name":"French Defense: Exchange Variation","c":null},

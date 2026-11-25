@@ -2,7 +2,7 @@
   "v": 1,
   "id": "vs-scandinavian",
   "side": "w",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","d5"],
   "lines": [
     {"id":"f0e4709b","n":1,"m":["e4","d5","exd5","Qxd5","Nc3","Qe6+","Be2"],"p":0.0878947,"end":"adv","cp":110,"eco":"B01","name":"Scandinavian Defense: Mieses-Kotrč Variation","c":null},

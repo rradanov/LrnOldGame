@@ -2,7 +2,7 @@
   "v": 1,
   "id": "smith-morra",
   "side": "w",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","c5"],
   "lines": [
     {"id":"922dc80f","n":1,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","e6","Be2"],"p":0.0713324,"end":"data","cp":1,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "kid",
   "side": "b",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["d4"],
   "lines": [
     {"id":"9a35dbe1","n":1,"m":["d4","Nf6","Bf4","g6","Nf3","Bg7","e3","O-O"],"p":0.0316698,"end":"transpose","to":"4ca966ce","cp":-1,"eco":"A48","name":"London System","c":null},

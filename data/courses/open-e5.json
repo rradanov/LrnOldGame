@@ -2,7 +2,7 @@
   "v": 1,
   "id": "open-e5",
   "side": "b",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","e5"],
   "lines": [
     {"id":"8756b05c","n":1,"m":["e4","e5","Bc4","Nc6","Nf3","Nf6"],"p":0.0384653,"end":"transpose","to":"ca32a5c0","cp":-15,"eco":"C55","name":"Italian Game: Two Knights Defense","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "ruy-lopez",
   "side": "w",
-  "dataVersion": "2026-11-25.2",
+  "dataVersion": "2026-11-25.3",
   "start": ["e4","e5"],
   "lines": [
     {"id":"ec719fbf","n":1,"m":["e4","e5","Nf3","Nc6","Bb5","d6","d4","Bd7","Bxc6","Bxc6","Nc3"],"p":0.06018,"end":"adv","cp":103,"eco":"C62","name":"Ruy Lopez: Steinitz Defense","c":null},
