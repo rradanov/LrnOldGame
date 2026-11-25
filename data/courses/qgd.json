@@ -2,7 +2,7 @@
   "v": 1,
   "id": "qgd",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["d4"],
   "lines": [
     {"id":"7572bca1","n":1,"m":["d4","d5","Bf4","Nf6","Nf3","e6","e3","Bd6"],"p":0.0463754,"end":"transpose","to":"b2531489","cp":-13,"eco":"D02","name":"Queen's Pawn Game: London System, with e6","c":null},

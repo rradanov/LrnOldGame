@@ -2,7 +2,7 @@
   "v": 1,
   "id": "vs-nf3",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["Nf3"],
   "lines": [
     {"id":"96c0276b","n":1,"m":["Nf3","d5","e4","dxe4"],"p":0.114973,"end":"adv","cp":90,"eco":"A06","name":"Zukertort Opening: Tennison Gambit","c":null},

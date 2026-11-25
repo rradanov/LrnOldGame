@@ -2,7 +2,7 @@
   "v": 1,
   "id": "pirc",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","d6"],
   "lines": [
     {"id":"0255202b","n":1,"m":["e4","d6","Nf3","Nf6","Bc4","Nxe4"],"p":0.0341918,"end":"adv","cp":109,"eco":"B00","name":"Pirc Defense","c":null},

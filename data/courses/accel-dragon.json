@@ -2,7 +2,7 @@
   "v": 1,
   "id": "accel-dragon",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","c5"],
   "lines": [
     {"id":"9cd941ec","n":1,"m":["e4","c5","Bc4","Nc6","Nf3","e6"],"p":0.044398,"end":"transpose","to":"a056d214","cp":-1,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},

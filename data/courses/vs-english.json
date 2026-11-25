@@ -2,7 +2,7 @@
   "v": 1,
   "id": "vs-english",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["c4"],
   "lines": [
     {"id":"3d9d1239","n":1,"m":["c4","c6","Nc3","d5","cxd5","cxd5","g3","d4"],"p":0.0419957,"end":"adv","cp":62,"eco":"A11","name":"English Opening: Caro-Kann Defensive System","c":null},

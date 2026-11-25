@@ -2,7 +2,7 @@
   "v": 1,
   "id": "scotch",
   "side": "w",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","e5"],
   "lines": [
     {"id":"ed132d21","n":1,"m":["e4","e5","Nf3","Nc6","d4","exd4","Nxd4","Nxd4","Qxd4","d6","Nc3"],"p":0.0816058,"end":"adv","cp":120,"eco":"C44","name":"Scotch Game: Lolli Variation","c":null},

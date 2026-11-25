@@ -2,7 +2,7 @@
   "v": 1,
   "id": "caro-kann",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","c6"],
   "lines": [
     {"id":"024a9c93","n":1,"m":["e4","c6","d4","d5","exd5","cxd5","Nf3","Nc6"],"p":0.0351444,"end":"transpose","to":"9884e619","cp":-21,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "najdorf",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","c5"],
   "lines": [
     {"id":"7581ddea","n":1,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bd3","e5","Nf3","Be7"],"p":0.0127442,"end":"data","cp":0,"eco":"B90","name":"Sicilian Defense: Najdorf Variation, Yates Variation","c":null},

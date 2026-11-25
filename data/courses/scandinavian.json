@@ -2,7 +2,7 @@
   "v": 1,
   "id": "scandinavian",
   "side": "b",
-  "dataVersion": "2026-11-25.1",
+  "dataVersion": "2026-11-25.2",
   "start": ["e4","d5"],
   "lines": [
     {"id":"48e289ed","n":1,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","d4","e6"],"p":0.0770268,"end":"transpose","to":"b818139a","cp":-73,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
