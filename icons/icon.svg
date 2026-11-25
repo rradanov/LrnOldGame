@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Собствена иконка на LrnOldGame: пешка върху четири полета. -->
+  <rect width="512" height="512" rx="96" fill="#2f6b4f"/>
+  <rect x="96" y="96" width="160" height="160" fill="#e9dfc8"/>
+  <rect x="256" y="256" width="160" height="160" fill="#e9dfc8"/>
+  <rect x="256" y="96" width="160" height="160" fill="#3f8564"/>
+  <rect x="96" y="256" width="160" height="160" fill="#3f8564"/>
+  <g fill="#1d1d1b" stroke="#f4f1ea" stroke-width="10" stroke-linejoin="round">
+    <circle cx="256" cy="176" r="46"/>
+    <path d="M222 226 h68 l-12 30 c26 22 40 62 44 112 h-132 c4 -50 18 -90 44 -112 z"/>
+    <rect x="166" y="368" width="180" height="40" rx="12"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+# Деплой само след успешен CI на push в main (D-011).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Сглобяване на сайта (_site)
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse --short HEAD)"
+          mkdir -p _site
+          cp -r index.html manifest.webmanifest sw.js styles icons src vendor data LICENSE THIRD_PARTY.md _site/
+          # Нов BUILD при всеки деплой → нов кеш в SW и подкана „Обнови“.
+          sed -i "s/const BUILD = 'dev';/const BUILD = '${SHA}';/" _site/sw.js _site/src/version.js
+          grep -q "const BUILD = '${SHA}';" _site/sw.js
+          grep -q "const BUILD = '${SHA}';" _site/src/version.js
+          touch _site/.nojekyll
+          echo "Build ${SHA}"; du -sh _site
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+      - name: Деплой
+        id: deployment
+        uses: actions/deploy-pages@v5

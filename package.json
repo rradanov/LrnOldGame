@@ -1,0 +1,21 @@
+{
+  "name": "lrnoldgame",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LrnOldGame — PWA за учене на шахматни дебюти",
+  "license": "MIT",
+  "author": "rradanov",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "serve": "node tools/serve.mjs",
+    "test:unit": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "test": "npm run test:unit && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

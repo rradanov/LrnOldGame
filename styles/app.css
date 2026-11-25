@@ -1,0 +1,144 @@
+/* LrnOldGame — основни стилове. Телефон, портрет. */
+:root {
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --fg: #1d1d1b;
+  --muted: #5d5a52;
+  --accent: #2f6b4f;
+  --accent-fg: #ffffff;
+  --border: #d9d3c4;
+  --tabs-h: 60px;
+  --maxw: 600px;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161a17;
+    --surface: #212722;
+    --fg: #ece8dd;
+    --muted: #a8a397;
+    --accent: #5fae86;
+    --accent-fg: #0d140f;
+    --border: #39413a;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+
+.screen {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 12px 16px calc(var(--tabs-h) + 24px + env(safe-area-inset-bottom));
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+.screen-title { font-size: 1.4rem; margin: 4px 0 12px; outline: none; }
+.empty-note { color: var(--muted); }
+.error { color: #b3261e; }
+.hint { color: var(--muted); font-size: .875rem; margin: 4px 0 0; }
+
+/* Дъска: квадрат на цялата ширина; без скролиране при тъч (ARCH §6). */
+.board-wrap {
+  width: 100%;
+  max-width: min(var(--maxw), 70vh);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 12px;
+  touch-action: none;
+}
+
+/* Долна лента с раздели */
+.tabs {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+.tab {
+  flex: 1 1 0;
+  max-width: calc(var(--maxw) / 5);
+  min-height: var(--tabs-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: .72rem;
+  padding: 6px 2px;
+}
+.tab-icon { font-size: 1.35rem; line-height: 1; }
+.tab[aria-current="page"] { color: var(--accent); font-weight: 600; }
+.tab[aria-current="page"] .tab-icon { transform: translateY(-1px); }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+
+/* Банер за нова версия */
+.update-bar {
+  position: fixed;
+  left: 8px; right: 8px;
+  bottom: calc(var(--tabs-h) + 8px + env(safe-area-inset-bottom));
+  max-width: calc(var(--maxw) - 16px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 10px;
+  z-index: 20;
+}
+.update-bar[hidden] { display: none; }
+
+/* Бутони и формуляри (мин. 44 px за тъч) */
+.btn {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+.settings fieldset {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin: 0 0 16px;
+  padding: 8px 14px 14px;
+}
+.settings legend { font-weight: 600; padding: 0 6px; }
+.field { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.field:last-child { border-bottom: 0; }
+.field label { display: block; font-weight: 500; margin-bottom: 6px; }
+.field .unit { color: var(--muted); font-weight: 400; }
+.field input[type="number"], .field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.saved { min-height: 1.4em; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
+.about { margin-top: 24px; }
+.about h2 { font-size: 1.1rem; margin: 0 0 6px; }
