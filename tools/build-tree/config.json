@@ -1,16 +1,23 @@
 {
-  "$comment": "Параметри на генератора на дървото (D-013). Използват се от T-004/T-005; входовете на build-tree.yml ги презаписват. Стойностите са от ARCH_T-001 §4.",
+  "$comment": "Параметри на дървото от lichess (T-004, D-013, ARCH_T-014 §6.2 tree.*). CLI флаговете на tools/build-tree ги презаписват. При T-016/T-017 секциите source/tree се пренасят в tools/generate/config.json. minElo/maxElo: и двамата играчи в диапазона; maxElo 0 = без горна граница; workers 0 = брой CPU (най-много 8).",
   "source": {
     "month": "2026-10",
     "urlTemplate": "https://database.lichess.org/standard/lichess_db_standard_rated_{month}.pgn.zst"
   },
-  "maxGames": 1500000,
-  "maxPly": 24,
-  "minGames": 30,
-  "minElo": 1800,
-  "minBaseSec": 180,
-  "excludeTerminations": ["Abandoned"],
-  "pruneEveryGames": 200000,
-  "pruneMinPly": 10,
-  "maxGzipBytes": 1048576
+  "tree": {
+    "maxGames": 2000000,
+    "minElo": 1200,
+    "maxElo": 1800,
+    "minBaseSec": 180,
+    "maxBaseSec": 0,
+    "ratedOnly": true,
+    "includeCorrespondence": false,
+    "excludeTerminations": ["Abandoned"],
+    "maxPly": 28,
+    "minGames": 10,
+    "minGamesPerMove": 5,
+    "workers": 0,
+    "pruneEveryGames": 100000,
+    "batchSize": 500
+  }
 }
