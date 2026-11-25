@@ -1,0 +1,33 @@
+{
+  "v": 1,
+  "id": "najdorf",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","c5"],
+  "lines": [
+    {"id":"7581ddea","n":1,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bd3","e5","Nf3","Be7"],"p":0.0127442,"end":"data","cp":0,"eco":"B90","name":"Sicilian Defense: Najdorf Variation, Yates Variation","c":null},
+    {"id":"3ac078c3","n":2,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bc4","e6","O-O","Be7"],"p":0.00975207,"end":"data","cp":-17,"eco":"B90","name":"Sicilian Defense: Najdorf Variation, Lipnitsky Attack","c":null},
+    {"id":"2e9daefd","n":3,"m":["e4","c5","Nf3","d6","Bc4","Nf6","d3","e6","O-O","Be7"],"p":0.00951324,"end":"data","cp":-7,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"70192904","n":4,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Be3","e5","Nf3","Be7"],"p":0.00939082,"end":"data","cp":-18,"eco":"B90","name":"Sicilian Defense: Najdorf Variation, English Attack","c":null},
+    {"id":"d5dcb72d","n":5,"m":["e4","c5","Nf3","d6","Bc4","Nf6","d3","e6","Bg5","Be7"],"p":0.00890342,"end":"data","cp":25,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"3e94b793","n":6,"m":["e4","c5","Bc4","Nc6","d3","e6","Nf3","d5"],"p":0.00669024,"end":"transpose","to":"13abdffc","cp":38,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"93fcce61","n":7,"m":["e4","c5","Nf3","d6","c3","Nf6","Be2","g6"],"p":0.00639115,"end":"data","cp":-10,"eco":"B50","name":"Sicilian Defense: Delayed Alapin Variation, with d6","c":null},
+    {"id":"f20261d9","n":8,"m":["e4","c5","Nf3","d6","Bc4","Nf6","Nc3","e6","O-O","Be7"],"p":0.00636502,"end":"data","cp":-15,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"228cd36b","n":9,"m":["e4","c5","Nf3","d6","Bc4","Nf6","d3","e6","Nc3","Be7"],"p":0.00597627,"end":"transpose","to":"ccf541b2","cp":11,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"00a8313f","n":10,"m":["e4","c5","Nf3","d6","c3","Nf6","d4","cxd4","cxd4","Nxe4"],"p":0.00596052,"end":"data","cp":48,"eco":"B50","name":"Sicilian Defense: Delayed Alapin Variation, with d6","c":null},
+    {"id":"dbf7b6bf","n":11,"m":["e4","c5","Nf3","d6","Bc4","Nf6","Nc3","e6","d4","cxd4","Nxd4","a6"],"p":0.00545942,"end":"transpose","to":"3ac078c3","cp":-20,"eco":"B86","name":"Sicilian Defense: Sozin Attack","c":null},
+    {"id":"e00b3077","n":12,"m":["e4","c5","Bc4","Nc6","Nc3","e6","Nf3","Nf6"],"p":0.00541697,"end":"transpose","to":"ad8dcc19","cp":3,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"ae8f0a11","n":13,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bg5","e6","Bc4","Be7"],"p":0.0047657,"end":"transpose","to":"60c7e68c","cp":3,"eco":"B95","name":"Sicilian Defense: Najdorf Variation","c":null},
+    {"id":"ceb1d48a","n":14,"m":["e4","c5","Nf3","d6","Bc4","Nf6","Ng5","e6","d3","d5"],"p":0.00469125,"end":"data","cp":51,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"4379071b","n":15,"m":["e4","c5","Bc4","Nc6","Nf3","e6","O-O","d5","exd5","exd5","Bb5","Nf6"],"p":0.00467518,"end":"data","cp":-8,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"6cfb917b","n":16,"m":["e4","c5","Bc4","Nc6","Nc3","e6","d3","Nf6"],"p":0.00440342,"end":"data","cp":12,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"2217be69","n":17,"m":["e4","c5","Nf3","d6","Bc4","Nf6","d3","e6","c3","Be7"],"p":0.00439073,"end":"data","cp":-11,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"fa472f64","n":18,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bg5","e6","Bd3","Be7","O-O","Nxe4"],"p":0.00434424,"end":"data","cp":45,"eco":"B95","name":"Sicilian Defense: Najdorf Variation","c":null},
+    {"id":"b44d720c","n":19,"m":["e4","c5","Bc4","Nc6","c3","e6","Nf3","d5"],"p":0.00414681,"end":"transpose","to":"89955f2a","cp":17,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"13abdffc","n":20,"m":["e4","c5","Bc4","Nc6","Nf3","e6","d3","d5","exd5","exd5","Bb5","Bd6"],"p":0.00378001,"end":"data","cp":53,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"89955f2a","n":21,"m":["e4","c5","Bc4","Nc6","Nf3","e6","c3","d5","exd5","exd5","Bb5","Nf6"],"p":0.00344224,"end":"data","cp":16,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null},
+    {"id":"60c7e68c","n":22,"m":["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bc4","e6","Bg5","Be7","O-O","b5"],"p":0.00311236,"end":"data","cp":22,"eco":"B90","name":"Sicilian Defense: Najdorf Variation, Lipnitsky Attack","c":null},
+    {"id":"ccf541b2","n":23,"m":["e4","c5","Nf3","d6","Bc4","Nf6","Nc3","e6","d3","Be7","Bg5","h6"],"p":0.00306349,"end":"data","cp":36,"eco":"B50","name":"Sicilian Defense: Modern Variations","c":null},
+    {"id":"ad8dcc19","n":24,"m":["e4","c5","Bc4","Nc6","Nf3","e6","Nc3","Nf6","d3","Be7"],"p":0.00297249,"end":"data","cp":19,"eco":"B20","name":"Sicilian Defense: Bowdler Attack","c":null}
+  ]
+}

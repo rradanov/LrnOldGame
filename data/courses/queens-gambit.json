@@ -1,0 +1,30 @@
+{
+  "v": 1,
+  "id": "queens-gambit",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["d4","d5"],
+  "lines": [
+    {"id":"31e031fb","n":1,"m":["d4","d5","c4","Nf6","cxd5","Qxd5","Nc3"],"p":0.0414259,"end":"adv","cp":115,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"d3b1716f","n":2,"m":["d4","d5","c4","c6","Nc3","Bf5","cxd5"],"p":0.032383,"end":"adv","cp":102,"eco":"D10","name":"Slav Defense","c":null},
+    {"id":"a868f462","n":3,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nb6","Nc3","e6","Nf3"],"p":0.0305864,"end":"adv","cp":120,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"da89426d","n":4,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nf6","Nc3","e6","Nf3"],"p":0.0275585,"end":"adv","cp":124,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"fca8aa60","n":5,"m":["d4","d5","c4","dxc4","e4","b5","a4","c6","axb5","cxb5","Nc3","Bd7","d5"],"p":0.0132815,"end":"data","cp":77,"eco":"D20","name":"Queen's Gambit Accepted: Central Variation, Greco Variation","c":null},
+    {"id":"0f19cb2e","n":6,"m":["d4","d5","c4","dxc4","e4","Nc6","Nf3","Bg4","d5","Ne5","Bf4"],"p":0.0132545,"end":"data","cp":45,"eco":"D20","name":"Queen's Gambit Accepted: Central Variation, Modern Defense","c":null},
+    {"id":"fea7501e","n":7,"m":["d4","d5","c4","dxc4","e4","e6","Bxc4","Nc6","Nf3"],"p":0.0103272,"end":"adv","cp":144,"eco":"D20","name":"Queen's Gambit Accepted: Saduleto Variation","c":null},
+    {"id":"72de59a5","n":8,"m":["d4","d5","c4","c6","Nc3","e6","Nf3","Nf6","Bg5"],"p":0.0100966,"end":"transpose","to":"c71d45a1","cp":34,"eco":"D43","name":"Semi-Slav Defense","c":null},
+    {"id":"d1316aff","n":9,"m":["d4","d5","c4","c6","Nc3","Nf6","Nf3","Bg4","Ne5","Bh5","cxd5"],"p":0.00893785,"end":"adv","cp":245,"eco":"D15","name":"Slav Defense: Three Knights Variation","c":null},
+    {"id":"9b3a634b","n":10,"m":["d4","d5","c4","dxc4","e4","e5","Nf3","exd4","Bxc4","Nc6","O-O"],"p":0.00876032,"end":"data","cp":30,"eco":"D20","name":"Queen's Gambit Accepted: Central Variation, McDonnell Defense","c":null},
+    {"id":"106e6862","n":11,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nb6","Nc3","Nc6","d5"],"p":0.00865917,"end":"adv","cp":170,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"9b38334b","n":12,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nf6","Nc3","Bg4","Qb3"],"p":0.0084087,"end":"adv","cp":280,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"dd050517","n":13,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nf6","Nc3","Nc6","d5"],"p":0.00804044,"end":"adv","cp":290,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"d86139f4","n":14,"m":["d4","d5","c4","dxc4","e4","b5","a4","Bd7","axb5"],"p":0.00744237,"end":"adv","cp":142,"eco":"D20","name":"Queen's Gambit Accepted: Central Variation, Greco Variation","c":null},
+    {"id":"4659f1c8","n":15,"m":["d4","d5","c4","dxc4","e4","e6","Bxc4","Bb4+","Nc3","Bxc3+","bxc3"],"p":0.00664612,"end":"adv","cp":193,"eco":"D20","name":"Queen's Gambit Accepted: Saduleto Variation","c":null},
+    {"id":"a34350ba","n":16,"m":["d4","d5","c4","e6","Nc3","Nf6","Bg5","Be7","e3","O-O","Nf3","h6","Bh4"],"p":0.00630446,"end":"data","cp":19,"eco":"D55","name":"Queen's Gambit Declined: Neo-Orthodox Variation, Main Line","c":null},
+    {"id":"f798f7da","n":17,"m":["d4","d5","c4","e6","Nc3","Bb4","a3","Bxc3+","bxc3","dxc4","e3"],"p":0.00618503,"end":"data","cp":56,"eco":"D31","name":"Queen's Gambit Declined: Queen's Knight Variation","c":null},
+    {"id":"d96420a9","n":18,"m":["d4","d5","c4","c6","Nc3","Nf6","Nf3","Bf5","cxd5","Nxd5","Nd2"],"p":0.00590955,"end":"data","cp":72,"eco":"D15","name":"Slav Defense: Three Knights Variation","c":null},
+    {"id":"ddf999a7","n":19,"m":["d4","d5","c4","e6","Nc3","Bb4","a3","Bxc3+","bxc3","Nf6","e3","O-O","cxd5"],"p":0.0054917,"end":"data","cp":17,"eco":"D31","name":"Queen's Gambit Declined: Queen's Knight Variation","c":null},
+    {"id":"27e9775f","n":20,"m":["d4","d5","c4","dxc4","e4","Nf6","e5","Nfd7","Bxc4"],"p":0.00537605,"end":"data","cp":39,"eco":"D20","name":"Queen's Gambit Accepted: Central Variation, Alekhine System","c":null},
+    {"id":"c71d45a1","n":21,"m":["d4","d5","c4","c6","Nc3","Nf6","Nf3","e6","Bg5","Be7","e3","Nbd7","cxd5"],"p":0.00280277,"end":"data","cp":25,"eco":"D43","name":"Semi-Slav Defense","c":null}
+  ]
+}

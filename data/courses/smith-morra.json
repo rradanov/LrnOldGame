@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "smith-morra",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","c5"],
+  "lines": [
+    {"id":"922dc80f","n":1,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","e6","Be2"],"p":0.0713324,"end":"data","cp":1,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"ba19080b","n":2,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","e6","Nf3","Nc6","Be2"],"p":0.0352493,"end":"data","cp":1,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"85633985","n":3,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","e6","Nf3","Bb4","Qd4"],"p":0.0291568,"end":"data","cp":14,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"8de01b4b","n":4,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","e6","Nf3","a6","Bf4"],"p":0.0282865,"end":"data","cp":-11,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted, Kan Formation","c":null},
+    {"id":"6a0d0be3","n":5,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","g6","Bc4","Bg7","e5","Nxe5","Nxe5"],"p":0.018152,"end":"data","cp":33,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted, Fianchetto Defense","c":null},
+    {"id":"85ecf992","n":6,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","d6","Nf3","Nc6","Bc4"],"p":0.0163154,"end":"transpose","to":"76124cb8","cp":-6,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"f8f13f18","n":7,"m":["e4","c5","d4","cxd4","c3","Nc6","cxd4","d6","d5"],"p":0.0114776,"end":"adv","cp":138,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit","c":null},
+    {"id":"c11d57a2","n":8,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","e5","Bc4","Nf6","Ng5","d5","Bxd5"],"p":0.0108127,"end":"data","cp":62,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"d419a8ef","n":9,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","e5","Bc4","h6","Qb3"],"p":0.0101106,"end":"adv","cp":125,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"6008a2d6","n":10,"m":["e4","c5","d4","cxd4","c3","Nc6","cxd4","g6","d5"],"p":0.00989353,"end":"adv","cp":206,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit","c":null},
+    {"id":"76124cb8","n":11,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","d6","Bc4","Nf6","O-O","g6","e5"],"p":0.00905953,"end":"adv","cp":176,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"bcbe757d","n":12,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","e5","Bc4","Bb4","Ng5"],"p":0.00773899,"end":"data","cp":60,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"30ad18e6","n":13,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","d6","Bc4","Bg4","Bxf7+"],"p":0.00759709,"end":"adv","cp":274,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"de61d016","n":14,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","d6","Nf3","Nf6","Bc4","e6","e5"],"p":0.00633303,"end":"data","cp":-7,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"03dc52a2","n":15,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","d6","Bc4","Nf6","O-O","Bg4","Qb3"],"p":0.00576516,"end":"adv","cp":239,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted","c":null},
+    {"id":"90a5b104","n":16,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","d6","Bc4","e6","O-O","Be7","Qe2"],"p":0.0048996,"end":"data","cp":-7,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted, Scheveningen Formation","c":null},
+    {"id":"bcb89a8f","n":17,"m":["e4","c5","d4","cxd4","c3","Nc6","cxd4","d5","exd5","Qxd5","Nf3","Nf6","Nc3"],"p":0.00473115,"end":"adv","cp":159,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit","c":null},
+    {"id":"fa8f8423","n":18,"m":["e4","c5","d4","cxd4","c3","dxc3","Nxc3","Nc6","Nf3","d6","Bc4","e6","O-O","Nf6","Qe2","Be7","Rd1"],"p":0.00414323,"end":"data","cp":21,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit Accepted, Scheveningen Formation","c":null},
+    {"id":"bb67a83e","n":19,"m":["e4","c5","d4","cxd4","c3","Nc6","cxd4","e6","Nf3","Bb4+","Nc3"],"p":0.00387038,"end":"data","cp":94,"eco":"B21","name":"Sicilian Defense: Smith-Morra Gambit","c":null},
+    {"id":"04ada636","n":20,"m":["e4","c5","d4","cxd4","c3","Nc6","cxd4","d5","exd5","Qxd5","Nf3","Bg4","Nc3","Qd8","d5"],"p":0.00375529,"end":"adv","cp":401,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense, Central Exchange","c":null}
+  ]
+}

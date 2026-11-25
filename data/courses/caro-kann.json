@@ -1,0 +1,30 @@
+{
+  "v": 1,
+  "id": "caro-kann",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","c6"],
+  "lines": [
+    {"id":"024a9c93","n":1,"m":["e4","c6","d4","d5","exd5","cxd5","Nf3","Nc6"],"p":0.0351444,"end":"transpose","to":"9884e619","cp":-21,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"1a49340e","n":2,"m":["e4","c6","d4","d5","e5","Bf5","Nf3","e6","Bd3","Bxd3","Qxd3","c5"],"p":0.0200138,"end":"transpose","to":"3d57b960","cp":-13,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Short Variation","c":null},
+    {"id":"dc4b79fb","n":3,"m":["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng5","h6","Nxf7","Kxf7"],"p":0.0125039,"end":"adv","cp":249,"eco":"B18","name":"Caro-Kann Defense: Classical Variation","c":null},
+    {"id":"e01dbe42","n":4,"m":["e4","c6","Nf3","d5","e5","Bg4","Be2","e6","d4","c5"],"p":0.00668203,"end":"transpose","to":"3f1dc077","cp":-4,"eco":"B10","name":"Caro-Kann Defense","c":null},
+    {"id":"ece16c59","n":5,"m":["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng3","Bg6","Nf3","e6","Bd3","Nf6"],"p":0.00620193,"end":"data","cp":-10,"eco":"B18","name":"Caro-Kann Defense: Classical Variation","c":null},
+    {"id":"3d57b960","n":6,"m":["e4","c6","d4","d5","e5","Bf5","Bd3","Bxd3","Qxd3","e6","Nf3","c5","c3","Nc6","O-O","a6"],"p":0.0050818,"end":"data","cp":-28,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"9884e619","n":7,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Nc3","Bg4","Be2","e6","O-O","Nf6"],"p":0.00494698,"end":"data","cp":13,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"123067ee","n":8,"m":["e4","c6","Nf3","d5","e5","Bg4","h3","Bxf3","Qxf3","e6","d4","c5"],"p":0.00463879,"end":"transpose","to":"12869596","cp":18,"eco":"B10","name":"Caro-Kann Defense","c":null},
+    {"id":"e304ae81","n":9,"m":["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Bd3","Qxd4","Nf3","Qd8"],"p":0.00455946,"end":"data","cp":17,"eco":"B18","name":"Caro-Kann Defense: Classical Variation","c":null},
+    {"id":"9053d6ed","n":10,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Bb5","Bg4","Bxc6+","bxc6"],"p":0.0045007,"end":"data","cp":20,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"a3329c6d","n":11,"m":["e4","c6","d4","d5","exd5","cxd5","Nc3","Nf6","Bg5","Bf5"],"p":0.00448774,"end":"data","cp":10,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"e211daa6","n":12,"m":["e4","c6","d4","d5","exd5","cxd5","c4","Nf6","Nc3","e6","Nf3","Bb4"],"p":0.00418476,"end":"data","cp":-26,"eco":"B14","name":"Caro-Kann Defense: Panov Attack, Main Line","c":null},
+    {"id":"27b20eb3","n":13,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Bb5","Bg4","h3","Bxf3","Qxf3","e6","O-O","Bd6"],"p":0.0041481,"end":"data","cp":-5,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"504158ef","n":14,"m":["e4","c6","d4","d5","exd5","cxd5","Bd3","Nc6","c3","Nf6","h3","e5","dxe5","Nxe5"],"p":0.00410605,"end":"data","cp":-18,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"cbb0382a","n":15,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Nc3","Bg4","h3","Bxf3","Qxf3","e6"],"p":0.00375555,"end":"data","cp":0,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"e701aef2","n":16,"m":["e4","c6","d4","d5","exd5","cxd5","Bd3","Nc6","c3","Nf6","Bf4","Bg4"],"p":0.00360599,"end":"data","cp":-18,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation, Rubinstein Variation","c":null},
+    {"id":"47deeb2b","n":17,"m":["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng3","Bg6","Nf3","e6","Ne5","Nd7"],"p":0.00342583,"end":"data","cp":1,"eco":"B18","name":"Caro-Kann Defense: Classical Variation","c":null},
+    {"id":"79c30052","n":18,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Nc3","Bg4","Bb5","e6","h3","Bxf3","Qxf3","Ne7"],"p":0.00312975,"end":"data","cp":3,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"3f1dc077","n":19,"m":["e4","c6","Nf3","d5","e5","Bg4","d4","e6","Be2","c5","c3","Nc6","O-O","Nge7"],"p":0.00310237,"end":"data","cp":-6,"eco":"B10","name":"Caro-Kann Defense","c":null},
+    {"id":"351c3183","n":20,"m":["e4","c6","Nf3","d5","exd5","cxd5","d4","Nc6","Bb5","Bg4","O-O","e6","h3","Bh5"],"p":0.00306569,"end":"data","cp":2,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"12869596","n":21,"m":["e4","c6","Nf3","d5","e5","Bg4","d4","e6","h3","Bxf3","Qxf3","c5","Bb5+","Nc6"],"p":0.00267292,"end":"data","cp":15,"eco":"B10","name":"Caro-Kann Defense","c":null}
+  ]
+}

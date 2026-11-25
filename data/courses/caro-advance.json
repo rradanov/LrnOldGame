@@ -1,0 +1,20 @@
+{
+  "v": 1,
+  "id": "caro-advance",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","c6"],
+  "lines": [
+    {"id":"0a818f76","n":1,"m":["e4","c6","d4","d5","e5","c5","c3","Nc6","Bb5","Bf5","dxc5"],"p":0.0498787,"end":"adv","cp":143,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},
+    {"id":"9d5d1f59","n":2,"m":["e4","c6","d4","d5","e5","c5","c3","Nc6","Bb5","a6","Bxc6+","bxc6","dxc5"],"p":0.0384891,"end":"adv","cp":110,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},
+    {"id":"dfed9467","n":3,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","Nd7","Be2","c5","O-O"],"p":0.0328217,"end":"data","cp":43,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"a5151ba7","n":4,"m":["e4","c6","d4","d5","e5","c5","c3","Nc6","Bb5","cxd4","cxd4","Bf5","Bxc6+"],"p":0.027918,"end":"data","cp":41,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},
+    {"id":"4948e5aa","n":5,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","c5","Bd3","Bxd3","Qxd3","Nc6","O-O","Qb6","dxc5"],"p":0.0206702,"end":"data","cp":44,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"a327034a","n":6,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","c5","Bd3","Bxd3","Qxd3","Nc6","O-O","Nge7","dxc5"],"p":0.0202802,"end":"data","cp":43,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"c8544b6d","n":7,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","c5","Bd3","Bxd3","Qxd3","c4","Qe2"],"p":0.0182493,"end":"data","cp":55,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"7499c0b6","n":8,"m":["e4","c6","d4","d5","e5","c5","c3","Nc6","Bb5","cxd4","cxd4","a6","Bxc6+","bxc6","Ne2"],"p":0.0178272,"end":"data","cp":53,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},
+    {"id":"ad00e0fc","n":9,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","c5","Bd3","Bxd3","Qxd3","cxd4","cxd4","Nc6","O-O"],"p":0.0158281,"end":"transpose","to":"309f20f5","cp":38,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null},
+    {"id":"c8bb7e50","n":10,"m":["e4","c6","d4","d5","e5","c5","c3","cxd4","cxd4","Nc6","Nc3","Bf5","Be3","e6","a3"],"p":0.00951706,"end":"data","cp":40,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense","c":null},
+    {"id":"309f20f5","n":11,"m":["e4","c6","d4","d5","e5","Bf5","c3","e6","Nf3","c5","Bd3","Bxd3","Qxd3","Nc6","O-O","cxd4","cxd4","Nge7","Nc3"],"p":0.00837483,"end":"data","cp":35,"eco":"B12","name":"Caro-Kann Defense: Advance Variation","c":null}
+  ]
+}

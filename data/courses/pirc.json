@@ -1,0 +1,28 @@
+{
+  "v": 1,
+  "id": "pirc",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","d6"],
+  "lines": [
+    {"id":"0255202b","n":1,"m":["e4","d6","Nf3","Nf6","Bc4","Nxe4"],"p":0.0341918,"end":"adv","cp":109,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"ab8d55bb","n":2,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Bg5","O-O"],"p":0.0149153,"end":"transpose","to":"68412525","cp":-51,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"2e727522","n":3,"m":["e4","d6","Nf3","Nf6","Nc3","e5","d4","exd4","Nxd4","Be7","Bc4","O-O"],"p":0.0111858,"end":"transpose","to":"e6a767b4","cp":-37,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"f18cc7f6","n":4,"m":["e4","d6","d4","Nf6","Bd3","g6","f4","e5"],"p":0.0101339,"end":"data","cp":-34,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"ab017e92","n":5,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","e5","dxe5","dxe5","Qxd1+"],"p":0.00856541,"end":"adv","cp":73,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"e6a767b4","n":6,"m":["e4","d6","Nf3","Nf6","Nc3","e5","Bc4","Be7","d4","exd4","Nxd4","O-O","O-O","c6"],"p":0.00778159,"end":"data","cp":-33,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"45c3c335","n":7,"m":["e4","d6","Nf3","Nf6","Nc3","e5","d4","exd4","Nxd4","Be7","Bd3","O-O","O-O","Re8"],"p":0.00627762,"end":"data","cp":-37,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"4ce93856","n":8,"m":["e4","d6","d4","Nf6","Bd3","g6","Nf3","Bg7","O-O","Nbd7"],"p":0.00624777,"end":"data","cp":-44,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"e1b44217","n":9,"m":["e4","d6","Nf3","Nf6","Nc3","e5","d4","exd4","Nxd4","Be7","Bg5","Nxe4"],"p":0.00609356,"end":"adv","cp":84,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"83dafca2","n":10,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Bd3","O-O","Be3","Nbd7"],"p":0.00584308,"end":"transpose","to":"d51710d4","cp":-35,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"db513a88","n":11,"m":["e4","d6","Nf3","Nf6","Nc3","e5","Bc4","Be7","d3","O-O","h3","c6"],"p":0.00556991,"end":"data","cp":-6,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"128dbe89","n":12,"m":["e4","d6","Nf3","Nf6","Nc3","e5","Bc4","Be7","d3","O-O","O-O","Nc6"],"p":0.00529953,"end":"data","cp":-19,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"28a10a58","n":13,"m":["e4","d6","Nf3","Nf6","e5","dxe5","Nxe5","Nbd7","Nf3","e5"],"p":0.00512046,"end":"data","cp":32,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"69191875","n":14,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Bc4","O-O","O-O","Bg4","h3","Bxf3","Qxf3","Nc6"],"p":0.00461046,"end":"data","cp":-36,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"ef602ef5","n":15,"m":["e4","d6","Nf3","Nf6","Nc3","e5","d4","exd4","Nxd4","Be7","Be3","O-O"],"p":0.00446289,"end":"data","cp":-41,"eco":"B00","name":"Pirc Defense","c":null},
+    {"id":"68412525","n":16,"m":["e4","d6","d4","Nf6","Nc3","g6","Bg5","Bg7","Nf3","O-O","Bd3","Bg4"],"p":0.00385566,"end":"data","cp":-24,"eco":"B07","name":"Pirc Defense: Byrne Variation","c":null},
+    {"id":"fc94cd90","n":17,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Be3","O-O","Qd2","d5"],"p":0.00379182,"end":"data","cp":-75,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"f5ec25f6","n":18,"m":["e4","d6","d4","Nf6","Nc3","g6","Bg5","Bg7","Qd2","O-O","Bh6","e5"],"p":0.00371455,"end":"data","cp":-69,"eco":"B07","name":"Pirc Defense: Byrne Variation","c":null},
+    {"id":"d51710d4","n":19,"m":["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7","Be3","O-O","Bd3","Nbd7","Qd2","c5"],"p":0.00277165,"end":"data","cp":-13,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null}
+  ]
+}

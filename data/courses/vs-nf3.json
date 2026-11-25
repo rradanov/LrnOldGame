@@ -1,0 +1,28 @@
+{
+  "v": 1,
+  "id": "vs-nf3",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["Nf3"],
+  "lines": [
+    {"id":"96c0276b","n":1,"m":["Nf3","d5","e4","dxe4"],"p":0.114973,"end":"adv","cp":90,"eco":"A06","name":"Zukertort Opening: Tennison Gambit","c":null},
+    {"id":"d021dfb3","n":2,"m":["Nf3","d5","c4","d4","b4","f6"],"p":0.0376449,"end":"data","cp":12,"eco":"A09","name":"Réti Opening: Advance Variation","c":null},
+    {"id":"8953756a","n":3,"m":["Nf3","d5","g3","Nf6","Bg2","c6","O-O","Bg4","d3","e6"],"p":0.0372627,"end":"data","cp":-11,"eco":"A07","name":"King's Indian Attack: Yugoslav Variation","c":null},
+    {"id":"e10d62aa","n":4,"m":["Nf3","d5","g3","Nf6","Bg2","c6","d3","Bg4","O-O","e6"],"p":0.0180438,"end":"data","cp":-11,"eco":"A05","name":"King's Indian Attack","c":null},
+    {"id":"d4917412","n":5,"m":["Nf3","d5","c4","d4","e3","c5","b4","Nf6"],"p":0.0163128,"end":"data","cp":13,"eco":"A09","name":"Réti Opening: Reversed Blumenfeld Gambit","c":null},
+    {"id":"3f899e34","n":6,"m":["Nf3","d5","c4","d4","g3","Nc6"],"p":0.0153089,"end":"data","cp":16,"eco":"A09","name":"Réti Opening: Advance Variation","c":null},
+    {"id":"dee0389d","n":7,"m":["Nf3","d5","d4","Nf6","e3","e6","Bd3","c5","c3","Nc6","Nbd2","b6"],"p":0.012455,"end":"data","cp":-10,"eco":"D05","name":"Queen's Pawn Game: Colle System, Traditional Colle","c":null},
+    {"id":"3217e660","n":8,"m":["Nf3","d5","d4","Nf6","e3","e6","Bd3","c5","b3","b6"],"p":0.0124366,"end":"data","cp":-11,"eco":"D05","name":"Rubinstein Opening","c":null},
+    {"id":"5b809b27","n":9,"m":["Nf3","d5","g3","Nf6","Bg2","c6","d4","Bg4","O-O","e6"],"p":0.0115213,"end":"data","cp":-29,"eco":"D02","name":"Queen's Pawn Game: Symmetrical Variation, Pseudo-Catalan","c":null},
+    {"id":"2ad9bc8f","n":10,"m":["Nf3","d5","d4","Nf6","Bf4","e6","e3","Bd6","Bg3","O-O","Bd3","c5","c3","Qc7"],"p":0.00985318,"end":"data","cp":5,"eco":"D02","name":"Queen's Pawn Game: London System, with e6","c":null},
+    {"id":"bae6e6ba","n":11,"m":["Nf3","d5","d4","Nf6","e3","e6","Bd3","c5","c3","Nc6","O-O","Be7"],"p":0.00730118,"end":"data","cp":-11,"eco":"D05","name":"Queen's Pawn Game: Colle System, Traditional Colle","c":null},
+    {"id":"89d78e04","n":12,"m":["Nf3","d5","d4","Nf6","e3","e6","Be2","Bd6","O-O","b6"],"p":0.00670691,"end":"data","cp":1,"eco":"D05","name":"Queen's Pawn Game: Colle System","c":null},
+    {"id":"7d6903ff","n":13,"m":["Nf3","d5","c4","d4","d3","Nc6","g3","e5"],"p":0.00650943,"end":"data","cp":23,"eco":"A09","name":"Réti Opening: Advance Variation","c":null},
+    {"id":"3a1a4e89","n":14,"m":["Nf3","d5","d4","Nf6","Bf4","e6","e3","Bd6","Ne5","O-O","Bd3","c5"],"p":0.00582812,"end":"data","cp":-1,"eco":"D02","name":"Queen's Pawn Game: London System, with e6","c":null},
+    {"id":"0946b835","n":15,"m":["Nf3","d5","d4","Nf6","c4","e6","Nc3","c5","Bg5","cxd4","Nxd4","e5"],"p":0.00538126,"end":"data","cp":-1,"eco":"D40","name":"Queen's Gambit Declined: Semi-Tarrasch Defense, Pillsbury Variation","c":null},
+    {"id":"a49f9b78","n":16,"m":["Nf3","d5","c4","d4","e3","c5","exd4","cxd4","d3","Nc6"],"p":0.00522846,"end":"data","cp":30,"eco":"A09","name":"Réti Opening: Advance Variation","c":null},
+    {"id":"53988e93","n":17,"m":["Nf3","d5","d4","Nf6","Nc3","e6","Bg5","Be7","e3","O-O","Bd3","c5"],"p":0.00487633,"end":"data","cp":20,"eco":"A46","name":"Queen's Pawn Game: Veresov Attack, Classical Defense","c":null},
+    {"id":"ce971d67","n":18,"m":["Nf3","d5","c4","d4","e3","c5","exd4","cxd4","c5","Nc6"],"p":0.00460104,"end":"data","cp":34,"eco":"A09","name":"Réti Opening: Advance Variation","c":null},
+    {"id":"204c7c8a","n":19,"m":["Nf3","d5","d4","Nf6","c4","e6","Nc3","c5","e3","Nc6"],"p":0.00436298,"end":"data","cp":-19,"eco":"D32","name":"Tarrasch Defense: Symmetrical Variation","c":null}
+  ]
+}

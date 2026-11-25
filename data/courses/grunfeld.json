@@ -1,0 +1,32 @@
+{
+  "v": 1,
+  "id": "grunfeld",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["d4"],
+  "lines": [
+    {"id":"3b7613f5","n":1,"m":["d4","Nf6","Bf4","g6","Nf3","Bg7","e3","O-O"],"p":0.0316698,"end":"transpose","to":"f142d143","cp":-1,"eco":"A48","name":"London System","c":null},
+    {"id":"ec704c1a","n":2,"m":["d4","Nf6","c4","g6","Nc3","d5","Nf3","Bg7","Bg5","Ne4"],"p":0.0173773,"end":"data","cp":-23,"eco":"D91","name":"Grünfeld Defense: Three Knights Variation, Petrosian System","c":null},
+    {"id":"80be9102","n":3,"m":["d4","Nf6","Nc3","d5","Nf3","e6"],"p":0.0147054,"end":"transpose","to":"b3f50f33","cp":6,"eco":"A45","name":"Queen's Pawn Game: Chigorin Variation","c":null},
+    {"id":"fd4f0475","n":4,"m":["d4","Nf6","c4","g6","Nc3","d5","Nf3","Bg7","e3","O-O"],"p":0.0141269,"end":"transpose","to":"dfdc8a36","cp":-11,"eco":"D94","name":"Grünfeld Defense: Three Knights Variation, Burille Variation","c":null},
+    {"id":"dffd2ba9","n":5,"m":["d4","Nf6","c4","g6","Nc3","d5","Bg5","Bg7","Nf3","Ne4"],"p":0.0126767,"end":"data","cp":-23,"eco":"D91","name":"Grünfeld Defense: Three Knights Variation, Petrosian System","c":null},
+    {"id":"30f1ab13","n":6,"m":["d4","Nf6","c4","g6","Nc3","d5","Bg5","Bg7","e3","c5"],"p":0.0119085,"end":"data","cp":-7,"eco":"D80","name":"Grünfeld Defense: Stockholm Variation","c":null},
+    {"id":"2957e915","n":7,"m":["d4","Nf6","c4","g6","Nc3","d5","cxd5","Nxd5","e4","Nxc3","bxc3","Bg7","Bc4","O-O"],"p":0.0101873,"end":"data","cp":-32,"eco":"D86","name":"Grünfeld Defense: Exchange Variation, Classical Variation","c":null},
+    {"id":"a906eb12","n":8,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","f3","e6","g4","Bg6","h4","h6","e3","Be7"],"p":0.00933621,"end":"data","cp":0,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"46c0a601","n":9,"m":["d4","Nf6","c4","g6","Nc3","d5","Nf3","Bg7","Bf4","O-O","e3","c5"],"p":0.00782155,"end":"data","cp":-13,"eco":"D93","name":"Grünfeld Defense: Three Knights Variation, Hungarian Variation","c":null},
+    {"id":"33bd6822","n":10,"m":["d4","Nf6","c4","g6","Nc3","d5","Nf3","Bg7","cxd5","Nxd5","e4","Nxc3","bxc3","c5"],"p":0.00752068,"end":"transpose","to":"f0cbe58c","cp":-34,"eco":"D85","name":"Grünfeld Defense: Exchange Variation, Modern Exchange Variation","c":null},
+    {"id":"d2f9356a","n":11,"m":["d4","Nf6","Bf4","g6","e3","Bg7","Bd3","O-O","Nf3","d6"],"p":0.00711131,"end":"transpose","to":"f142d143","cp":3,"eco":"A45","name":"Indian Defense: Accelerated London System","c":null},
+    {"id":"3dfb2bb8","n":12,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","e3","e6","f3","Be7"],"p":0.00592431,"end":"data","cp":24,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"96c92e86","n":13,"m":["d4","Nf6","Bf4","g6","Nc3","d5","Nb5","Na6","e3","Bg7"],"p":0.00558109,"end":"data","cp":-6,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"8c9b0ae3","n":14,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","e3","e6","Bd3","c6"],"p":0.00536187,"end":"data","cp":-2,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"3659b4e7","n":15,"m":["d4","Nf6","Nf3","d5","e3","e6","Bd3","c5","c3","Nc6","Nbd2","b6"],"p":0.00523273,"end":"data","cp":-10,"eco":"D05","name":"Queen's Pawn Game: Colle System, Traditional Colle","c":null},
+    {"id":"934edc26","n":16,"m":["d4","Nf6","Nf3","d5","e3","e6","Bd3","c5","b3","b6"],"p":0.00522502,"end":"data","cp":-11,"eco":"D05","name":"Rubinstein Opening","c":null},
+    {"id":"3aece585","n":17,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","e3","e6","Nf3","Bd6"],"p":0.00502441,"end":"data","cp":-13,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"fc8af2a0","n":18,"m":["d4","Nf6","Nc3","d5","Bg5","h6","Bh4","c5"],"p":0.00478222,"end":"data","cp":22,"eco":"D01","name":"Richter-Veresov Attack","c":null},
+    {"id":"d72ec7d7","n":19,"m":["d4","Nf6","c4","g6","Nf3","Bg7","g3","O-O","Bg2","c6","O-O","d5"],"p":0.00476468,"end":"data","cp":-20,"eco":"D78","name":"Neo-Grünfeld Defense: Classical Variation, Original Defense","c":null},
+    {"id":"f142d143","n":20,"m":["d4","Nf6","Bf4","g6","e3","Bg7","Nf3","O-O","Bd3","d6","O-O","c5"],"p":0.00403931,"end":"data","cp":2,"eco":"A48","name":"London System","c":null},
+    {"id":"b3f50f33","n":21,"m":["d4","Nf6","Nf3","d5","Nc3","e6","Bf4","Bb4"],"p":0.00382767,"end":"data","cp":24,"eco":"D02","name":"Queen's Pawn Game: Symmetrical Variation","c":null},
+    {"id":"dfdc8a36","n":22,"m":["d4","Nf6","c4","g6","Nc3","d5","e3","Bg7","Nf3","O-O","cxd5","Nxd5"],"p":0.00335425,"end":"data","cp":-13,"eco":"D94","name":"Grünfeld Defense: Three Knights Variation, Burille Variation","c":null},
+    {"id":"f0cbe58c","n":23,"m":["d4","Nf6","c4","g6","Nc3","d5","cxd5","Nxd5","e4","Nxc3","bxc3","Bg7","Nf3","c5","Be3","Qa5"],"p":0.00304081,"end":"data","cp":-26,"eco":"D85","name":"Grünfeld Defense: Exchange Variation, Modern Exchange Variation","c":null}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "english",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": [],
+  "lines": [
+    {"id":"0239b515","n":1,"m":["c4","e5","Nc3","Nf6","Nf3","Bc5","Nxe5"],"p":0.0139527,"end":"adv","cp":185,"eco":"A22","name":"English Opening: King's English Variation, Two Knights Variation","c":null},
+    {"id":"d9ea607d","n":2,"m":["c4","e5","Nc3","Bc5","e3","Nf6","d4","exd4","exd4","Bb4","Qe2+"],"p":0.0121387,"end":"data","cp":64,"eco":"A21","name":"English Opening: King's English Variation, Reversed Sicilian","c":null},
+    {"id":"74a72597","n":3,"m":["c4","e5","Nc3","Bc5","e3","Nc6","a3"],"p":0.00956,"end":"data","cp":58,"eco":"A21","name":"English Opening: King's English Variation, Reversed Sicilian","c":null},
+    {"id":"37b39b5d","n":4,"m":["c4","e5","Nc3","Bc5","e3","d6","d4","exd4","exd4","Bb4","Qa4+"],"p":0.00615365,"end":"adv","cp":407,"eco":"A21","name":"English Opening: King's English Variation, Reversed Sicilian","c":null},
+    {"id":"8ca48166","n":5,"m":["c4","e5","Nc3","Nc6","g3","Nf6","Bg2","Bc5","e3","d6","Nge2"],"p":0.00591279,"end":"data","cp":54,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"763034cb","n":6,"m":["c4","Nf6","d4","g6","Nc3","Bg7","e4","O-O","Nf3","d6","Be2"],"p":0.00588679,"end":"transpose","to":"31319381","cp":43,"eco":"E91","name":"King's Indian Defense: Orthodox Variation","c":null},
+    {"id":"cfa46596","n":7,"m":["c4","e5","Nc3","Nc6","g3","Nf6","Bg2","d6","d3"],"p":0.00587461,"end":"data","cp":33,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"9a0bd4fb","n":8,"m":["c4","e5","Nc3","Nf6","Nf3","Nc6","g3","Bc5","Bg2","O-O","O-O"],"p":0.00520117,"end":"data","cp":32,"eco":"A29","name":"English Opening: King's English Variation, Four Knights Variation, Fianchetto Line","c":null},
+    {"id":"8437181b","n":9,"m":["c4","e5","Nc3","Nf6","Nf3","e4","Ng5","d5","cxd5"],"p":0.00492449,"end":"adv","cp":105,"eco":"A22","name":"English Opening: King's English Variation, Two Knights Variation","c":null},
+    {"id":"e58e52ef","n":10,"m":["c4","e5","Nc3","Nc6","g3","Bc5","Bg2","d6","e3"],"p":0.00477399,"end":"data","cp":44,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"4647e25b","n":11,"m":["c4","Nf6","d4","e6","Nc3","Bb4","Nf3","O-O","Bg5"],"p":0.00476425,"end":"data","cp":11,"eco":"E21","name":"Nimzo-Indian Defense: Three Knights Variation","c":null},
+    {"id":"4d114507","n":12,"m":["c4","e5","Nc3","Nc6","g3","Bc5","Bg2","Nf6","e3"],"p":0.00433195,"end":"transpose","to":"8ca48166","cp":36,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"729a7e77","n":13,"m":["c4","e5","Nc3","Nf6","Nf3","d6","g3","Be7","d4"],"p":0.00396589,"end":"data","cp":75,"eco":"A22","name":"English Opening: King's English Variation, Two Knights Variation","c":null},
+    {"id":"85b9b138","n":14,"m":["c4","e5","Nc3","Nc6","g3","Nf6","Bg2","Bb4","Nd5","Nxd5","cxd5"],"p":0.00393343,"end":"data","cp":62,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"6441eddc","n":15,"m":["c4","Nf6","d4","d5","cxd5","Qxd5","Nc3"],"p":0.00390463,"end":"adv","cp":115,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},
+    {"id":"31319381","n":16,"m":["c4","Nf6","d4","g6","Nc3","Bg7","e4","d6","Nf3","O-O","Be2","Nbd7","O-O"],"p":0.00377105,"end":"data","cp":75,"eco":"E91","name":"King's Indian Defense: Orthodox Variation","c":null},
+    {"id":"48fead18","n":17,"m":["c4","Nf6","d4","g6","Nc3","Bg7","e4","d6","Nf3","Bg4","Be2"],"p":0.00319855,"end":"data","cp":72,"eco":"E90","name":"King's Indian Defense: Normal Variation, Rare Defenses","c":null},
+    {"id":"2706b70e","n":18,"m":["c4","e5","Nc3","Nc6","g3","Nf6","Bg2","Bc5","e3","O-O","Nge2"],"p":0.00300707,"end":"data","cp":47,"eco":"A25","name":"English Opening: King's English Variation, Reversed Closed Sicilian","c":null},
+    {"id":"f490f77d","n":19,"m":["c4","Nf6","d4","e6","Nc3","Bb4","Nf3","Ne4","Qc2"],"p":0.00289067,"end":"data","cp":41,"eco":"E21","name":"Nimzo-Indian Defense: Three Knights Variation","c":null},
+    {"id":"7c556e1d","n":20,"m":["c4","Nf6","d4","d5","cxd5","Nxd5","e4","Nb6","Nc3","e6","Nf3"],"p":0.00288295,"end":"adv","cp":120,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "scandinavian",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","d5"],
+  "lines": [
+    {"id":"48e289ed","n":1,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","d4","e6"],"p":0.0770268,"end":"transpose","to":"b818139a","cp":-73,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"748a0ba9","n":2,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Bc4","c5"],"p":0.0739359,"end":"data","cp":-20,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"b8536441","n":3,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","Bc4","e6","O-O","c5"],"p":0.0389981,"end":"data","cp":-33,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"ba6e058a","n":4,"m":["e4","d5","exd5","Qxd5","Nf3","Bg4","Be2","Nc6","Nc3","Qd7"],"p":0.0186691,"end":"data","cp":-10,"eco":"B01","name":"Scandinavian Defense: Mieses-Kotrč Variation","c":null},
+    {"id":"13c63ac8","n":5,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Bg5","h6"],"p":0.0168034,"end":"data","cp":-41,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"06542389","n":6,"m":["e4","d5","e5","c5","Nf3","Bg4","Be2","Nc6"],"p":0.0141005,"end":"adv","cp":66,"eco":"B01","name":"Scandinavian Defense","c":null},
+    {"id":"b818139a","n":7,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Nf3","e6","Bc4","Be7"],"p":0.0139625,"end":"transpose","to":"656d4961","cp":-60,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"4939d432","n":8,"m":["e4","d5","e5","c5","d4","cxd4","Qxd4","Nc6","Bb5","e6"],"p":0.0131169,"end":"data","cp":36,"eco":"B01","name":"Scandinavian Defense","c":null},
+    {"id":"14e231e8","n":9,"m":["e4","d5","exd5","Qxd5","Nf3","Bg4","Nc3","Qe6+","Be2","Bxf3","gxf3","Nc6"],"p":0.011471,"end":"data","cp":4,"eco":"B01","name":"Scandinavian Defense: Mieses-Kotrč Variation","c":null},
+    {"id":"e746c389","n":10,"m":["e4","d5","e5","c5","Nf3","Bg4","h3","Bxf3","Qxf3","a6"],"p":0.00982847,"end":"data","cp":34,"eco":"B01","name":"Scandinavian Defense","c":null},
+    {"id":"93fcbe67","n":11,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Bc4","e6","Nf3","Be7"],"p":0.00869677,"end":"transpose","to":"656d4961","cp":-60,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"656d4961","n":12,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","Bc4","e6","d4","Be7","O-O","O-O"],"p":0.00852133,"end":"data","cp":-67,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"4bb843a7","n":13,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Nf3","e6","Bg5","Be7","Bd3","Nc6"],"p":0.00821892,"end":"data","cp":-66,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"53352d90","n":14,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","Bc4","e6","d3","Be7","Bg5","a6"],"p":0.00778741,"end":"data","cp":-4,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"e8f1e2a1","n":15,"m":["e4","d5","exd5","Qxd5","Nf3","Bg4","Be2","Nc6","O-O","O-O-O","Nc3","Qf5"],"p":0.00728195,"end":"data","cp":5,"eco":"B01","name":"Scandinavian Defense: Mieses-Kotrč Variation","c":null},
+    {"id":"93d6fa86","n":16,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Nf3","e6","Bd3","Be7","O-O","O-O"],"p":0.00710606,"end":"data","cp":-58,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"6c32c8bb","n":17,"m":["e4","d5","e5","c5","d4","cxd4","Qxd4","Nc6","Qf4","g6"],"p":0.00700903,"end":"adv","cp":101,"eco":"B01","name":"Scandinavian Defense","c":null},
+    {"id":"d663f3da","n":18,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","Nf3","Nf6","Bc4","e6","d3","Be7","O-O","a6"],"p":0.00684348,"end":"data","cp":5,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"5cfdc0bd","n":19,"m":["e4","d5","exd5","Qxd5","Nc3","Qd8","d4","Nf6","Nf3","e6","Bg5","Be7","Bc4","a6"],"p":0.00672457,"end":"data","cp":-77,"eco":"B01","name":"Scandinavian Defense: Valencian Variation","c":null},
+    {"id":"f4f53f42","n":20,"m":["e4","d5","e5","c5","c3","Nc6","d4","cxd4","cxd4","Bf5","Nf3","e6"],"p":0.00619191,"end":"data","cp":0,"eco":"B01","name":"Scandinavian Defense","c":null}
+  ]
+}

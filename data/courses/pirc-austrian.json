@@ -1,0 +1,26 @@
+{
+  "v": 1,
+  "id": "pirc-austrian",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","d6"],
+  "lines": [
+    {"id":"1303fa59","n":1,"m":["e4","d6","d4","Nf6","Nc3","g6","f4","Bg7","Nf3","O-O","Bd3","Nbd7","a4"],"p":0.0467787,"end":"adv","cp":102,"eco":"B09","name":"Pirc Defense: Austrian Attack, Weiss Variation","c":null},
+    {"id":"6d308fe9","n":2,"m":["e4","d6","d4","Nf6","Nc3","g6","f4","Bg7","Nf3","Bg4","Be3"],"p":0.04434,"end":"adv","cp":151,"eco":"B09","name":"Pirc Defense: Austrian Attack","c":null},
+    {"id":"2e37cacb","n":3,"m":["e4","d6","d4","Nf6","Nc3","g6","f4","Bg7","Nf3","O-O","Bd3","Bg4","h3"],"p":0.0382735,"end":"adv","cp":108,"eco":"B09","name":"Pirc Defense: Austrian Attack, Weiss Variation","c":null},
+    {"id":"00f9eb50","n":4,"m":["e4","d6","d4","Nf6","Nc3","c6","Nf3","Qa5","Bd2","Qc7","e5"],"p":0.0205237,"end":"adv","cp":118,"eco":"B07","name":"Czech Defense","c":null},
+    {"id":"0547efb2","n":5,"m":["e4","d6","d4","Nf6","Nc3","g6","f4","Bg7","Nf3","O-O","Bd3","c5","dxc5"],"p":0.0201999,"end":"adv","cp":101,"eco":"B09","name":"Pirc Defense: Austrian Attack, Weiss Variation","c":null},
+    {"id":"9962e807","n":6,"m":["e4","d6","d4","Nf6","Nc3","c6","Nf3","Bg4","h3"],"p":0.0183425,"end":"adv","cp":104,"eco":"B07","name":"Czech Defense","c":null},
+    {"id":"9277d6de","n":7,"m":["e4","d6","d4","Nf6","Nc3","c6","Nf3","Qa5","Bd2","Qb6","e5"],"p":0.00980063,"end":"adv","cp":159,"eco":"B07","name":"Czech Defense","c":null},
+    {"id":"98d2d1c8","n":8,"m":["e4","d6","d4","Nf6","Nc3","c6","Nf3","g6","Be3","Bg7","Qd2"],"p":0.00772961,"end":"data","cp":72,"eco":"B07","name":"Czech Defense","c":null},
+    {"id":"32ff0a6f","n":9,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Bg4","Be2","Nc6","Be3"],"p":0.00392252,"end":"data","cp":76,"eco":"B06","name":"Modern Defense: Two Knights Variation","c":null},
+    {"id":"857dbed0","n":10,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nf6","Be3","O-O","Qd2","Nbd7","O-O-O"],"p":0.00382312,"end":"data","cp":76,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"f2a6588d","n":11,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nf6","Be3","O-O","Qd2","Nc6","d5"],"p":0.00368658,"end":"adv","cp":107,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"ae3dbeee","n":12,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nf6","Be3","O-O","Qd2","Ng4","Bg5"],"p":0.00368658,"end":"data","cp":80,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"8d1d6b3e","n":13,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Bg4","Be2","Bxf3","Bxf3"],"p":0.00307767,"end":"data","cp":80,"eco":"B06","name":"Modern Defense: Two Knights Variation","c":null},
+    {"id":"c761ed80","n":14,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nf6","Be3","O-O","Qd2","Bg4","Ng5"],"p":0.00286734,"end":"data","cp":98,"eco":"B08","name":"Pirc Defense: Classical Variation","c":null},
+    {"id":"e5f27c28","n":15,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nd7","Be3","e5","Qd2"],"p":0.00266375,"end":"adv","cp":148,"eco":"B06","name":"Modern Defense: Two Knights Variation","c":null},
+    {"id":"11365c37","n":16,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Nd7","Be3","Ngf6","h3"],"p":0.00238336,"end":"data","cp":81,"eco":"B06","name":"Modern Defense: Two Knights Variation","c":null},
+    {"id":"df561ef9","n":17,"m":["e4","d6","d4","g6","Nf3","Bg7","Nc3","Bg4","Be2","Nf6","h3","Bxf3","Bxf3"],"p":0.00208397,"end":"data","cp":71,"eco":"B06","name":"Modern Defense: Two Knights Variation","c":null}
+  ]
+}

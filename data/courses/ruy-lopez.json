@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "ruy-lopez",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","e5"],
+  "lines": [
+    {"id":"ec719fbf","n":1,"m":["e4","e5","Nf3","Nc6","Bb5","d6","d4","Bd7","Bxc6","Bxc6","Nc3"],"p":0.06018,"end":"adv","cp":103,"eco":"C62","name":"Ruy Lopez: Steinitz Defense","c":null},
+    {"id":"c36accd1","n":2,"m":["e4","e5","Nf3","Nc6","Bb5","d6","d4","a6","Bxc6+"],"p":0.0282952,"end":"adv","cp":191,"eco":"C62","name":"Ruy Lopez: Steinitz Defense","c":null},
+    {"id":"aca74abe","n":3,"m":["e4","e5","Nf3","Nc6","Bb5","Bc5","c3","d6","d4"],"p":0.0261227,"end":"adv","cp":221,"eco":"C64","name":"Ruy Lopez: Classical Variation, Central Variation","c":null},
+    {"id":"1aa3d2bf","n":4,"m":["e4","e5","Nf3","d6","d4","Bg4","dxe5","Bxf3","Qxf3"],"p":0.0241985,"end":"adv","cp":175,"eco":"C41","name":"Philidor Defense","c":null},
+    {"id":"3f0e09bf","n":5,"m":["e4","e5","Nf3","Nc6","Bb5","d6","d4","exd4","Nxd4","Bd7","Nxc6","Bxc6","Bxc6+","bxc6","Nc3","Nf6","Qe2"],"p":0.024167,"end":"data","cp":79,"eco":"C62","name":"Ruy Lopez: Steinitz Defense","c":null},
+    {"id":"43dc9949","n":6,"m":["e4","e5","Nf3","Nc6","Bb5","Bc5","c3","Nf6","d4","exd4","e5"],"p":0.0205206,"end":"data","cp":52,"eco":"C64","name":"Ruy Lopez: Classical Variation, Central Variation","c":null},
+    {"id":"34b08716","n":7,"m":["e4","e5","Nf3","Nc6","Bb5","Bc5","c3","a6","Bxc6"],"p":0.0179206,"end":"adv","cp":118,"eco":"C64","name":"Ruy Lopez: Classical Variation, Central Variation","c":null},
+    {"id":"e0ff4663","n":8,"m":["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","b5","Bb3","Nf6","O-O"],"p":0.0162193,"end":"transpose","to":"ff278928","cp":36,"eco":"C70","name":"Ruy Lopez: Morphy Defense, Caro Variation","c":null},
+    {"id":"0ec01e39","n":9,"m":["e4","e5","Nf3","Nc6","Bb5","d6","d4","exd4","Nxd4","Bd7","Nxc6","bxc6","Bc4","Nf6","O-O"],"p":0.0143894,"end":"data","cp":47,"eco":"C62","name":"Ruy Lopez: Steinitz Defense","c":null},
+    {"id":"810d26ef","n":10,"m":["e4","e5","Nf3","Nc6","Bb5","Nf6","O-O","a6","Bxc6"],"p":0.0135433,"end":"adv","cp":169,"eco":"C65","name":"Ruy Lopez: Berlin Defense","c":null},
+    {"id":"c8f4a92b","n":11,"m":["e4","e5","Nf3","d6","d4","exd4","Nxd4","Bd7","Nc3"],"p":0.00919108,"end":"adv","cp":109,"eco":"C41","name":"Philidor Defense: Exchange Variation","c":null},
+    {"id":"c47e4aa6","n":12,"m":["e4","e5","Nf3","d6","d4","exd4","Nxd4","Nf6","Nc3","Be7","Bf4","O-O","Qd2"],"p":0.00883114,"end":"data","cp":83,"eco":"C41","name":"Philidor Defense: Exchange Variation","c":null},
+    {"id":"62e25f17","n":13,"m":["e4","e5","Nf3","d6","d4","exd4","Nxd4","Be7","Nc3","Nf6","Bf4"],"p":0.00831373,"end":"transpose","to":"c47e4aa6","cp":77,"eco":"C41","name":"Philidor Defense: Exchange Variation","c":null},
+    {"id":"13d00c11","n":14,"m":["e4","e5","Nf3","d6","d4","exd4","Nxd4","c5","Bb5+","Bd7","Bxd7+","Nxd7","Nf5"],"p":0.00619689,"end":"adv","cp":132,"eco":"C41","name":"Philidor Defense: Exchange Variation","c":null},
+    {"id":"3aee1b6a","n":15,"m":["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","b5","Bb3","d6","c3"],"p":0.00613333,"end":"data","cp":53,"eco":"C70","name":"Ruy Lopez: Morphy Defense, Caro Variation","c":null},
+    {"id":"791e7abe","n":16,"m":["e4","e5","Nf3","Nc6","Bb5","Nf6","O-O","Nxe4","Re1","Nd6","Nxe5","Nxe5","Bf1"],"p":0.00605164,"end":"data","cp":22,"eco":"C67","name":"Ruy Lopez: Berlin Defense, Rio Gambit Accepted","c":null},
+    {"id":"b065b6c3","n":17,"m":["e4","e5","Nf3","Nc6","Bb5","Nf6","O-O","Nxe4","Re1","Nf6","d4"],"p":0.00548174,"end":"data","cp":56,"eco":"C67","name":"Ruy Lopez: Berlin Defense, Rio Gambit Accepted","c":null},
+    {"id":"68821e66","n":18,"m":["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","d6","Re1"],"p":0.00518035,"end":"data","cp":29,"eco":"C79","name":"Ruy Lopez: Morphy Defense, Steinitz Deferred","c":null},
+    {"id":"cf51de6b","n":19,"m":["e4","e5","Nf3","Nc6","Bb5","Bc5","c3","Nge7","d4","exd4","cxd4","Bb4+","Nc3"],"p":0.00438945,"end":"data","cp":48,"eco":"C64","name":"Ruy Lopez: Classical Variation, Central Variation","c":null},
+    {"id":"30a8c7d7","n":20,"m":["e4","e5","Nf3","Nc6","Bb5","Nf6","O-O","Bc5","Nxe5","Nxe5","d4","Bxd4","Qxd4"],"p":0.00438883,"end":"adv","cp":123,"eco":"C65","name":"Ruy Lopez: Berlin Defense, Beverwijk Variation","c":null},
+    {"id":"ff278928","n":21,"m":["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","b5","Bb3","Be7","Re1"],"p":0.00398949,"end":"transpose","to":"16e8da6d","cp":31,"eco":"C88","name":"Ruy Lopez: Closed","c":null},
+    {"id":"16e8da6d","n":22,"m":["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","Be7","Re1","b5","Bb3","d6","c3"],"p":0.00236518,"end":"data","cp":43,"eco":"C88","name":"Ruy Lopez: Closed","c":null}
+  ]
+}

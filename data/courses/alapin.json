@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "alapin",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","c5"],
+  "lines": [
+    {"id":"a2687f4c","n":1,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","d6","d5"],"p":0.0433144,"end":"adv","cp":138,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"472c0bc7","n":2,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","g6","d5"],"p":0.0373364,"end":"adv","cp":206,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"c4edfe98","n":3,"m":["e4","c5","c3","d5","exd5","Qxd5","d4","cxd4","cxd4","Nc6","Nf3"],"p":0.0312256,"end":"transpose","to":"54f07545","cp":34,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense","c":null},
+    {"id":"223b6824","n":4,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","e6","Nf3"],"p":0.0249356,"end":"adv","cp":106,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"f2fb8db9","n":5,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","Nc6","d5"],"p":0.0219474,"end":"adv","cp":138,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"54f07545","n":6,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","d5","exd5","Qxd5","Nf3","Nf6","Nc3"],"p":0.0178545,"end":"adv","cp":159,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"d9fb0d3b","n":7,"m":["e4","c5","c3","e6","d4","cxd4","cxd4","Nc6","Nf3"],"p":0.0171501,"end":"transpose","to":"bbfc1639","cp":26,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"9504a99d","n":8,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","Nf6","Nc3","g6","h3"],"p":0.0157062,"end":"data","cp":99,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"2fd5a1d3","n":9,"m":["e4","c5","c3","e6","d4","cxd4","cxd4","d5","e5","Nc6","Nf3"],"p":0.0148121,"end":"transpose","to":"bbfc1639","cp":39,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"cb44d289","n":10,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","d5","exd5","Qxd5","Nf3","Bg4","Nc3","Qd8","d5"],"p":0.0141718,"end":"adv","cp":401,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense, Central Exchange","c":null},
+    {"id":"5b8c80f5","n":11,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","d5","exd5","Qxd5","Nf3","Bg4","Nc3","Bxf3","gxf3"],"p":0.0118098,"end":"data","cp":43,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense, Central Exchange","c":null},
+    {"id":"8b02080f","n":12,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","Nf6","Nc3","e6","Nf3"],"p":0.0117174,"end":"adv","cp":111,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"a2bf2981","n":13,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","d5","exd5","Qxd5","Nf3","Bg4","Nc3","Qa5","d5"],"p":0.00911043,"end":"adv","cp":311,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense, Central Exchange","c":null},
+    {"id":"756a1690","n":14,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","Nf6","Nc3","Nc6","d5"],"p":0.00760381,"end":"adv","cp":146,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"bbfc1639","n":15,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","e6","Nf3","d5","e5","Nge7","Nc3","Nf5","h4"],"p":0.00701124,"end":"data","cp":36,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"60c017fd","n":16,"m":["e4","c5","c3","d6","d4","cxd4","cxd4","g6","Nf3","Bg7","Nc3","Nf6","Be2"],"p":0.00648878,"end":"data","cp":72,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"1cdb85ce","n":17,"m":["e4","c5","c3","d5","exd5","Qxd5","d4","Nf6","Nf3","Bg4","Nbd2"],"p":0.00619097,"end":"data","cp":44,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense, Modern Line","c":null},
+    {"id":"30d06046","n":18,"m":["e4","c5","c3","Nc6","d4","cxd4","cxd4","e6","Nf3","Nf6","Nc3","Bb4","Bd3","O-O","e5"],"p":0.00615043,"end":"adv","cp":291,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},
+    {"id":"4031c65a","n":19,"m":["e4","c5","c3","d5","exd5","Qxd5","d4","Nc6","Nf3","cxd4","cxd4"],"p":0.00573835,"end":"transpose","to":"54f07545","cp":41,"eco":"B22","name":"Sicilian Defense: Alapin Variation, Barmen Defense","c":null},
+    {"id":"383787ef","n":20,"m":["e4","c5","c3","e6","d4","cxd4","cxd4","Nf6","Nc3","Bb4","Bd3"],"p":0.0054469,"end":"data","cp":92,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null}
+  ]
+}

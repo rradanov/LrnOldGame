@@ -1,0 +1,31 @@
+{
+  "v": 1,
+  "id": "nimzo",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["d4"],
+  "lines": [
+    {"id":"02dcd882","n":1,"m":["d4","Nf6","Bf4","g6","Nf3","Bg7","e3","O-O"],"p":0.0316698,"end":"transpose","to":"72692e15","cp":-1,"eco":"A48","name":"London System","c":null},
+    {"id":"18dd5d6d","n":2,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Bg5","h6","Bh4","c5"],"p":0.0239315,"end":"data","cp":-12,"eco":"E30","name":"Nimzo-Indian Defense: Leningrad Variation","c":null},
+    {"id":"0e8564e9","n":3,"m":["d4","Nf6","Nf3","d5","c4","e6"],"p":0.0181537,"end":"transpose","to":"e153214b","cp":-16,"eco":"D02","name":"Queen's Pawn Game: Symmetrical Variation","c":null},
+    {"id":"063e667b","n":4,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Nf3","O-O","Bg5","c5"],"p":0.0155168,"end":"data","cp":-12,"eco":"E21","name":"Nimzo-Indian Defense: Three Knights Variation","c":null},
+    {"id":"6398257c","n":5,"m":["d4","Nf6","Nc3","d5","Nf3","e6"],"p":0.0147054,"end":"transpose","to":"a9fd3604","cp":6,"eco":"A45","name":"Queen's Pawn Game: Chigorin Variation","c":null},
+    {"id":"e28df59c","n":6,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Bd2","O-O","Nf3","c5"],"p":0.0125353,"end":"data","cp":-10,"eco":"E20","name":"Nimzo-Indian Defense","c":null},
+    {"id":"37745d68","n":7,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Bd2","O-O","a3","Bxc3"],"p":0.0113527,"end":"data","cp":-6,"eco":"E20","name":"Nimzo-Indian Defense","c":null},
+    {"id":"bdfb3e7f","n":8,"m":["d4","Nf6","c4","e6","Nc3","Bb4","a3","Bxc3+","bxc3","O-O","Nf3","Ne4"],"p":0.0100376,"end":"data","cp":-2,"eco":"E27","name":"Nimzo-Indian Defense: Sämisch Variation","c":null},
+    {"id":"140ee69a","n":9,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","f3","e6","g4","Bg6","h4","h6","e3","Be7"],"p":0.00933621,"end":"data","cp":0,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"539a1f8e","n":10,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Qc2","O-O","e4","d5"],"p":0.00906204,"end":"data","cp":-23,"eco":"E32","name":"Nimzo-Indian Defense: Classical Variation","c":null},
+    {"id":"243ad498","n":11,"m":["d4","Nf6","Bf4","g6","e3","Bg7","Bd3","O-O","Nf3","d6"],"p":0.00711131,"end":"transpose","to":"72692e15","cp":3,"eco":"A45","name":"Indian Defense: Accelerated London System","c":null},
+    {"id":"029be0d8","n":12,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Bg5","h6","Bxf6","Qxf6","e3","Bxc3+"],"p":0.00700636,"end":"data","cp":6,"eco":"E30","name":"Nimzo-Indian Defense: Leningrad Variation","c":null},
+    {"id":"e153214b","n":13,"m":["d4","Nf6","c4","e6","Nf3","d5","Nc3","c5","Bg5","cxd4","Nxd4","e5"],"p":0.00644827,"end":"data","cp":-1,"eco":"D40","name":"Queen's Gambit Declined: Semi-Tarrasch Defense, Pillsbury Variation","c":null},
+    {"id":"c11aeaba","n":14,"m":["d4","Nf6","c4","e6","Nc3","Bb4","Nf3","O-O","e3","c5"],"p":0.00607178,"end":"data","cp":-15,"eco":"E50","name":"Nimzo-Indian Defense","c":null},
+    {"id":"d138c34a","n":15,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","e3","e6","f3","Be7"],"p":0.00592431,"end":"data","cp":24,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"6d29f6b7","n":16,"m":["d4","Nf6","Bf4","g6","Nc3","d5","Nb5","Na6","e3","Bg7"],"p":0.00558109,"end":"data","cp":-6,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"ef768ab6","n":17,"m":["d4","Nf6","Nc3","d5","Bf4","Bf5","e3","e6","Bd3","c6"],"p":0.00536187,"end":"data","cp":-2,"eco":"D01","name":"Rapport-Jobava System","c":null},
+    {"id":"6d901dab","n":18,"m":["d4","Nf6","Nf3","d5","e3","e6","Bd3","c5","c3","Nc6","Nbd2","b6"],"p":0.00523273,"end":"data","cp":-10,"eco":"D05","name":"Queen's Pawn Game: Colle System, Traditional Colle","c":null},
+    {"id":"4ed9e9ca","n":19,"m":["d4","Nf6","c4","e6","Nf3","d5","Nc3","c5","e3","Nc6"],"p":0.00522808,"end":"data","cp":-19,"eco":"D32","name":"Tarrasch Defense: Symmetrical Variation","c":null},
+    {"id":"5f39b620","n":20,"m":["d4","Nf6","Nf3","d5","e3","e6","Bd3","c5","b3","b6"],"p":0.00522502,"end":"data","cp":-11,"eco":"D05","name":"Rubinstein Opening","c":null},
+    {"id":"72692e15","n":21,"m":["d4","Nf6","Bf4","g6","e3","Bg7","Nf3","O-O","Bd3","d6","O-O","c5"],"p":0.00403931,"end":"data","cp":2,"eco":"A48","name":"London System","c":null},
+    {"id":"a9fd3604","n":22,"m":["d4","Nf6","Nf3","d5","Nc3","e6","Bf4","Bb4"],"p":0.00382767,"end":"data","cp":24,"eco":"D02","name":"Queen's Pawn Game: Symmetrical Variation","c":null}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "alekhine",
+  "side": "b",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","Nf6"],
+  "lines": [
+    {"id":"7949b3e2","n":1,"m":["e4","Nf6","e5","Nd5","d4","d6","c4","Nb6"],"p":0.0672239,"end":"transpose","to":"5b00e9cf","cp":-63,"eco":"B03","name":"Alekhine Defense","c":null},
+    {"id":"dedf1b9d","n":2,"m":["e4","Nf6","Nc3","e5","f4","d5","fxe5","Nxe4","Qf3","Nc6"],"p":0.040615,"end":"data","cp":36,"eco":"C29","name":"Vienna Game: Vienna Gambit, Paulsen Attack","c":null},
+    {"id":"5b00e9cf","n":3,"m":["e4","Nf6","e5","Nd5","c4","Nb6","d4","d6","Nf3","dxe5","Nxe5","g6"],"p":0.0196013,"end":"data","cp":-50,"eco":"B02","name":"Alekhine Defense: Two Pawns Attack","c":null},
+    {"id":"455bb3e2","n":4,"m":["e4","Nf6","e5","Nd5","d4","d6","f4","dxe5","fxe5","Bf5"],"p":0.0186367,"end":"data","cp":-1,"eco":"B03","name":"Alekhine Defense","c":null},
+    {"id":"73e042a1","n":5,"m":["e4","Nf6","Nc3","e5","f4","d5","fxe5","Nxe4","Nf3","Bc5"],"p":0.0184272,"end":"data","cp":24,"eco":"C29","name":"Vienna Game: Vienna Gambit, Main Line","c":null},
+    {"id":"eb147df3","n":6,"m":["e4","Nf6","e5","Nd5","c4","Nb6","d4","d6","exd6","cxd6","Nf3","g6"],"p":0.0148261,"end":"data","cp":-60,"eco":"B03","name":"Alekhine Defense: Exchange Variation","c":null},
+    {"id":"cae0836c","n":7,"m":["e4","Nf6","e5","Nd5","d4","d6","Bc4","Nb6","Bb3","Bf5"],"p":0.0147698,"end":"data","cp":-40,"eco":"B03","name":"Alekhine Defense: Balogh Variation","c":null},
+    {"id":"d3b00aec","n":8,"m":["e4","Nf6","e5","Nd5","c4","Nb6","d4","d6","f4","dxe5","fxe5","Nc6","Nf3","Bg4","Be3","Bxf3"],"p":0.0122446,"end":"data","cp":-7,"eco":"B03","name":"Alekhine Defense: Four Pawns Attack","c":null},
+    {"id":"cd485bc1","n":9,"m":["e4","Nf6","e5","Nd5","d4","d6","Nf3","Bg4","Be2","e6"],"p":0.01118,"end":"data","cp":-80,"eco":"B05","name":"Alekhine Defense: Modern Variation, Main Line","c":null},
+    {"id":"5a41e16c","n":10,"m":["e4","Nf6","Nc3","e5","Nf3","Nc6","Bb5","Bb4","d3","d6"],"p":0.00674105,"end":"data","cp":-18,"eco":"C49","name":"Four Knights Game: Spanish Variation, Double Spanish","c":null},
+    {"id":"9871f039","n":11,"m":["e4","Nf6","Nc3","e5","Nf3","Nc6","Bc4","Bc5","d3","O-O","Bg5","h6","Bh4","Be7"],"p":0.00590879,"end":"data","cp":-10,"eco":"C50","name":"Italian Game: Giuoco Pianissimo, Italian Four Knights Variation","c":null},
+    {"id":"203f5ee1","n":12,"m":["e4","Nf6","e5","Nd5","c4","Nb6","c5","Nd5","Bc4","e6","d4","b6"],"p":0.00579426,"end":"data","cp":-19,"eco":"B02","name":"Alekhine Defense: Two Pawns Attack, Lasker Variation","c":null},
+    {"id":"fc2a6352","n":13,"m":["e4","Nf6","Nc3","e5","Bc4","Bc5","d3","d6","h3","O-O"],"p":0.00503333,"end":"data","cp":9,"eco":"C26","name":"Bishop's Opening: Vienna Hybrid, Spielmann Attack","c":null},
+    {"id":"c772784f","n":14,"m":["e4","Nf6","Nc3","e5","f4","d5","fxe5","Nxe4","Nxe4","dxe4","Bc4","Nc6"],"p":0.00496073,"end":"adv","cp":280,"eco":"C29","name":"Vienna Game: Vienna Gambit, Main Line","c":null},
+    {"id":"95426110","n":15,"m":["e4","Nf6","Nc3","e5","Nf3","Nc6","d4","exd4","Nxd4","Bb4","Nxc6","bxc6","Bd3","O-O","O-O","d5"],"p":0.0048426,"end":"data","cp":-10,"eco":"C47","name":"Four Knights Game: Scotch Variation Accepted","c":null},
+    {"id":"f3173764","n":16,"m":["e4","Nf6","Nc3","e5","f4","d5","exd5","Nxd5","fxe5","Nxc3"],"p":0.00481082,"end":"data","cp":24,"eco":"C29","name":"Vienna Game: Vienna Gambit, Main Line","c":null},
+    {"id":"71ec5d7a","n":17,"m":["e4","Nf6","e5","Nd5","d4","d6","Nf3","Bg4","Bc4","dxe5"],"p":0.00479141,"end":"data","cp":-17,"eco":"B05","name":"Alekhine Defense: Modern Variation, Main Line","c":null},
+    {"id":"93865280","n":18,"m":["e4","Nf6","Nc3","e5","f4","d5","fxe5","Nxe4","Nxe4","dxe4","Qe2","Bf5"],"p":0.00457914,"end":"adv","cp":173,"eco":"C29","name":"Vienna Game: Vienna Gambit, Main Line","c":null},
+    {"id":"b041fc4b","n":19,"m":["e4","Nf6","Nc3","e5","Nf3","Nc6","Bb5","Bb4","O-O","O-O"],"p":0.00457726,"end":"data","cp":-12,"eco":"C49","name":"Four Knights Game: Spanish Variation, Double Spanish","c":null},
+    {"id":"cc5f1f05","n":20,"m":["e4","Nf6","e5","Nd5","d4","d6","exd6","cxd6","Nf3","g6"],"p":0.00433997,"end":"data","cp":-41,"eco":"B03","name":"Alekhine Defense","c":null}
+  ]
+}

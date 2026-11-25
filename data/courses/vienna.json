@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "id": "vienna",
+  "side": "w",
+  "dataVersion": "2026-11-25.1",
+  "start": ["e4","e5"],
+  "lines": [
+    {"id":"8b5a6efd","n":1,"m":["e4","e5","Nc3","Nf6","Nf3","Nc6","d4"],"p":0.130002,"end":"transpose","to":"1dc50948","cp":6,"eco":"C47","name":"Four Knights Game: Scotch Variation","c":null},
+    {"id":"37f96535","n":2,"m":["e4","e5","Nc3","Nf6","Nf3","Bc5","Nxe5"],"p":0.0641028,"end":"adv","cp":112,"eco":"C42","name":"Petrov's Defense: Three Knights Game","c":null},
+    {"id":"1dc50948","n":3,"m":["e4","e5","Nc3","Nc6","Nf3","Nf6","d4","exd4","Nxd4","Nxd4","Qxd4"],"p":0.0533427,"end":"adv","cp":119,"eco":"C47","name":"Four Knights Game: Scotch Variation Accepted","c":null},
+    {"id":"8aec21b2","n":4,"m":["e4","e5","Nc3","Nc6","Nf3","Bc5","Nxe5","Nxe5","d4","Bxd4","Qxd4"],"p":0.0326696,"end":"adv","cp":226,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"3a1716a3","n":5,"m":["e4","e5","Nc3","Nc6","Nf3","Bc5","Nxe5","Bxf2+","Kxf2"],"p":0.0240478,"end":"adv","cp":108,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"e74c6d95","n":6,"m":["e4","e5","Nc3","d6","Bc4","Nc6","Nf3"],"p":0.0137986,"end":"transpose","to":"e548d07c","cp":42,"eco":"C25","name":"Vienna Game","c":null},
+    {"id":"15f795ae","n":7,"m":["e4","e5","Nc3","Nc6","Nf3","Bc5","Nxe5","Nxe5","d4","Bd6","dxe5","Bxe5","Bd3"],"p":0.00882079,"end":"data","cp":72,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"fd26fd60","n":8,"m":["e4","e5","Nc3","Nc6","Nf3","Bc5","Nxe5","Nxe5","d4","Bb4","dxe5"],"p":0.00792238,"end":"adv","cp":217,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"e5515141","n":9,"m":["e4","e5","Nc3","Nf6","Nf3","Bb4","Nxe5","Bxc3","dxc3","Nxe4","Qg4"],"p":0.00748116,"end":"adv","cp":297,"eco":"C42","name":"Petrov's Defense: Three Knights Game","c":null},
+    {"id":"e548d07c","n":10,"m":["e4","e5","Nc3","Nc6","Nf3","d6","Bc4","Bg4","h3","Bh5","Nxe5"],"p":0.00631199,"end":"adv","cp":234,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"4043ebed","n":11,"m":["e4","e5","Nc3","Nc6","Nf3","d6","Bc4","Nf6","Ng5"],"p":0.00619949,"end":"adv","cp":116,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"da6f1bb3","n":12,"m":["e4","e5","Nc3","Nf6","Nf3","Bb4","Nxe5","Bxc3","dxc3","Qe7","Nf3"],"p":0.00619868,"end":"data","cp":91,"eco":"C42","name":"Petrov's Defense: Three Knights Game","c":null},
+    {"id":"095e0aa8","n":13,"m":["e4","e5","Nc3","Nc6","Nf3","d6","Bc4","Be6","Bb5"],"p":0.00593715,"end":"data","cp":53,"eco":"C46","name":"Three Knights Opening","c":null},
+    {"id":"0f074215","n":14,"m":["e4","e5","Nc3","d6","Bc4","Nf6","d3","Nc6","f4"],"p":0.00577077,"end":"data","cp":28,"eco":"C25","name":"Vienna Game","c":null},
+    {"id":"dc0facf3","n":15,"m":["e4","e5","Nc3","Nf6","Nf3","Bb4","Nxe5","O-O","Nd3"],"p":0.00543384,"end":"data","cp":41,"eco":"C42","name":"Petrov's Defense: Three Knights Game","c":null},
+    {"id":"a4c8d958","n":16,"m":["e4","e5","Nc3","Nc6","Nf3","Nf6","d4","exd4","Nxd4","Bc5","Nxc6","bxc6","Bg5","h6","Bh4"],"p":0.0049496,"end":"data","cp":12,"eco":"C47","name":"Four Knights Game: Scotch Variation Accepted","c":null},
+    {"id":"a999c819","n":17,"m":["e4","e5","Nc3","Nf6","Nf3","Bb4","Nxe5","Qe7","Nf3"],"p":0.0048464,"end":"data","cp":85,"eco":"C42","name":"Petrov's Defense: Three Knights Game","c":null},
+    {"id":"7aae604d","n":18,"m":["e4","e5","Nc3","Nc6","Nf3","Nf6","d4","exd4","Nxd4","Bc5","Nxc6","bxc6","Bg5","O-O","Bd3"],"p":0.00454555,"end":"data","cp":12,"eco":"C47","name":"Four Knights Game: Scotch Variation Accepted","c":null},
+    {"id":"53772b13","n":19,"m":["e4","e5","Nc3","d6","Bc4","c6","Nf3","h6","d4"],"p":0.00413701,"end":"data","cp":67,"eco":"C25","name":"Vienna Game","c":null},
+    {"id":"8c32e7e4","n":20,"m":["e4","e5","Nc3","Nc6","Nf3","Nf6","d4","exd4","Nxd4","Bb4","Nxc6","bxc6","Bd3","d5","exd5","cxd5","h3"],"p":0.00411105,"end":"data","cp":15,"eco":"C47","name":"Four Knights Game: Scotch Variation Accepted","c":null}
+  ]
+}
