@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment2.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -55,4 +55,16 @@ jobs:
 
       - name: Деплой
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      # deploy-pages понякога не вижда току-що каченото github-pages („Found 0 artifact(s)“,
+      # 2 от 5 пускания на 2026-11-25) — изчакваме и пробваме още веднъж.
+      - name: Пауза преди повтор
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 45
+
+      - name: Деплой (повтор)
+        id: deployment2
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v5
