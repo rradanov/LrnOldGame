@@ -314,8 +314,21 @@ jobs:
             git fetch -q origin main
             git rebase -q origin/main
             git push origin HEAD:main
-            gh workflow run ci.yml --ref main
-            echo "::notice::данните ${dv} са в main; пуснат е CI (той валидира, а deploy следва след него)"
+            # Push с GITHUB_TOKEN не пуска CI, а CI, пуснат с GITHUB_TOKEN, не пуска deploy
+            # (workflow_run) — затова: CI → изчакване → deploy, и двата с workflow_dispatch.
+            out=$(gh workflow run ci.yml --ref main 2>&1); echo "$out"
+            id=$(echo "$out" | grep -oE '/runs/[0-9]+' | tail -1 | cut -d/ -f3)
+            if [ -z "$id" ]; then
+              sleep 10
+              id=$(gh run list --workflow ci.yml --branch main --event workflow_dispatch -L 1 --json databaseId --jq '.[0].databaseId')
+            fi
+            if gh run watch "$id" --interval 15 --exit-status > /dev/null; then
+              gh workflow run deploy.yml --ref main
+              echo "::notice::данните ${dv} са в main; CI ($id) е зелен, пуснат е deploy"
+            else
+              echo "::error::данните ${dv} са в main, но CI ($id) падна — deploy не е пуснат"
+              exit 1
+            fi
             echo "- Публикувано: commit в main (${dv})" >> "$GITHUB_STEP_SUMMARY"
           }
 

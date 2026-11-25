@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 
-# Деплой само след успешен CI в main (D-011): на push или ръчно/от build-courses пуснат CI
-# (push с GITHUB_TOKEN не пуска CI сам, затова build-courses.yml прави `gh workflow run ci.yml`).
+# Деплой само след успешен CI в main (D-011): на push или ръчно пуснат CI. Run, пуснат с
+# GITHUB_TOKEN, не задейства workflow_run — затова build-courses.yml сам пуска CI и после deploy.
 on:
   workflow_run:
     workflows: [CI]
