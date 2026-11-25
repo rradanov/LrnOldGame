@@ -1,0 +1,87 @@
+// T-018 (тестер): проверки на генерираните data/courses/*.json, които валидаторът не прави —
+// book ходовете от каталога и праговете за край на линия от manifest.params.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { applySans, START_FEN } from '../../src/chess/position.js';
+import { parseStrictPgn } from '../../tools/validate-data/validate.js';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const readJson = (p) => JSON.parse(readFileSync(join(ROOT, p), 'utf8'));
+const HAS_DATA = existsSync(join(ROOT, 'data/manifest.json'));
+const CATALOG = readJson('data/catalog.json');
+
+function load() {
+  const manifest = readJson('data/manifest.json');
+  const courses = manifest.courses.map((c) => readJson(join('data', c.file)));
+  return { manifest, courses };
+}
+
+/** Праговете на курса след сливането (manifest.params.lines + params.courses[id]). */
+function paramsOf(manifest, id) {
+  return { ...manifest.params.lines, ...(manifest.params.courses?.[id] ?? {}) };
+}
+
+test('всеки курс с book има поне една линия с първия book ход (регресия: kings-gambit = копие на italian)',
+  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+    const { courses } = load();
+    const bad = [];
+    for (const course of courses) {
+      const cat = CATALOG.courses.find((c) => c.id === course.id);
+      const start = cat.start ? parseStrictPgn(cat.start) : [];
+      for (const b of cat.book) {
+        const sans = applySans(parseStrictPgn(b), START_FEN).sans;
+        const first = sans[start.length];
+        if (!course.lines.some((l) => l.m[start.length] === first)) bad.push(`${course.id}: никоя линия не почва с ${first}`);
+      }
+    }
+    assert.deepEqual(bad, []);
+  });
+
+test('end/cp са в съгласие с праговете: adv ⇒ cp ≥ advCp; data/depth ⇒ cp < advCp',
+  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+    const { manifest, courses } = load();
+    const bad = [];
+    for (const course of courses) {
+      const P = paramsOf(manifest, course.id);
+      const adv = course.side === 'w' ? P.advCpWhite : P.advCpBlack;
+      for (const l of course.lines) {
+        if (l.end === 'adv' && l.cp < adv) bad.push(`${course.id} n=${l.n}: adv при cp ${l.cp} < ${adv}`);
+        if ((l.end === 'data' || l.end === 'depth') && l.cp >= adv) bad.push(`${course.id} n=${l.n}: ${l.end} при cp ${l.cp} ≥ ${adv}`);
+        if (l.m.length > P.maxPly) bad.push(`${course.id} n=${l.n}: ${l.m.length} полухода > maxPly ${P.maxPly}`);
+      }
+    }
+    assert.deepEqual(bad, []);
+  });
+
+test('в позициите от book линиите, до които курсът стига, моят ход е book ходът',
+  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+    const { courses } = load();
+    const bad = [];
+    for (const course of courses) {
+      const cat = CATALOG.courses.find((c) => c.id === course.id);
+      const startLen = cat.start ? parseStrictPgn(cat.start).length : 0;
+      // EPD → моят ход в курса
+      const mine = new Map();
+      for (const l of course.lines) {
+        const { keys } = applySans(l.m, START_FEN);
+        for (let i = startLen; i < l.m.length; i++) {
+          const mover = i % 2 === 0 ? 'w' : 'b';
+          if (mover !== course.side) continue;
+          const k = i === 0 ? 'start' : keys[i - 1];
+          mine.set(k, l.m[i]);
+        }
+      }
+      for (const b of cat.book) {
+        const { sans, keys } = applySans(parseStrictPgn(b), START_FEN);
+        for (let i = startLen; i < sans.length; i++) {
+          if ((i % 2 === 0 ? 'w' : 'b') !== course.side) continue;
+          const k = i === 0 ? 'start' : keys[i - 1];
+          if (mine.has(k) && mine.get(k) !== sans[i]) bad.push(`${course.id}: след [${sans.slice(0, i).join(' ')}] е ${mine.get(k)}, а book е ${sans[i]}`);
+        }
+      }
+    }
+    assert.deepEqual(bad, []);
+  });
