@@ -185,7 +185,7 @@ jobs:
           MONTH: ${{ steps.prep.outputs.month }}
         run: |
           # Нарочното спиране след maxGames затваря stdin: zstd умира със SIGPIPE (141),
-          # curl — с write error (23). Важен е кодът на node (D-014; отчет T-004).
+          # curl — с write error (23); zstd понякога връща 70 (write error) вместо 141. Важен е кодът на node (D-014; отчет T-004).
           set +e
           set -o pipefail
           t0=$(date +%s)
@@ -200,11 +200,11 @@ jobs:
           cat build/curl.log; cat build/zstd.log
           grep -E 'Maximum resident|Elapsed' build/tree-time.txt || true
           [ "${st[2]}" -eq 0 ] || { echo "::error::build-tree завърши с ${st[2]}"; exit 1; }
-          stopped=$(zcat build/tree.jsonl.gz | head -1 | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).stats.stoppedBy))')
+          stopped=$(zcat build/tree.jsonl.gz 2>/dev/null | head -1 | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).stats.stoppedBy))')
           echo "stoppedBy=$stopped"
           if [ "$stopped" = "maxGames" ]; then
             case "${st[0]}" in 0|23|141) ;; *) echo "::warning::curl завърши с ${st[0]} след maxGames";; esac
-            case "${st[1]}" in 0|141|1) ;; *) echo "::warning::zstd завърши с ${st[1]} след maxGames";; esac
+            case "${st[1]}" in 0|1|70|141) ;; *) echo "::warning::zstd завърши с ${st[1]} след maxGames";; esac
           else
             # Целият месец е прочетен: тогава curl и zstd трябва да са завършили чисто.
             [ "${st[0]}" -eq 0 ] && [ "${st[1]}" -eq 0 ] || { echo "::error::потокът прекъсна преди maxGames (curl=${st[0]} zstd=${st[1]})"; exit 1; }
@@ -213,7 +213,7 @@ jobs:
 
       - name: Manifest на дървото
         run: |
-          zcat build/tree.jsonl.gz | head -1 > build/tree-manifest.json || true
+          zcat build/tree.jsonl.gz 2>/dev/null | head -1 > build/tree-manifest.json || true
           ls -l build/tree.jsonl.gz
           node -e '
             const m = JSON.parse(require("fs").readFileSync("build/tree-manifest.json","utf8"));
