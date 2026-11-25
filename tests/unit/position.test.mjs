@@ -340,6 +340,34 @@ test('perft Kiwipete (рокади, ан пасан, промоции): 48 / 203
   assert.equal(perft(KIWIPETE, 2), 2039);
 });
 
+// ---- Строг SAN (T-015) ----
+
+test('applySans strict: каноничен запис минава, толерантният се отказва с очаквания SAN', () => {
+  const ok = applySans(['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Nf6', 'O-O'], START_FEN, { strict: true });
+  assert.equal(ok.sans.length, 7);
+  const cases = [
+    [['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Nf6', '0-0'], 6, 'O-O'],
+    [['e4+'], 0, 'e4'],
+    [['Ng1f3'], 0, 'Nf3'],
+    [['e4!'], 0, 'e4'],
+    [['e4', 'e5', 'Qh5', 'Nc6', 'Bc4', 'Nf6', 'Qxf7'], 6, 'Qxf7#'],
+  ];
+  for (const [sans, ply, expected] of cases) {
+    assert.throws(() => applySans(sans, START_FEN, { strict: true }), (e) => {
+      assert.equal(e.code, 'non-canonical-san');
+      assert.equal(e.ply, ply);
+      assert.equal(e.expected, expected);
+      assert.match(e.message, /Неканоничен запис/);
+      return true;
+    });
+    // без strict същите ходове минават (толерантен вход)
+    assert.equal(applySans(sans).sans[ply], expected);
+  }
+  throwsCode(() => applySans(['e4', 'e5', 'Ke3'], START_FEN, { strict: true }), 'illegal-move');
+  assert.deepEqual(pgnToSans('1. e4 c6 2. d4 d5', START_FEN, { strict: true }), ['e4', 'c6', 'd4', 'd5']);
+  throwsCode(() => pgnToSans('1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. 0-0', START_FEN, { strict: true }), 'non-canonical-san');
+});
+
 // ---- Съвместимост: Node и браузър ----
 
 test('модулът няма DOM и bare imports (работи в Node и като ES module в браузъра)', () => {

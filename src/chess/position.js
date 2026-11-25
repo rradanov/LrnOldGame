@@ -6,7 +6,7 @@ import { Chess, DEFAULT_POSITION } from '../../vendor/chess.js/chess.js';
 /** FEN на началната позиция. */
 export const START_FEN = DEFAULT_POSITION;
 
-/** Грешка на ядрото. `code`: bad-fen | illegal-move | bad-uci | bad-pgn. */
+/** Грешка на ядрото. `code`: bad-fen | illegal-move | non-canonical-san | bad-uci | bad-pgn. */
 export class ChessError extends Error {
   constructor(code, message, details = {}) {
     super(message);
@@ -275,16 +275,28 @@ export function uciToSan(fen, uci) { return applyUci(fen, uci).move.san; }
 /**
  * Прилага поредица SAN ходове. Връща {sans (канонични), ucis, keys (след всеки ход),
  * fen, key}. При невалиден ход хвърля ChessError с `ply` (0-базиран) и `label` („2.Nf3“).
+ * `opts.strict`: всеки ход трябва да е записан точно в каноничния SAN (без „0-0“,
+ * „Nb1d2“, излишни „+“, „!?“ и т.н.); иначе ChessError с code `non-canonical-san`
+ * и `expected` (каноничния запис). За валидатора на данните (T-015).
  */
-export function applySans(sans, fen = START_FEN) {
+export function applySans(sans, fen = START_FEN, opts = {}) {
+  if (!Array.isArray(sans)) throw new TypeError('applySans: sans трябва да е масив');
   const p = new Position(fen);
   const keys = [];
   sans.forEach((san, ply) => {
+    let info;
     try {
-      p.playSan(san);
+      info = p.playSan(san);
     } catch (e) {
       const label = moveLabel(p, san);
       throw new ChessError('illegal-move', `Невалиден ход ${label} (полуход ${ply + 1})`, { ply, san, label, fen: p.fen() });
+    }
+    if (opts.strict && info.san !== san) {
+      p.undo();
+      const label = moveLabel(p, san);
+      throw new ChessError('non-canonical-san',
+        `Неканоничен запис ${label} (полуход ${ply + 1}): очаква се „${info.san}“`,
+        { ply, san, label, expected: info.san, fen: p.fen() });
     }
     keys.push(p.key());
   });
@@ -330,9 +342,12 @@ export function tokenizeMoves(text) {
   return tokens;
 }
 
-/** PGN-подобен текст („1.e4 e5 2.Nf3“) → канонични SAN; хвърля ChessError при грешка. */
-export function pgnToSans(pgn, fen = START_FEN) {
-  return applySans(tokenizeMoves(pgn), fen).sans;
+/**
+ * PGN-подобен текст („1.e4 e5 2.Nf3“) → канонични SAN; хвърля ChessError при грешка.
+ * `opts.strict` — виж applySans (номерата на ходовете не се проверяват).
+ */
+export function pgnToSans(pgn, fen = START_FEN, opts = {}) {
+  return applySans(tokenizeMoves(pgn), fen, opts).sans;
 }
 
 /** SAN ходове → текст „1.e4 e5 2.Nf3“ (от началната позиция). */

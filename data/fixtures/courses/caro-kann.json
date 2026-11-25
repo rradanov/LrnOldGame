@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "id": "caro-kann",
+  "side": "b",
+  "dataVersion": "2026-11-25.0",
+  "sample": true,
+  "start": ["e4","c6"],
+  "lines": [
+    {"id":"a8ad909b","n":1,"m":["e4","c6","d4","d5","e5","Bf5","Nf3","e6","Be2","c5"],"p":0.18,"end":"depth","cp":-12,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Short Variation","c":[null,"Подготвя d5",null,"Удря центъра",null,"Офицерът излиза преди e6",null,null,null,null]},
+    {"id":"8b42f985","n":2,"m":["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng3","Bg6","h4","h6"],"p":0.12,"end":"depth","cp":-25,"eco":"B15","name":"Caro-Kann Defense","c":null},
+    {"id":"d98c9807","n":3,"m":["e4","c6","d4","d5","exd5","cxd5","Bd3","Nc6","c3","Nf6"],"p":0.08,"end":"data","cp":-8,"eco":"B13","name":"Caro-Kann Defense: Exchange Variation","c":null},
+    {"id":"ac387639","n":4,"m":["e4","c6","Nc3","d5","d4","dxe4"],"p":0.05,"end":"transpose","to":"8b42f985","cp":-25,"eco":"B10","name":"Caro-Kann Defense","c":null},
+    {"id":"ede728c8","n":5,"m":["e4","c6","Nf3","d5","Nc3","Bg4","h3","Bxf3","Qxf3","e6"],"p":0.04,"end":"data","cp":-20,"eco":"B10","name":"Caro-Kann Defense","c":null},
+    {"id":"e07731fc","n":6,"m":["e4","c6","d4","d5","e5","Bf5","Nc3","e6","g4","Bg6","Nge2","c5"],"p":0.03,"end":"data","cp":-5,"eco":"B12","name":"Caro-Kann Defense: Advance Variation, Van der Wiel Attack","c":null}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "id": "vs-nf3",
+  "side": "b",
+  "dataVersion": "2026-11-25.0",
+  "sample": true,
+  "start": ["Nf3"],
+  "lines": [
+    {"id":"9e423f6a","n":1,"m":["Nf3","d5","g3","Nf6","Bg2","c6","O-O","Bg4","d3","Nbd7","Nbd2","e5"],"p":0.16,"end":"adv","cp":-62,"eco":"A07","name":"King's Indian Attack","c":null},
+    {"id":"a4f1fb94","n":2,"m":["Nf3","d5","d4","Nf6","c4","c6"],"p":0.14,"end":"data","cp":-15,"eco":"A06","name":"Zukertort Opening","c":null},
+    {"id":"38cbb171","n":3,"m":["Nf3","d5","c4","c6","b3","Nf6","Bb2","Bf5"],"p":0.09,"end":"data","cp":-10,"eco":"A12","name":"Réti Opening: Anglo-Slav Variation, Bogoljubow Variation","c":null},
+    {"id":"aacfe8c7","n":4,"m":["Nf3","d5","g3","Nf6","Bg2","c6","d3","Bg4","O-O","Nbd7"],"p":0.05,"end":"transpose","to":"9e423f6a","cp":-30,"eco":"A07","name":"King's Indian Attack","c":null},
+    {"id":"6856fc96","n":5,"m":["Nf3","d5","e3","Nf6","c4","c6"],"p":0.04,"end":"data","cp":-12,"eco":"A06","name":"Zukertort Opening","c":null}
+  ]
+}

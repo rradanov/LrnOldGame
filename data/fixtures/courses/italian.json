@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "id": "italian",
+  "side": "w",
+  "dataVersion": "2026-11-25.0",
+  "sample": true,
+  "start": ["e4","e5"],
+  "lines": [
+    {"id":"d1907cc9","n":1,"m":["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Nf6","d3","d6","O-O","O-O","h3"],"p":0.21,"end":"depth","cp":38,"eco":"C54","name":"Italian Game: Classical Variation, Giuoco Pianissimo","c":[null,null,"Развива коня и напада e5",null,"Офицерът гледа към f7",null,"Подготвя d4",null,null,null,null,null,null]},
+    {"id":"25acfb9f","n":2,"m":["e4","e5","Nf3","Nc6","Bc4","Nf6","d3","Be7","O-O","O-O","Re1","d6","c3"],"p":0.09,"end":"depth","cp":31,"eco":"C55","name":"Italian Game: Two Knights Defense, Modern Bishop's Opening","c":null},
+    {"id":"485b9e12","n":3,"m":["e4","e5","Nf3","d6","d4","exd4","Nxd4","Nf6","Nc3"],"p":0.07,"end":"adv","cp":104,"eco":"C41","name":"Philidor Defense: Exchange Variation","c":null},
+    {"id":"fae4d6ce","n":4,"m":["e4","e5","Nf3","Nc6","Bc4","Nf6","d3","Bc5","c3"],"p":0.06,"end":"transpose","to":"d1907cc9","cp":35,"eco":"C50","name":"Italian Game: Giuoco Pianissimo, Normal","c":null},
+    {"id":"ffd93f79","n":5,"m":["e4","e5","Nf3","Nf6","Nxe5","d6","Nf3","Nxe4","d4"],"p":0.05,"end":"data","cp":42,"eco":"C42","name":"Petrov's Defense: Classical Attack","c":null},
+    {"id":"1a34b3a7","n":6,"m":["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Qe7","d4","Bb6","O-O"],"p":0.02,"end":"adv","cp":112,"eco":"C53","name":"Italian Game: Classical Variation, Center Holding Variation","c":null}
+  ]
+}

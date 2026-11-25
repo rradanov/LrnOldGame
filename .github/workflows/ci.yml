@@ -28,6 +28,11 @@ jobs:
       - name: Инсталиране (само devDependencies)
         run: npm ci
 
+      - name: Валидиране на данните (каталог, курсове, manifest)
+        run: |
+          npm run validate-data
+          node tools/validate-data/make-sample.js --check
+
       - name: Unit тестове
         run: npm run test:unit
 

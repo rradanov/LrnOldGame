@@ -22,8 +22,9 @@ npx playwright install chromium
 npm run test:e2e     # Playwright, профил Pixel 7
 ```
 
-Структура: `src/` (код), `vendor/` (chess.js, cm-chessboard), `data/` (дърво на дебютите),
-`tools/` (генератор и помощни скриптове), `tests/unit`, `tests/e2e`.
+Структура: `src/` (код), `vendor/` (chess.js, cm-chessboard), `data/` (каталог `catalog.json`,
+генерирани курсове, тестови курсове в `data/fixtures/`), `tools/` (генератори, валидатор
+`npm run validate-data`), `tests/unit`, `tests/e2e`.
 
 Деплой: всеки push в `main` минава през CI, а след успех — към GitHub Pages.
 

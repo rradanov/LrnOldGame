@@ -1,0 +1,40 @@
+{
+  "v": 1,
+  "sample": true,
+  "note": "ТЕСТОВИ ДАННИ за разработка и e2e: ходовете са ръчно избрани, p/cp/end са измислени. Не са от lichess/Stockfish.",
+  "dataVersion": "2026-11-25.0",
+  "built": "2026-11-25T00:00:00Z",
+  "generator": {
+    "tool": "tools/validate-data/make-sample.js"
+  },
+  "engine": {
+    "name": "none"
+  },
+  "source": {
+    "kind": "hand-written"
+  },
+  "params": {},
+  "courses": [
+    {
+      "id": "italian",
+      "file": "courses/italian.json",
+      "sha256": "b433a71f4929883e7f1f2d5aa430fe354478fedfa0ed79026886d61ba654e886",
+      "lines": 6,
+      "coverage": 0.5
+    },
+    {
+      "id": "caro-kann",
+      "file": "courses/caro-kann.json",
+      "sha256": "67b24fbe728a2f66b1bd3ade24abf948470092bf2b0a722c40c1a3a25b766ccb",
+      "lines": 6,
+      "coverage": 0.5
+    },
+    {
+      "id": "vs-nf3",
+      "file": "courses/vs-nf3.json",
+      "sha256": "9d2e4e08c1e962a6eb47e81727f55775b0aa6cbe94c558515bb8da709f816fd1",
+      "lines": 5,
+      "coverage": 0.48
+    }
+  ]
+}
