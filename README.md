@@ -31,6 +31,13 @@ npm run test:e2e     # Playwright, профил Pixel 7
 (параметри: `tools/build-courses/config.json`, `node tools/build-courses --help`). Stockfish не е в
 репото; интеграционният тест се пуска с `STOCKFISH_PATH=<binary> npm run test:unit`.
 
+**Ново генериране:** Actions → **Build courses** → Run workflow (или
+`gh workflow run build-courses.yml -f maxGames=2000000`). Празните входове вземат стойностите от
+конфига; `overrides` е JSON за останалото (`{"tree":{…},"lines":{…},"engine":{…},"cache":{…}}`).
+Резултатът идва като PR от клон `data/update-<run>` (`publish=pr`), направо в `main`
+(`publish=main`) или само като артефакт (`publish=none`). Кешовете на дървото, оценките и Stockfish
+са в `actions/cache`, затова повторно пускане с близки параметри отнема минути.
+
 Деплой: всеки push в `main` минава през CI, а след успех — към GitHub Pages.
 
 ## Лиценз

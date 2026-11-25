@@ -1,0 +1,334 @@
+name: Build courses
+
+# T-017 (ARCH_T-014 §1, §6, §8; D-007, D-013, D-014, D-019, D-022, D-024, D-025).
+# lichess архив (поточно, спира след maxGames) → дърво → Stockfish 19 → data/courses/*.json +
+# data/manifest.json → валидатор → PR към main (или commit в main, ако PR е забранен).
+# Празен вход = стойността от tools/build-courses/config.json (за линиите) — така
+# catalog.params на курса не се презаписва без нужда.
+on:
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Месец от архива на lichess (YYYY-MM); празно = последният наличен'
+        type: string
+        default: ''
+      maxGames:
+        description: 'Приети партии, след които четенето спира (D-014)'
+        type: string
+        default: '2000000'
+      minElo:
+        description: 'Мин. рейтинг на двамата играчи'
+        type: string
+        default: '1200'
+      maxElo:
+        description: 'Макс. рейтинг на двамата играчи (0 = без граница)'
+        type: string
+        default: '1800'
+      minBaseSec:
+        description: 'Мин. базово време на часовника, сек. (180 = blitz и по-бавни)'
+        type: string
+        default: '180'
+      treeMaxPly:
+        description: 'Дълбочина на дървото, полуходове (≥ maxPly на линиите + 2)'
+        type: string
+        default: '28'
+      courses:
+        description: 'Курсове: all или id,id,… (празно = all)'
+        type: string
+        default: ''
+      linesPerCourse:
+        description: 'Линии на курс (празно = 20)'
+        type: string
+        default: ''
+      advCpWhite:
+        description: 'Праг на предимство за белите, cp (празно = 100)'
+        type: string
+        default: ''
+      advCpBlack:
+        description: 'Праг на предимство за черните, cp (празно = 60)'
+        type: string
+        default: ''
+      maxPly:
+        description: 'Макс. полуходове на линия (празно = 24)'
+        type: string
+        default: ''
+      oppMinShare:
+        description: 'Мин. дял на хода на противника (празно = 0.1)'
+        type: string
+        default: ''
+      engineNodes:
+        description: 'Възли на Stockfish на позиция (празно = 500000)'
+        type: string
+        default: ''
+      overrides:
+        description: 'JSON за всичко останало, напр. {"tree":{"minGames":20},"lines":{"myMoveToleranceCp":0},"engine":{"multiPV":4},"cache":{"use":false}}'
+        type: string
+        default: '{}'
+      publish:
+        description: 'Къде отиват данните: pr (клон + PR), main (commit в main), none (само артефакт)'
+        type: choice
+        options: [pr, main, none]
+        default: pr
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write   # gh workflow run ci.yml — push с GITHUB_TOKEN не пуска CI сам
+
+concurrency:
+  group: build-courses
+  cancel-in-progress: false
+
+env:
+  SF_ASSET: stockfish-linux-x86-64-universal.tar.gz
+  NODE_OPTIONS: --max-old-space-size=10240
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Инсталиране
+        run: |
+          npm ci
+          command -v zstd >/dev/null || { sudo apt-get update -q && sudo apt-get install -y -q zstd; }
+          zstd --version
+          echo "CPU: $(nproc) · RAM: $(free -g | awk '/Mem:/{print $2}') GB · диск: $(df -h . | awk 'NR==2{print $4}') свободни"
+          echo "T0=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Месец и параметри
+        id: prep
+        env:
+          INPUTS: ${{ toJSON(inputs) }}
+          MONTH_IN: ${{ inputs.month }}
+        run: |
+          tpl=$(node -p "require('./tools/build-tree/config.json').source.urlTemplate")
+          if [ -n "$MONTH_IN" ]; then
+            MONTH="$MONTH_IN"
+          else
+            # Архивът за месец M излиза в първите дни на M+1 → пробваме назад до 3 месеца.
+            first=$(date -u +%Y-%m-01)
+            for k in 1 2 3; do
+              m=$(date -u -d "$first -$k month" +%Y-%m)
+              if curl -sfIL -o /dev/null --max-time 30 "${tpl/\{month\}/$m}"; then MONTH=$m; break; fi
+              echo "::notice::архивът за $m още го няма"
+            done
+            [ -n "${MONTH:-}" ] || { echo "::error::няма наличен месец в архива"; exit 1; }
+          fi
+          echo "url=${tpl/\{month\}/$MONTH}" >> "$GITHUB_OUTPUT"
+          echo "sf_sha=$(node -p "require('./tools/build-courses/config.json').engine.sha256")" >> "$GITHUB_OUTPUT"
+          MONTH="$MONTH" node tools/ci/prepare-inputs.js --out-dir build
+          echo "--- build/tree-config.json"; cat build/tree-config.json
+          echo "--- build/courses-inputs.json"; cat build/courses-inputs.json
+
+      # ---------- Stockfish 19 (D-019): фиксирана версия, sha256 спрямо digest на релийза
+      - name: Кеш на Stockfish
+        id: sfcache
+        uses: actions/cache@v6
+        with:
+          path: build/sf/${{ env.SF_ASSET }}
+          key: sf-19-${{ steps.prep.outputs.sf_sha }}
+
+      - name: Stockfish 19 (сваляне, sha256, bench)
+        id: sf
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url=$(node -p "require('./tools/build-courses/config.json').engine.url")
+          want=$(node -p "require('./tools/build-courses/config.json').engine.sha256")
+          ver=$(node -p "require('./tools/build-courses/config.json').engine.version")
+          tag="sf_${ver}"
+          digest=$(gh api "repos/official-stockfish/Stockfish/releases/tags/$tag" \
+            --jq ".assets[] | select(.name == \"$SF_ASSET\") | .digest // empty" 2>/dev/null || true)
+          echo "config sha256: $want"
+          echo "релийз $tag digest: ${digest:-<няма>}"
+          if [ -n "$digest" ]; then
+            [ "$digest" = "sha256:$want" ] || { echo "::error::sha256 в config ($want) ≠ digest на релийза ($digest)"; exit 1; }
+            echo "digest_check=съвпада с digest на релийза" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::релийзът не дава digest — проверката е само спрямо фиксираната стойност в config.json"
+            echo "digest_check=само спрямо config.json (релийзът не дава digest)" >> "$GITHUB_OUTPUT"
+          fi
+          mkdir -p build/sf
+          if [ ! -f "build/sf/$SF_ASSET" ]; then
+            curl -sSfL --retry 3 -o "build/sf/$SF_ASSET" "$url"
+          fi
+          echo "$want  build/sf/$SF_ASSET" | sha256sum -c
+          tar -xzf "build/sf/$SF_ASSET" -C build/sf
+          SF="$PWD/build/sf/$(node -p "require('./tools/build-courses/config.json').engine.binary")"
+          [ -x "$SF" ] || { echo "::error::няма binary $SF"; ls -R build/sf | head -50; exit 1; }
+          echo "path=$SF" >> "$GITHUB_OUTPUT"
+          bench=$("$SF" bench 16 1 13 2>&1 | tail -5)
+          echo "$bench"
+          nps=$(echo "$bench" | awk -F: '/Nodes\/second/{gsub(/ /,"",$2); print $2}')
+          echo "nps=$nps" >> "$GITHUB_OUTPUT"
+
+      # ---------- Дърво (T-004): кеш tree-<month>-<hash>, иначе поточно от lichess
+      - name: Кеш на дървото
+        id: treecache
+        uses: actions/cache@v6
+        with:
+          path: build/tree.jsonl.gz
+          key: tree-${{ steps.prep.outputs.month }}-${{ steps.prep.outputs.tree_hash }}-${{ hashFiles('tools/build-tree/**', 'src/chess/**', 'vendor/chess.js/**') }}
+
+      - name: Дърво от lichess
+        if: steps.treecache.outputs.cache-hit != 'true'
+        env:
+          URL: ${{ steps.prep.outputs.url }}
+          MONTH: ${{ steps.prep.outputs.month }}
+        run: |
+          # Нарочното спиране след maxGames затваря stdin: zstd умира със SIGPIPE (141),
+          # curl — с write error (23). Важен е кодът на node (D-014; отчет T-004).
+          set +e
+          set -o pipefail
+          t0=$(date +%s)
+          curl -sSL --retry 3 -w '%{stderr}curl: изтеглени %{size_download} B за %{time_total} s (%{speed_download} B/s)\n' "$URL" 2> build/curl.log \
+            | zstd -dc 2> build/zstd.log \
+            | /usr/bin/time -v -o build/tree-time.txt \
+                node tools/build-tree --config build/tree-config.json --month "$MONTH" --out build/tree.jsonl.gz
+          st=("${PIPESTATUS[@]}")
+          set -e
+          set +o pipefail
+          echo "PIPESTATUS: curl=${st[0]} zstd=${st[1]} node=${st[2]} · $(( $(date +%s) - t0 )) s"
+          cat build/curl.log; cat build/zstd.log
+          grep -E 'Maximum resident|Elapsed' build/tree-time.txt || true
+          [ "${st[2]}" -eq 0 ] || { echo "::error::build-tree завърши с ${st[2]}"; exit 1; }
+          stopped=$(zcat build/tree.jsonl.gz | head -1 | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).stats.stoppedBy))')
+          echo "stoppedBy=$stopped"
+          if [ "$stopped" = "maxGames" ]; then
+            case "${st[0]}" in 0|23|141) ;; *) echo "::warning::curl завърши с ${st[0]} след maxGames";; esac
+            case "${st[1]}" in 0|141|1) ;; *) echo "::warning::zstd завърши с ${st[1]} след maxGames";; esac
+          else
+            # Целият месец е прочетен: тогава curl и zstd трябва да са завършили чисто.
+            [ "${st[0]}" -eq 0 ] && [ "${st[1]}" -eq 0 ] || { echo "::error::потокът прекъсна преди maxGames (curl=${st[0]} zstd=${st[1]})"; exit 1; }
+            echo "::warning::месецът свърши преди maxGames"
+          fi
+
+      - name: Manifest на дървото
+        run: |
+          zcat build/tree.jsonl.gz | head -1 > build/tree-manifest.json || true
+          ls -l build/tree.jsonl.gz
+          node -e '
+            const m = JSON.parse(require("fs").readFileSync("build/tree-manifest.json","utf8"));
+            const s = m.stats, r = m.run;
+            console.log(`месец ${m.source.month} · прочетени ${s.gamesRead} · приети ${s.gamesAccepted} · позиции ${s.nodes} · ходове ${s.moves} · stoppedBy ${s.stoppedBy}`);
+            console.log(`отхвърлени ${JSON.stringify(s.rejected)} · lossy ${JSON.stringify(s.lossy)}`);
+            console.log(`време ${r.seconds}s (четене ${r.readSeconds}s) · ${r.gamesPerSec} партии/s · ${r.workers} нишки · пик RSS ${r.peakRssMb} MB`);'
+
+      # ---------- Линии (T-016) с кеш на оценките (D-024)
+      - name: Кеш на оценките (възстановяване)
+        uses: actions/cache/restore@v6
+        with:
+          path: build/cache
+          key: evals-sf19-${{ github.run_id }}
+          restore-keys: evals-sf19-
+
+      - name: Курсове
+        id: courses
+        env:
+          SF: ${{ steps.sf.outputs.path }}
+        run: |
+          ls -l build/cache 2>/dev/null || echo "кешът на оценките е празен"
+          /usr/bin/time -v -o build/courses-time.txt \
+            node tools/build-courses --engine-path "$SF" --tree build/tree.jsonl.gz \
+              --inputs "$(cat build/courses-inputs.json)" --report build/report.md
+          grep -E 'Maximum resident|Elapsed' build/courses-time.txt || true
+          ls -l build/cache
+
+      - name: Кеш на оценките (запис)
+        if: always() && hashFiles('build/cache/*') != ''
+        uses: actions/cache/save@v6
+        with:
+          path: build/cache
+          key: evals-sf19-${{ github.run_id }}
+
+      - name: Валидатор и тестове
+        run: |
+          npm run validate-data
+          node tools/validate-data/make-sample.js --check
+          npm run test:unit
+
+      - name: Обобщение
+        if: always()
+        env:
+          NPS: ${{ steps.sf.outputs.nps }}
+          DIGEST: ${{ steps.sf.outputs.digest_check }}
+        run: |
+          {
+            echo "## Build courses — run ${{ github.run_id }}"
+            echo
+            echo "- Месец: ${{ steps.prep.outputs.month }} · maxGames ${{ steps.prep.outputs.max_games }} · дърво от кеша: ${{ steps.treecache.outputs.cache-hit == 'true' && 'да' || 'не' }}"
+            echo "- Stockfish bench (1 нишка): ${NPS:-?} nps · sha256: ${DIGEST:-?}"
+            echo "- Общо време на job-а до тук: $(( $(date +%s) - ${T0:-$(date +%s)} )) s"
+            [ -f build/curl.log ] && echo "- $(cat build/curl.log | tail -1)"
+            for f in build/tree-time.txt build/courses-time.txt; do
+              [ -f "$f" ] && echo "- $(basename "$f" .txt): $(grep -E 'Maximum resident' "$f" | sed 's/^\s*//') · $(grep -E 'Elapsed' "$f" | sed 's/^\s*//')"
+            done
+            if [ -f data/manifest.json ]; then
+              echo "- Курсове: $(ls data/courses | wc -l) файла · $(cat data/courses/*.json | wc -c) B JSON · $(cat data/courses/*.json | gzip -9 | wc -c) B gzip (сумарно)"
+            fi
+            echo
+            [ -f build/report.md ] && cat build/report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Артефакт (report, tree manifest)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-courses-${{ github.run_id }}
+          path: |
+            build/report.md
+            build/tree-manifest.json
+            build/tree-config.json
+            build/courses-inputs.json
+            build/*-time.txt
+            build/curl.log
+            data/manifest.json
+          retention-days: 7
+          if-no-files-found: warn
+
+      # ---------- Публикуване: клон data/update-<run> + PR; fallback — commit в main
+      - name: Публикуване
+        if: inputs.publish != 'none'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH: ${{ inputs.publish }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/manifest.json data/courses
+          if git diff --cached --quiet; then echo "::notice::няма промени в данните"; exit 0; fi
+          dv=$(node -p "require('./data/manifest.json').dataVersion")
+          git commit -q -m "Данни: курсове ${dv} (build-courses run ${{ github.run_id }})" -m "$RUN_URL"
+          { echo "Генерирано от [build-courses run ${{ github.run_id }}]($RUN_URL)."; echo; cat build/report.md; } | head -c 60000 > build/pr-body.md
+
+          to_main() {
+            git fetch -q origin main
+            git rebase -q origin/main
+            git push origin HEAD:main
+            gh workflow run ci.yml --ref main
+            echo "::notice::данните ${dv} са в main; пуснат е CI (той валидира, а deploy следва след него)"
+            echo "- Публикувано: commit в main (${dv})" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          if [ "$PUBLISH" = main ]; then to_main; exit 0; fi
+          branch="data/update-${{ github.run_id }}"
+          git push -q origin "HEAD:refs/heads/$branch"
+          if pr=$(gh pr create --base main --head "$branch" --title "Данни: курсове ${dv}" --body-file build/pr-body.md 2>build/pr-err.txt); then
+            echo "::notice::PR: $pr"
+            echo "- Публикувано: PR $pr" >> "$GITHUB_STEP_SUMMARY"
+            gh workflow run ci.yml --ref "$branch" || echo "::warning::CI не можа да се пусне за $branch"
+          else
+            cat build/pr-err.txt
+            echo "::warning::PR не може да се създаде (Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests). Fallback: commit в main."
+            git push -q origin --delete "$branch" || true
+            to_main
+          fi

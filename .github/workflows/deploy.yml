@@ -1,6 +1,7 @@
 name: Deploy to GitHub Pages
 
-# Деплой само след успешен CI на push в main (D-011).
+# Деплой само след успешен CI в main (D-011): на push или ръчно/от build-courses пуснат CI
+# (push с GITHUB_TOKEN не пуска CI сам, затова build-courses.yml прави `gh workflow run ci.yml`).
 on:
   workflow_run:
     workflows: [CI]
@@ -21,7 +22,8 @@ jobs:
   deploy:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
