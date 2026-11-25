@@ -8,6 +8,7 @@
 
 Данни:
 - **lichess-org/chess-openings** (CC0) — `tools/chess-openings/a.tsv`…`e.tsv`, копие от https://github.com/lichess-org/chess-openings (master, commit `48a8c0e733facfdc9a3723fe882e51ec28014074`, свалено 2026-11-25). Ползва се от валидатора на данните (имена и ECO в `data/catalog.json`) и от генератора на линии.
+- **Stockfish 19** (GPL-3.0, https://stockfishchess.org/) — линиите в `data/courses/` са изчислени с него. Двигателят се сваля и пуска само в CI (официален binary `sf_19`, sha256 в `tools/build-courses/config.json`), не е част от репото и от приложението; оценките и ходовете, които дава, не са производно произведение.
 - Дъмповете на партиите от lichess.org (https://database.lichess.org/) са CC0; използват се само в CI и не влизат в сайта.
 
 Иконките в `icons/` са създадени за този проект и са под MIT като останалия код.

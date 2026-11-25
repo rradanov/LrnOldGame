@@ -1,0 +1,44 @@
+{
+  "$comment": "Параметри на генератора на линии (T-016, D-013, ARCH_T-014 §6.2 lines.* / engine.* / cache.*). Сливане: този файл (или --config) → catalog.params на курса → входовете на workflow (--inputs JSON, --overrides JSON) → CLI флаговете. Резултатът се записва в manifest.params. engine.workers 0 = брой CPU (най-много 8); engine.timeoutMs 0 = автоматично (10 s + nodes/20 ms). sha256 е на архива stockfish-linux-x86-64-universal.tar.gz (sf_19).",
+  "lines": {
+    "courses": "all",
+    "linesPerCourse": 20,
+    "advCpWhite": 100,
+    "advCpBlack": 60,
+    "maxPly": 24,
+    "oppMinShare": 0.1,
+    "oppMinMoveGames": 10,
+    "oppMinGames": 20,
+    "minLineProb": 0.002,
+    "myMoveToleranceCp": 25,
+    "myMoveMinGames": 50,
+    "bookToleranceCp": 60,
+    "maxTransposeShare": 0.3,
+    "maxEvalsPerCourse": 600
+  },
+  "engine": {
+    "name": "Stockfish",
+    "version": "19",
+    "url": "https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-linux-x86-64-universal.tar.gz",
+    "sha256": "9defc0d4e55d49c65a6d042f3e571a39fcea499ade6dbe741b53b8c65e03611f",
+    "binary": "stockfish/stockfish-linux-x86-64-universal",
+    "path": "stockfish",
+    "args": [],
+    "nodes": 500000,
+    "multiPV": 3,
+    "workers": 0,
+    "hashMb": 64,
+    "timeoutMs": 0,
+    "retries": 2
+  },
+  "cache": {
+    "use": true,
+    "dir": "build/cache",
+    "flushEvery": 500
+  },
+  "output": {
+    "tree": "build/tree.jsonl.gz",
+    "dir": "data",
+    "report": "build/report.md"
+  }
+}

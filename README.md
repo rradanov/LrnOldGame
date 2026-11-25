@@ -26,6 +26,11 @@ npm run test:e2e     # Playwright, профил Pixel 7
 генерирани курсове, тестови курсове в `data/fixtures/`), `tools/` (генератори, валидатор
 `npm run validate-data`), `tests/unit`, `tests/e2e`.
 
+Данни (само в CI, T-017): `npm run build-tree` строи дърво от lichess (`build/tree.jsonl.gz`),
+`npm run build-courses` строи линиите със Stockfish → `data/courses/*.json` + `data/manifest.json`
+(параметри: `tools/build-courses/config.json`, `node tools/build-courses --help`). Stockfish не е в
+репото; интеграционният тест се пуска с `STOCKFISH_PATH=<binary> npm run test:unit`.
+
 Деплой: всеки push в `main` минава през CI, а след успех — към GitHub Pages.
 
 ## Лиценз

@@ -16,7 +16,8 @@
     "test": "npm run test:unit && npm run test:e2e",
     "build-tree": "node tools/build-tree",
     "validate-data": "node tools/validate-data",
-    "make-sample": "node tools/validate-data/make-sample.js"
+    "make-sample": "node tools/validate-data/make-sample.js",
+    "build-courses": "node tools/build-courses"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
