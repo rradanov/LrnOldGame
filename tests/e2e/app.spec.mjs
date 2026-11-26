@@ -86,6 +86,9 @@ test('каталог: банер, филтри Бели/Черни и групи
 
   await page.getByRole('button', { name: 'Разбрах' }).click();
   await expect(page.locator('.notice.suggested')).toHaveCount(0);
+  // T-024: банерът се маха веднага, а записът в IndexedDB завършва след това — без изчакване
+  // бързият runner в CI презарежда преди commit на транзакцията (2 поредни провала на 2026-11-26.2).
+  await expect.poll(() => page.evaluate(() => globalThis.__lrn.userDb.getMeta('suggestedBanner', true))).toBe(false);
   await page.reload();
   await expect(rows(page).first()).toBeVisible();
   await expect(page.locator('.notice.suggested')).toHaveCount(0);
