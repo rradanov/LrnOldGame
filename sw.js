@@ -4,7 +4,7 @@
  * всеки деплой сменя байтовете на sw.js → браузърът инсталира новата версия,
  * а приложението показва „Има нова версия — Обнови“.
  */
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.2.0';
 const BUILD = 'dev';
 const CACHE_PREFIX = 'lrnoldgame-shell-';
 const CACHE = `${CACHE_PREFIX}${APP_VERSION}-${BUILD}`;
@@ -26,12 +26,18 @@ const SHELL = [
   'src/settings.js',
   'src/router.js',
   'src/i18n/bg.js',
+  'src/db/idb.js',
+  'src/db/schema.js',
+  'src/db/userdb.js',
+  'src/data/courseStore.js',
+  'src/data/progress.js',
+  'src/chess/position.js',
   'src/ui/dom.js',
   'src/ui/board.js',
-  'src/ui/screens/placeholder.js',
-  'src/ui/screens/home.js',
-  'src/ui/screens/explore.js',
-  'src/ui/screens/repertoire.js',
+  'src/ui/screens/courses.js',
+  'src/ui/screens/review.js',
+  'src/ui/screens/catalog.js',
+  'src/ui/screens/course.js',
   'src/ui/screens/train.js',
   'src/ui/screens/settings.js',
   'vendor/chess.js/chess.js',
@@ -44,15 +50,41 @@ const SHELL = [
   'vendor/cm-chessboard/src/view/ChessboardView.js',
   'vendor/cm-chessboard/src/view/PositionAnimationsQueue.js',
   'vendor/cm-chessboard/src/view/VisualMoveInput.js',
+  'vendor/cm-chessboard/src/extensions/markers/Markers.js',
   'vendor/cm-chessboard/assets/chessboard.css',
   'vendor/cm-chessboard/assets/pieces/standard.svg',
+  'vendor/cm-chessboard/assets/extensions/markers/markers.css',
+  'vendor/cm-chessboard/assets/extensions/markers/markers.svg',
 ];
+
+// Данните на курсовете (D-023): catalog + manifest + всички файлове от manifest.courses.
+// Кешират се заедно с shell-а при install, затова новите данни идват с нов деплой
+// (нов BUILD → „Обнови“), а прогресът е в IndexedDB по courseId/lineId.
+const DATA_BASE = 'data/';
+const DATA_INDEX = ['catalog.json', 'manifest.json'];
+
+async function precacheData(cache) {
+  const fetchOk = async (path) => {
+    const res = await fetch(new Request(DATA_BASE + path, { cache: 'reload' }));
+    if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
+    return res;
+  };
+  const [catalogRes, manifestRes] = await Promise.all(DATA_INDEX.map(fetchOk));
+  const manifest = await manifestRes.clone().json();
+  const files = (manifest.courses || []).map((c) => c.file);
+  const courseRes = await Promise.all(files.map(fetchOk));
+  // Записваме едва когато всичко е изтеглено: или всички данни, или install пада.
+  await cache.put(DATA_BASE + 'catalog.json', catalogRes);
+  await cache.put(DATA_BASE + 'manifest.json', manifestRes);
+  await Promise.all(files.map((f, i) => cache.put(DATA_BASE + f, courseRes[i])));
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     // cache: 'reload' заобикаля HTTP кеша, за да не запишем стари файлове.
     await cache.addAll(SHELL.map((url) => new Request(url, { cache: 'reload' })));
+    await precacheData(cache);
   })());
   // Не викаме skipWaiting() тук: при обновяване новата версия чака
   // потвърждение от потребителя (съобщение SKIP_WAITING).
@@ -90,8 +122,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Останалото: cache-first; непознатите файлове се добавят в кеша при успех.
-  // (data/tree/* ще получи своя стратегия в T-005/T-012 — ARCH §4.1.)
+  // Останалото (вкл. data/*): cache-first; непознатите файлове се добавят в кеша при успех.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const hit = await cache.match(req, { ignoreSearch: true });

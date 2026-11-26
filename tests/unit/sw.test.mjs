@@ -40,7 +40,7 @@ test('версията е една и съща в sw.js, src/version.js и packa
   const pkg = JSON.parse(read('package.json'));
   assert.equal(swVer, APP_VERSION);
   assert.equal(pkg.version, APP_VERSION);
-  assert.equal(APP_VERSION, '0.1.0');
+  assert.equal(APP_VERSION, '0.2.0');
   assert.match(sw, /const BUILD = 'dev';/, 'BUILD се заменя от deploy.yml');
 });
 
@@ -86,4 +86,25 @@ test('vendor: версии и лицензи', () => {
   assert.match(read('vendor/chess.js/LICENSE'), /Redistribution and use/);
   assert.match(read('vendor/cm-chessboard/LICENSE'), /MIT License/);
   assert.ok(!existsSync(join(ROOT, 'vendor/cm-chessboard/assets/pieces/staunty.svg')), 'staunty (NC) не се ползва');
+});
+
+test('SW кешира данните: catalog, manifest и всички курсове от manifest (D-023)', () => {
+  assert.match(sw, /const DATA_BASE = 'data\/';/);
+  assert.match(sw, /const DATA_INDEX = \['catalog\.json', 'manifest\.json'\];/);
+  assert.match(sw, /manifest\.courses/);
+  assert.match(sw, /await precacheData\(cache\)/);
+  // Тестовите данни не са в shell-а и не се зареждат от приложението.
+  assert.ok(!shellList().some((p) => p.includes('fixtures')));
+  for (const f of importGraph('src/app.js')) assert.ok(!read(f).includes('fixtures/'), `${f} не сочи data/fixtures`);
+});
+
+test('всеки файл от data/manifest.json съществува и SHA-256 съвпада', async () => {
+  const { createHash } = await import('node:crypto');
+  const man = JSON.parse(read('data/manifest.json'));
+  assert.ok(!man.sample, 'в продукция няма тестови данни');
+  assert.ok(man.courses.length >= 1);
+  for (const c of man.courses) {
+    const buf = readFileSync(join(ROOT, 'data', c.file));
+    assert.equal(createHash('sha256').update(buf).digest('hex'), c.sha256, c.file);
+  }
 });

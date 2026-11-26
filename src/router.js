@@ -1,23 +1,37 @@
-// Hash router: #/today, #/explore, ... Без DOM зависимости в parseHash(),
-// за да може да се тества в Node.
+// Hash router (ARCH_T-014 §5). Без DOM зависимости в parseHash(), за да се тества в Node.
+// Раздели в долната лента: #/courses · #/review · #/catalog · #/settings.
+// Вътрешни екрани: #/course/<courseId>, #/train/<courseId>/<lineId>?mode=learn|review.
 
-export const ROUTES = Object.freeze(['today', 'explore', 'repertoire', 'train', 'settings']);
-export const DEFAULT_ROUTE = 'today';
+export const TABS = Object.freeze(['courses', 'review', 'catalog', 'settings']);
+/** Вътрешен екран → раздел, който свети в лентата. */
+export const INNER = Object.freeze({ course: 'courses', train: 'courses' });
+export const ROUTES = Object.freeze([...TABS, ...Object.keys(INNER)]);
+export const DEFAULT_ROUTE = 'courses';
 
-/** '#/explore?x=1' → {name: 'explore', params: URLSearchParams}. Непознат път → DEFAULT_ROUTE. */
+/**
+ * '#/course/italian?x=1' → {name: 'course', parts: ['italian'], params, tab: 'courses', known}.
+ * Непознат път → DEFAULT_ROUTE (known: false).
+ */
 export function parseHash(hash) {
   const raw = String(hash || '').replace(/^#\/?/, '');
   const [path, query = ''] = raw.split('?');
-  const name = path.split('/')[0];
+  const segs = path.split('/').filter(Boolean).map((s) => {
+    try { return decodeURIComponent(s); } catch { return s; }
+  });
+  const name = segs[0] || '';
+  const ok = ROUTES.includes(name);
+  const resolved = ok ? name : DEFAULT_ROUTE;
   return {
-    name: ROUTES.includes(name) ? name : DEFAULT_ROUTE,
-    known: name === '' || ROUTES.includes(name),
+    name: resolved,
+    parts: ok ? segs.slice(1) : [],
+    known: name === '' || ok,
+    tab: INNER[resolved] || resolved,
     params: new URLSearchParams(query),
   };
 }
 
-export function hrefFor(name) {
-  return `#/${name}`;
+export function hrefFor(name, ...parts) {
+  return `#/${[name, ...parts].map((p) => encodeURIComponent(p)).join('/')}`;
 }
 
 /**

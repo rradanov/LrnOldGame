@@ -67,7 +67,7 @@ body {
 }
 .tab {
   flex: 1 1 0;
-  max-width: calc(var(--maxw) / 5);
+  max-width: calc(var(--maxw) / 4);
   min-height: var(--tabs-h);
   display: flex;
   flex-direction: column;
@@ -142,3 +142,109 @@ body {
 .saved { min-height: 1.4em; color: var(--accent); font-weight: 600; margin: 0 0 8px; }
 .about { margin-top: 24px; }
 .about h2 { font-size: 1.1rem; margin: 0 0 6px; }
+
+/* --- T-019: каталог, курсове, курс, преглед на линия --- */
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
+.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.btn.small { min-height: 36px; padding: 4px 12px; font-size: .875rem; }
+.btn.block { display: flex; width: 100%; margin: 8px 0 16px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.notice {
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: 10px; padding: 10px 12px; margin: 0 0 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+}
+.empty-state { text-align: center; padding: 32px 8px; }
+.empty-big { font-size: 1.15rem; font-weight: 600; margin: 0 0 6px; }
+.back { display: inline-block; color: var(--accent); text-decoration: none; padding: 8px 0; min-height: 44px; }
+.section-title { font-size: 1.05rem; margin: 8px 0; }
+.course-sub { margin: -6px 0 12px; }
+
+/* Моите курсове */
+.today-summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; margin: 0 0 12px; font-weight: 500;
+}
+.course-list, .catalog-list, .line-list { list-style: none; margin: 0; padding: 0; }
+.course-card a {
+  display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px; margin: 0 0 10px; min-height: 64px;
+}
+.side-icon { font-size: 1.9rem; line-height: 1; width: 2rem; text-align: center; }
+.cc-body { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cc-name { font-weight: 600; }
+.cc-meta, .cc-progress { color: var(--muted); font-size: .82rem; }
+.chev { color: var(--muted); font-size: 1.5rem; }
+.progress { display: block; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { display: block; height: 100%; background: var(--accent); }
+
+/* Каталог */
+.filters { display: flex; flex-direction: column; gap: 10px; margin: 0 0 8px; }
+.segmented { display: flex; border: 1px solid var(--accent); border-radius: 10px; overflow: hidden; }
+.seg {
+  flex: 1; min-height: 44px; border: 0; background: transparent; color: var(--accent);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.seg[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.chip {
+  flex: 0 0 auto; min-height: 36px; padding: 4px 12px; border-radius: 18px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: inherit; font-size: .85rem;
+}
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
+.catalog-row label {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; margin: 0 0 8px; min-height: 56px;
+}
+.catalog-row.unavailable { opacity: .55; }
+.cr-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.cr-name { font-weight: 600; }
+.cr-en { color: var(--muted); font-size: .78rem; }
+.cr-meta { color: var(--muted); font-size: .82rem; }
+.eco { font-variant-numeric: tabular-nums; font-weight: 600; }
+.cr-pick input { width: 26px; height: 26px; accent-color: var(--accent); margin: 0; }
+
+/* Курс: линии */
+.line-row a {
+  display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none;
+  border-bottom: 1px solid var(--border); padding: 10px 2px; min-height: 56px;
+}
+.ln-n { width: 1.8rem; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ln-body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ln-name { font-weight: 500; font-size: .92rem; }
+.ln-moves { font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ln-meta { color: var(--muted); font-size: .78rem; }
+.ln-status { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+.st-learned { color: var(--accent); }
+
+/* Преглед на линия */
+.nav-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 8px; }
+.nav-btn { min-width: 48px; padding: 8px; font-size: 1.1rem; }
+.ply-counter { flex: 1; text-align: center; margin: 0; font-size: .85rem; color: var(--muted); }
+.move-list { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+.mv {
+  min-height: 34px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--fg); font: inherit; font-size: .9rem;
+}
+.mv-start { color: var(--muted); }
+.mv-tail { font-style: italic; }
+.mv[aria-current] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.move-comment { background: var(--surface); border-radius: 8px; padding: 8px 10px; margin: 0 0 8px; }
+.move-comment[hidden] { display: none; }
+
+/* Настройки: данни и бекъп */
+.data-info, .backup { margin-top: 24px; }
+.data-info h2, .backup h2 { font-size: 1.1rem; margin: 0 0 6px; }
+.data-info p { margin: 4px 0; }
+.gen-params dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: .85rem; margin: 8px 0; }
+.gen-params dt code { color: var(--muted); font-size: .75rem; }
+.gen-params dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.gen-params summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
+.saved.error { color: #b3261e; }

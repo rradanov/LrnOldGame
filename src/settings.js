@@ -2,8 +2,9 @@
 // Всяка числова стойност или праг, която влияе на поведението, се описва тук:
 // ключ, тип, подразбиране, мин/макс, стъпка и етикет на български.
 // Модулът няма DOM и се тества с `node --test`.
-// Хранилището се подава отвън (адаптер с load()/save()), за да може
-// в T-008 localStorage да се смени с IndexedDB, без да се пипат екраните.
+// Хранилището се подава отвън (адаптер с load()/save()). В приложението това е
+// store `settings` в IndexedDB (src/db/userdb.js): load() връща предварително
+// прочетения обект, save() записва асинхронно.
 
 /**
  * @typedef {Object} SettingDef
@@ -22,35 +23,72 @@
 
 /** @type {ReadonlyArray<SettingDef>} */
 export const SETTINGS_SCHEMA = Object.freeze([
+  // Учене (ARCH_T-014 §6.1)
   {
-    key: 'newPerDay', type: 'int', default: 10, min: 0, max: 100, step: 1,
-    group: 'train', label: 'Нови карти на ден',
-    help: 'Колко нови позиции влизат в тренировка за един ден.',
+    key: 'learnStreak', type: 'int', default: 3, min: 1, max: 10, step: 1,
+    group: 'learn', label: 'Изигравания без грешка до „научена“',
+    help: 'Колко пъти подред трябва да изиграеш линията без грешка, за да е научена.',
   },
   {
+    key: 'newLinesPerDay', type: 'int', default: 5, min: 0, max: 50, step: 1,
+    group: 'learn', label: 'Нови линии на ден',
+  },
+  {
+    key: 'onError', type: 'enum', default: 'continue',
+    options: [['continue', 'Довърши линията'], ['restart', 'Започни веднага отначало']],
+    group: 'learn', label: 'При грешка',
+  },
+  {
+    key: 'errorPauseMs', type: 'int', default: 1200, min: 0, max: 5000, step: 100, unit: 'ms',
+    group: 'learn', label: 'Пауза за показване на верния ход',
+  },
+  {
+    key: 'hintResetsStreak', type: 'bool', default: true,
+    group: 'learn', label: 'Подсказката нулира брояча',
+  },
+  {
+    key: 'autoPlayStart', type: 'bool', default: false,
+    group: 'learn', label: 'Изиграй автоматично стартовите ходове на курса',
+  },
+  // Преговор
+  {
     key: 'retention', type: 'number', default: 0.9, min: 0.7, max: 0.99, step: 0.01,
-    group: 'train', label: 'Желана успеваемост (FSRS)',
-    help: 'По-висока стойност дава повече прегледи и по-добро запомняне.',
+    group: 'review', label: 'Желана успеваемост (FSRS)',
+    help: 'По-висока стойност дава повече преговори и по-добро запомняне.',
+  },
+  {
+    key: 'maxReviewsPerDay', type: 'int', default: 50, min: 0, max: 500, step: 1,
+    group: 'review', label: 'Макс. преговори на ден',
+    help: '0 = без лимит.',
+  },
+  {
+    key: 'relearnStreak', type: 'int', default: 1, min: 1, max: 5, step: 1,
+    group: 'review', label: 'Чисти пробега след грешка при преговор',
   },
   {
     key: 'hardAfterSec', type: 'int', default: 15, min: 3, max: 120, step: 1, unit: 'сек.',
-    group: 'train', label: 'Бавен отговор след',
-    help: 'Верен ход след толкова секунди се оценява като „Трудно“.',
+    group: 'review', label: 'Бавен ход след',
+    help: 'Верен ход след толкова секунди дава оценка „Трудно“.',
   },
   {
-    key: 'opponentMinShare', type: 'int', default: 5, min: 0, max: 50, step: 1, unit: '%',
-    group: 'train', label: 'Мин. дял на хода на противника',
-    help: 'Ходове на противника с по-малък дял в дървото не се играят в тренировка.',
+    key: 'dayStartHour', type: 'int', default: 4, min: 0, max: 12, step: 1, unit: 'ч.',
+    group: 'review', label: 'Новият ден започва в',
+  },
+  // Дъска
+  {
+    key: 'opponentDelayMs', type: 'int', default: 400, min: 0, max: 3000, step: 100, unit: 'ms',
+    group: 'board', label: 'Пауза преди хода на противника',
   },
   {
     key: 'boardOrientation', type: 'enum', default: 'auto',
-    options: [['auto', 'Според страната'], ['white', 'Белите долу'], ['black', 'Черните долу']],
+    options: [['auto', 'Според страната на курса'], ['white', 'Белите долу'], ['black', 'Черните долу']],
     group: 'board', label: 'Ориентация на дъската',
   },
   {
     key: 'animationMs', type: 'int', default: 300, min: 0, max: 1000, step: 50, unit: 'ms',
     group: 'board', label: 'Анимация на ходовете',
   },
+  // Данни
   {
     key: 'backupReminderDays', type: 'int', default: 14, min: 1, max: 90, step: 1, unit: 'дни',
     group: 'data', label: 'Напомняне за бекъп след',
@@ -58,7 +96,8 @@ export const SETTINGS_SCHEMA = Object.freeze([
 ]);
 
 export const SETTINGS_GROUPS = Object.freeze([
-  ['train', 'Тренировка'],
+  ['learn', 'Учене'],
+  ['review', 'Преговор'],
   ['board', 'Дъска'],
   ['data', 'Данни'],
 ]);

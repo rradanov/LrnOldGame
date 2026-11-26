@@ -14,6 +14,8 @@ const PORT = Number(argPort > 0 ? process.argv[argPort + 1] : process.env.PORT |
 // за да се симулира нов деплой. Без --test пътят не съществува.
 const TEST_MODE = process.argv.includes('--test');
 let swBuildOverride = '';
+// GET /__test/data-version?v=2026-12-01.1 подменя dataVersion в data/manifest.json (нов деплой на данни).
+let dataVersionOverride = '';
 const BLOCKED = ['node_modules', '.git', 'tests', 'test-results', 'playwright-report'];
 
 const TYPES = {
@@ -37,6 +39,11 @@ createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
       return res.end(swBuildOverride || 'dev');
     }
+    if (TEST_MODE && url.pathname === '/__test/data-version') {
+      dataVersionOverride = (url.searchParams.get('v') || '').replace(/[^\w.-]/g, '');
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      return res.end(dataVersionOverride || '-');
+    }
     if (!url.pathname.startsWith(BASE)) {
       res.writeHead(302, { Location: BASE });
       return res.end();
@@ -57,6 +64,11 @@ createServer(async (req, res) => {
     let body = await readFile(file);
     if (swBuildOverride && rel === 'sw.js') {
       body = body.toString('utf8').replace("const BUILD = 'dev';", `const BUILD = '${swBuildOverride}';`);
+    }
+    if (dataVersionOverride && rel === 'data/manifest.json') {
+      const man = JSON.parse(body.toString('utf8'));
+      man.dataVersion = dataVersionOverride;
+      body = Buffer.from(JSON.stringify(man));
     }
     res.writeHead(200, {
       'Content-Type': TYPES[extname(file)] || 'application/octet-stream',
