@@ -362,3 +362,62 @@ a { color: var(--accent); }
 .db-recover { margin: 0 0 12px; }
 .db-recover .btn-row { margin-top: 8px; }
 .btn.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+
+/* --- T-026 (D-031): лента с иконки под дъската (Tabler Icons, MIT, vendor/tabler/) --- */
+/* Иконката е CSS маска върху currentColor: един файл за светла и тъмна тема, без inline SVG (CSP). */
+.icon-bar { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 4px 0 8px; }
+.icon-btn {
+  flex: 0 1 72px; min-width: 48px; min-height: 48px; padding: 2px 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--accent);
+  font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.icon-btn .ico {
+  display: block; width: 28px; height: 28px; background-color: currentColor;
+  -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat;
+}
+.ico-back { --ico: url(../vendor/tabler/arrow-left.svg); }
+.ico-fwd { --ico: url(../vendor/tabler/arrow-right.svg); }
+.ico-again { --ico: url(../vendor/tabler/arrow-back-up.svg); }
+.ico-nextline { --ico: url(../vendor/tabler/arrow-bar-to-right.svg); }
+.icon-btn .ico-cap { font-size: .7rem; line-height: 1.15; font-weight: 500; white-space: nowrap; }
+.icon-bar.no-labels .ico-cap { display: none; }
+.icon-btn[aria-disabled="true"] { opacity: .35; cursor: default; }
+.icon-btn[aria-disabled="false"]:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.icon-btn[aria-disabled="false"]:active { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.icon-sep { align-self: center; width: 1px; height: 32px; margin: 0 8px; background: var(--border); }
+/* Ниски екрани (D4): лентата се побира над долната лента и на 320×568 при дъска ≥ 280 px —
+   по-плътни редове с фиксирана височина на реда (не зависи от метриките на шрифта). */
+@media (max-height: 700px) {
+  .screen[data-screen="train"] .screen-title { line-height: 1.25; margin-bottom: 2px; }
+  .screen[data-screen="train"] .streak { line-height: 1.2; margin: 0 0 1px; }
+  .screen[data-screen="train"] .streak .dots { font-size: 1rem; }
+  .screen[data-screen="train"] .board-wrap { margin-bottom: 4px; }
+  .screen[data-screen="train"] .train-msg { min-height: 1.3em; margin: 0; }
+  .screen[data-screen="train"] .train-actions { margin: 2px 0 0; }
+  .screen[data-screen="train"] .icon-bar { margin: 2px 0 4px; }
+  .screen[data-screen="train"] .icon-btn { min-height: 44px; padding: 0 4px; }
+}
+
+/* --- T-026 / D-032: взети фигури и „+N“ (спрайтът на cm-chessboard) --- */
+.train-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.train-top .streak { flex: 0 0 auto; }
+.captured { display: flex; align-items: center; gap: 4px; height: 20px; min-width: 0; overflow: hidden; }
+.cap-top { justify-content: flex-end; flex: 1 1 auto; margin: 0; }
+.cap-bottom { margin: 0 0 4px; }
+.cap-group { display: inline-flex; align-items: center; }
+.cap-piece { width: 20px; height: 20px; flex: 0 0 auto; }
+.cap-group .cap-piece + .cap-piece { margin-left: -11px; } /* еднаквите фигури се застъпват */
+.cap-diff { font-size: .8rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 2px; }
+@media (max-height: 700px) {
+  .screen[data-screen="train"] .captured { height: 16px; }
+  .screen[data-screen="train"] .cap-piece { width: 16px; height: 16px; }
+  .screen[data-screen="train"] .cap-group .cap-piece + .cap-piece { margin-left: -9px; }
+  .screen[data-screen="train"] .cap-bottom { margin: 0; }
+  .screen[data-screen="train"] .board-wrap { margin-bottom: 2px; }
+}
+/* тъмна тема: черните фигури получават светъл контур, иначе се губят на тъмния фон */
+@media (prefers-color-scheme: dark) {
+  .cap-piece { filter: drop-shadow(0 0 1px var(--fg)) drop-shadow(0 0 .5px var(--fg)); }
+}

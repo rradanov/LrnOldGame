@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { lineFrames } from '../../src/train/session.js';
+import { againBtn, nextBtn } from './helpers.mjs';
 
 const MANIFEST = JSON.parse(readFileSync(new URL('../../data/manifest.json', import.meta.url), 'utf8'));
 const LINES = Object.fromEntries(MANIFEST.courses.map((c) => [c.id, c.lines]));
@@ -86,15 +87,15 @@ test('изиграване чисто ×3 → „научена“; прогре
   await playLine(page, L1, 'w', 'drag');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
   await expect(page.locator('#streak')).toContainText('●○○');
-  await expect(page.locator('#next-line-btn')).toHaveText('Следваща линия (2)');
+  await expect(nextBtn(page)).toHaveAccessibleName('Следваща линия (2)');
   await expect(page.locator('#played .mv')).toHaveCount(L1.m.length);
   await expect(page.locator('#screen')).not.toContainText('null');
 
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await expect(page.locator('#train-done')).toBeHidden();
   await playLine(page, L1, 'w');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (2/3)');
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await playLine(page, L1, 'w');
   await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (3/3)');
   await expect(page.locator('#streak')).toHaveAttribute('data-status', 'learned');
@@ -113,7 +114,7 @@ test('изиграване чисто ×3 → „научена“; прогре
   expect(daily[0].plays).toBe(3);
 
   // „Следваща линия“ → линия 2
-  await page.locator('#next-line-btn').click();
+  await nextBtn(page).click();
   await expect(page.locator('h1.screen-title')).toHaveText(`Италианска партия · линия 2/${LINES.italian}`);
 
   await page.reload();
@@ -134,7 +135,7 @@ test('грешка → брояч 0, червен маркер, стрелка �
   await page.goto(`./#/train/italian/${L1.id}?mode=learn`);
   await playLine(page, L1, 'w');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await expect(page.locator('#streak')).toHaveAttribute('data-streak', '1');
 
   // 1.d4 вместо 1.e4
@@ -172,7 +173,7 @@ test('„Отначало“ след грешка не заобикаля ну�
   await page.goto(`./#/train/italian/${L2.id}?mode=learn`);
   await playLine(page, L2, 'w');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await move(page, 'a2', 'a3');
   await expect(page.locator('#streak')).toHaveAttribute('data-streak', '0');
   await page.locator('#restart-btn').click();
@@ -213,7 +214,7 @@ test('офлайн: черен курс (противникът играе пр�
   await expect(page.locator('.board-wrap .arrows .arrow')).toHaveCount(1);
   await playLine(page, line, 'b');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна с грешки (0/3)');
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await playLine(page, line, 'b');
   await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
   await page.reload();

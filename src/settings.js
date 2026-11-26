@@ -118,6 +118,37 @@ export const SETTINGS_SCHEMA = Object.freeze([
     key: 'animationMs', type: 'int', default: 300, min: 0, max: 1000, step: 50, unit: 'мс',
     group: 'board', label: 'Анимация на ходовете',
   },
+  {
+    key: 'iconLabels', type: 'bool', default: true,
+    group: 'board', label: 'Подписи под иконките',
+    help: 'Малък текст под иконките в тренировката (Назад, Напред, Пак, Следваща).',
+  },
+  // D-032: взети фигури и материално предимство до дъската
+  {
+    key: 'showCaptured', type: 'bool', default: true,
+    group: 'board', label: 'Показвай взетите фигури',
+    help: 'Над и под дъската — фигурите, взети от всяка страна, и разлика в материала „+N“.',
+  },
+  {
+    key: 'valuePawn', type: 'int', default: 1, min: 0, max: 20, step: 1,
+    group: 'board', label: 'Стойност на пешка', help: 'За разликата „+N“ до взетите фигури.',
+  },
+  {
+    key: 'valueKnight', type: 'int', default: 3, min: 0, max: 20, step: 1,
+    group: 'board', label: 'Стойност на кон',
+  },
+  {
+    key: 'valueBishop', type: 'int', default: 3, min: 0, max: 20, step: 1,
+    group: 'board', label: 'Стойност на офицер',
+  },
+  {
+    key: 'valueRook', type: 'int', default: 5, min: 0, max: 20, step: 1,
+    group: 'board', label: 'Стойност на топ',
+  },
+  {
+    key: 'valueQueen', type: 'int', default: 9, min: 0, max: 20, step: 1,
+    group: 'board', label: 'Стойност на дама',
+  },
   // Данни
   {
     key: 'backupReminderDays', type: 'int', default: 14, min: 1, max: 90, step: 1, unit: 'дни',

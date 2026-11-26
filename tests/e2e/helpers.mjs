@@ -119,3 +119,9 @@ export async function legalWrong(page) {
     return null;
   });
 }
+
+// T-026: лентата с иконки под дъската — търсене по роля и aria-label, не по текст/id.
+export const iconBar = (page) => page.getByRole('toolbar', { name: 'Действия с линията' });
+export const againBtn = (page) => iconBar(page).getByRole('button', { name: 'Пак — повтори линията' });
+/** „Следваща“: aria-label е „Следваща линия (n)“, „Към курса“, „Следваща за преговор (n)“ или „Към „Преговор““. */
+export const nextBtn = (page) => iconBar(page).getByRole('button', { name: /^(Следваща|Към )/ });

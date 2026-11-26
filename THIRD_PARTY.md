@@ -4,6 +4,7 @@
 |---|---|---|---|
 | chess.js | 1.4.0 | BSD-2-Clause, © 2025 Jeff Hlywa | https://github.com/jhlywa/chess.js — `vendor/chess.js/LICENSE` |
 | cm-chessboard | 8.15.8 | MIT, © 2017 Stefan Haack | https://github.com/shaack/cm-chessboard — `vendor/cm-chessboard/LICENSE` |
+| Tabler Icons (`@tabler/icons`, само `arrow-left`, `arrow-right`, `arrow-back-up`, `arrow-bar-to-right` от `icons/outline/`) | 3.53.0 | MIT, © 2020-2026 Paweł Kuna | https://tabler.io/icons, https://github.com/tabler/tabler-icons — `vendor/tabler/LICENSE` |
 | Шахматни фигури „standard“ (спрайт в cm-chessboard) | — | CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); автори Cburnett (https://en.wikipedia.org/wiki/User:Cburnett) и Rfc1394 (https://en.wikipedia.org/wiki/User:Rfc1394); адаптирани от shaack за cm-chessboard | https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard — бележката е и в `vendor/cm-chessboard/assets/pieces/standard.svg` |
 
 Само за тестовете (devDependencies, не влизат в сайта):

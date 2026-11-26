@@ -1,6 +1,6 @@
 // T-025: поправки след приемането на MVP (T013-D1, D3, D4, D6, D7, D8, D9). Pixel 7, истинските данни.
 import { test, expect } from '@playwright/test';
-import { course, lineN, open, fast, move, playLine, row, waitForSW } from './helpers.mjs';
+import { course, lineN, open, fast, move, playLine, row, waitForSW, againBtn } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const I1 = lineN(ITALIAN, 1);
@@ -42,7 +42,7 @@ test('D1: грешка в учене → презареждане → брояч
   await fast(page);
   await open(page, `#/train/italian/${I1.id}?mode=learn`);
   await playLine(page, I1, 'w');
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await playLine(page, I1, 'w', { stopAt: 2 });
   await move(page, 'a2', 'a3');
   await expect.poll(async () => (await row(page, 'italian', I1.id)).streak).toBe(0);
@@ -70,7 +70,7 @@ for (const [w, h] of [[360, 640], [320, 568]]) {
     expect(btn.y + btn.height).toBeLessThanOrEqual(tabsTop);
     await playLine(page, I1, 'w');
     await expect.poll(async () => {
-      const b = await page.locator('#again-btn').boundingBox();
+      const b = await againBtn(page).boundingBox();
       return b.y >= 0 && b.y + b.height <= tabsTop;
     }).toBe(true);
   });

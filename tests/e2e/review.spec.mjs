@@ -3,6 +3,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { lineFrames } from '../../src/train/session.js';
+import { againBtn, nextBtn } from './helpers.mjs';
 
 const course = (id) => JSON.parse(readFileSync(new URL(`../../data/courses/${id}.json`, import.meta.url), 'utf8'));
 const ITALIAN = course('italian');
@@ -128,8 +129,8 @@ test('научена линия → карта; след 3 дни е в „Пр�
   await playLine(page, L1, 'w');
   await expect(page.locator('#done-text')).toHaveText(/^Оценка: Добре · следващ преговор след \d+ дни/);
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'good');
-  await expect(page.locator('#again-btn')).toHaveCount(0); // един опит на линия
-  await expect(page.locator('#next-review-btn')).toHaveText('Към „Преговор“');
+  await expect(againBtn(page)).toHaveAttribute('aria-disabled', 'true'); // един опит на линия: „Пак“ е неактивна
+  await expect(nextBtn(page)).toHaveAccessibleName('Към „Преговор“');
   await expect(page.locator('#review-all-done')).toBeVisible();
   await expect(page.locator('#review-badge')).toBeHidden();
 
@@ -142,7 +143,7 @@ test('научена линия → карта; след 3 дни е в „Пр�
   const daily = await page.evaluate(() => globalThis.__lrn.userDb.db.getAll('daily'));
   expect(daily.find((d) => d.reviews)).toMatchObject({ day: '2026-11-29', reviews: 1, reviewErrors: 0 });
 
-  await page.locator('#next-review-btn').click();
+  await nextBtn(page).click();
   await expect(page.locator('#review-empty')).toContainText('Преговорът за днес е готов ✓');
   await expect(page.locator('#review-today')).toHaveText('Днес: 1 преговор · 0 с „Отново“');
   await expect(page.locator('#review-next')).toBeVisible();
@@ -178,7 +179,7 @@ test('грешка при преговор → Отново (lapse), повто�
   expect(r.due).toBe(new Date(2026, 10, 30, 4).getTime()); // утре
   await expect(page.locator('#streak')).toHaveText('Повторение след грешка · остава 1 чист пробег');
   // повторението: чисто → готово, картата не се пипа
-  await page.locator('#again-btn').click();
+  await againBtn(page).click();
   await playLine(page, L1, 'w');
   await expect(page.locator('#done-text')).toHaveText(/^Повторението е готово ✓ · следващ преговор утре/);
   const r2 = await row(page, 'italian', L1.id);
@@ -186,15 +187,15 @@ test('грешка при преговор → Отново (lapse), повто�
   expect(r2.relearnLeft).toBe(0);
 
   // следващата в опашката — линия 2
-  await expect(page.locator('#next-review-btn')).toHaveText('Следваща за преговор (1)');
-  await page.locator('#next-review-btn').click();
+  await expect(nextBtn(page)).toHaveAccessibleName('Следваща за преговор (1)');
+  await nextBtn(page).click();
   await expect(page.locator('h1.screen-title')).toHaveText('Италианска партия · линия 2 · преговор');
   // подсказка → Трудно
   await expect.poll(() => turn(page)).toBe('user@0');
   await page.locator('#hint-btn').click();
   await playLine(page, L2, 'w');
   await expect(page.locator('#done-text')).toHaveText(/^Оценка: Трудно · следващ преговор/);
-  await expect(page.locator('#next-review-btn')).toHaveText('Към „Преговор“');
+  await expect(nextBtn(page)).toHaveAccessibleName('Към „Преговор“');
 
   const atts = await page.evaluate(() => globalThis.__lrn.userDb.db.getAll('attempts'));
   expect(atts.filter((a) => a.mode === 'review').map((a) => [a.grade ?? null, !!a.relearn])).toEqual([['again', false], [null, true], ['hard', false]]);
@@ -236,7 +237,7 @@ test('лимит „Макс. преговори на ден“ и миграц�
   await expect(page.locator('#review-badge')).toHaveText('1');
   await page.locator('#review-start').click();
   await playLine(page, L1, 'w');
-  await page.locator('#next-review-btn').click();
+  await nextBtn(page).click();
   await expect(page.locator('#review-empty')).toContainText('Достигнат е лимитът за днес (1 преговор)');
   // Курсът показва 1 за преговор (без лимита)
   await open(page, '#/course/italian');

@@ -13,6 +13,7 @@ import { isDueToday, inRelearn } from '../../srs/review.js';
 import { loadToday, whenText } from '../../data/today.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 import { createBoard, orientationFor } from '../board.js';
+import { material, CAPTURE_TYPES } from '../../chess/material.js';
 
 export { lineFrames };
 
@@ -53,6 +54,65 @@ const abandonedResult = (p, total) => ({
 });
 
 const moveLabel = (i, san) => (i % 2 === 0 ? `${i / 2 + 1}.${san}` : san);
+
+/**
+ * T-026 (D-031): бутон-иконка от лентата под дъската. Иконката е SVG от vendor/tabler/ като CSS маска
+ * (цвят = currentColor, работи и в тъмна тема; без inline SVG/скриптове заради CSP).
+ * Неактивното действие е бледо с aria-disabled="true" (остава на мястото си и във фокуса).
+ */
+function iconButton(id, ico, caption, aria) {
+  const btn = h('button', { type: 'button', class: 'icon-btn', id, 'aria-label': aria, title: aria, 'aria-disabled': 'true' },
+    h('span', { class: `ico ico-${ico}`, 'aria-hidden': 'true' }),
+    h('span', { class: 'ico-cap', 'aria-hidden': 'true' }, caption));
+  let action = null;
+  btn.addEventListener('click', () => { if (action) action(); });
+  /** set(fn, aria) — активира с действие fn; set(null) — неактивно. */
+  btn.set = (fn, label = aria) => {
+    action = fn || null;
+    btn.setAttribute('aria-disabled', fn ? 'false' : 'true');
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+  };
+  return btn;
+}
+const go = (href) => { location.hash = href.slice(1); };
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Малка фигура от спрайта на cm-chessboard (символът е в документа — assetsCache на дъската). */
+function pieceIcon(color, type) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 40 40');
+  svg.setAttribute('class', 'cap-piece');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS(SVG_NS, 'use');
+  use.setAttribute('href', `#${color}${type}`);
+  svg.append(use);
+  return svg;
+}
+
+/**
+ * D-032: ред „взети фигури“ на страната `side` (фигурите, които тя е взела, от другия цвят), групирани по вид,
+ * и „+N“, ако тази страна е с повече материал.
+ */
+function drawCapturedRow(el, side, m) {
+  const got = m.captured[side];
+  const other = side === 'w' ? 'b' : 'w';
+  const parts = [];
+  const said = [];
+  for (const t of CAPTURE_TYPES) {
+    if (!got[t]) continue;
+    parts.push(h('span', { class: 'cap-group', dataset: { type: t } }, Array.from({ length: got[t] }, () => pieceIcon(other, t))));
+    said.push(`${T.train.pieceNames[t]} ×${got[t]}`);
+  }
+  const lead = m.leader === side && m.plus > 0;
+  if (lead) parts.push(h('span', { class: 'cap-diff' }, `+${m.plus}`));
+  el.replaceChildren(...parts);
+  el.dataset.captured = CAPTURE_TYPES.map((t) => (got[t] ? `${t}${got[t]}` : '')).join('');
+  el.dataset.diff = lead ? String(m.plus) : '';
+  el.setAttribute('aria-label', fmt(side === 'w' ? T.train.capturedW : T.train.capturedB, {
+    list: said.length ? said.join(', ') : T.train.capturedNone,
+  }) + (lead ? ` · +${m.plus}` : ''));
+}
 
 export default {
   render(root, ctx, route) {
@@ -103,22 +163,46 @@ export default {
 
       // --- DOM ---
       const streakEl = h('p', { class: 'streak', id: 'streak', 'aria-live': 'polite' });
+      // D-032: взетите фигури — над дъската за горната страна (в реда на брояча), под дъската за долната.
+      const showCap = S.get('showCaptured');
+      const bottomSide = orientationFor(S.get('boardOrientation'), meta.side);
+      const topSide = bottomSide === 'w' ? 'b' : 'w';
+      const capTop = showCap ? h('div', { class: 'captured cap-top', id: 'captured-top', role: 'img', dataset: { side: topSide } }) : null;
+      const capBottom = showCap ? h('div', { class: 'captured cap-bottom', id: 'captured-bottom', role: 'img', dataset: { side: bottomSide } }) : null;
+      const values = { p: S.get('valuePawn'), n: S.get('valueKnight'), b: S.get('valueBishop'), r: S.get('valueRook'), q: S.get('valueQueen') };
+      function drawCaptured(fen) {
+        if (!showCap) return;
+        const m = material(fen, values);
+        drawCapturedRow(capTop, topSide, m);
+        drawCapturedRow(capBottom, bottomSide, m);
+      }
       const holder = h('div', { class: 'board-wrap', 'aria-label': T.train.boardLabel });
       const msg = h('p', { class: 'train-msg', id: 'train-msg', role: 'status', 'aria-live': 'polite' });
       const hintBtn = h('button', { type: 'button', class: 'btn secondary', id: 'hint-btn', onclick: () => doHint(false) }, T.train.hint);
       const restartBtn = h('button', { type: 'button', class: 'btn secondary', id: 'restart-btn', onclick: async () => { await abandonAttempt(); startAttempt(true); } }, T.train.restart);
       const moves = h('ol', { class: 'move-list played', id: 'played' });
       const donePanel = h('section', { class: 'train-done', id: 'train-done', hidden: true });
+      // T-026: лента „стрелки“ (D-031, вариант Б) — Назад/Напред (стъпки по ходовете; в тренировката няма такова действие →
+      // винаги неактивни), разделител, Пак и Следваща (активни само в края на линията).
+      const stepBackBtn = iconButton('step-back-btn', 'back', T.train.icoBack, T.train.ariaBack);
+      const stepFwdBtn = iconButton('step-fwd-btn', 'fwd', T.train.icoFwd, T.train.ariaFwd);
+      const againBtn = iconButton('again-btn', 'again', T.train.icoAgain, T.train.ariaAgain);
+      const nextBtn = iconButton(review ? 'next-review-btn' : 'next-line-btn', 'nextline', T.train.icoNext, T.train.nextLine);
+      const iconBar = h('div', {
+        class: `icon-bar${S.get('iconLabels') ? '' : ' no-labels'}`, id: 'icon-bar', role: 'toolbar', 'aria-label': T.train.bar,
+      }, stepBackBtn, stepFwdBtn, h('span', { class: 'icon-sep', 'aria-hidden': 'true' }), againBtn, nextBtn);
 
       box.append(...[
         screenHeader(title),
         wantReview && !review ? h('p', { class: 'notice', id: 'practice-note' }, T.train.practice) : null,
         settled || carry ? h('p', { class: 'notice', id: 'resumed-note' }, carry ? T.train.resumedReview : T.train.resumedLearn) : null,
         h('p', { class: 'hint course-sub' }, line.name ? `${line.eco || ''} ${line.name}` : (line.eco || meta.name.en)),
-        streakEl,
+        h('div', { class: 'train-top' }, streakEl, capTop),
         holder,
+        capBottom,
         msg,
         h('div', { class: 'btn-row train-actions' }, hintBtn, restartBtn),
+        iconBar,
         donePanel,
         moves,
         line.tail !== null ? h('p', { class: 'hint tail-note' }, T.train.tailNote) : null,
@@ -177,6 +261,12 @@ export default {
         return;
       }
 
+      /** Позиция на дъската + взетите фигури (D-032: изчислени от самата позиция). */
+      function setPos(fen, last, animate) {
+        board.setPosition(fen, last, animate).catch(() => {});
+        drawCaptured(fen);
+      }
+
       let inputOn = false;
       let hintTimer = null;
       let recorded = false;
@@ -210,7 +300,7 @@ export default {
           // Стартовите ходове на курса — веднага, без пауза.
           while (session.phase() === PHASE.AUTO) session.playAuto();
           const f = session.frame();
-          board.setPosition(f.fen, f.last, false).catch(() => {});
+          setPos(f.fen, f.last, false);
           drawMoves();
           step();
           return;
@@ -221,7 +311,7 @@ export default {
           later(S.get('opponentDelayMs'), () => {
             const ev = session.playAuto();
             board.clearMarks('ok');
-            board.setPosition(ev.fen, ev, true).catch(() => {});
+            setPos(ev.fen, ev, true);
             drawMoves();
             step();
           });
@@ -243,12 +333,12 @@ export default {
       function onMove(m) {
         if (!alive || !inputOn) return;
         const before = session.frame();
-        if (m.canceled) { board.setPosition(before.fen, before.last, false).catch(() => {}); return; }
+        if (m.canceled) { setPos(before.fen, before.last, false); return; }
         let san;
         try {
           san = new Position(before.fen).playMove(m).san;
         } catch {
-          board.setPosition(before.fen, before.last, false).catch(() => {});
+          setPos(before.fen, before.last, false);
           return;
         }
         disableInput();
@@ -256,7 +346,7 @@ export default {
         board.clearArrows();
         board.clearMarks('hint');
         if (res.ok) {
-          board.setPosition(res.fen, res, false).catch(() => {});
+          setPos(res.fen, res, false);
           board.clearMarks('ok');
           board.mark(res.to, 'ok');
           say(T.train.good, 'ok');
@@ -271,7 +361,7 @@ export default {
         say(fmt(res.restart ? T.train.restarting : T.train.wrong, { san: res.expected.san }), 'bad');
         later(S.get('wrongMoveMs'), () => {
           board.clearMarks('bad');
-          board.setPosition(before.fen, before.last, false).catch(() => {});
+          setPos(before.fen, before.last, false);
           board.arrow(res.expected.from, res.expected.to);
           board.mark(res.expected.from, 'hint');
           if (res.restart) {
@@ -366,14 +456,11 @@ export default {
           toLine ? h('p', { class: 'hint transpose-note' }, fmt(T.train.transposeNote, { n: toLine.n }), ' · ',
             h('a', { href: `${hrefFor('train', courseId, toLine.id)}?mode=learn`, id: 'transpose-go' }, fmt(T.train.transposeGo, { n: toLine.n }))) : null,
           h('p', { class: 'hint line-end' }, T.train.end[line.end] || '', line.cp !== null ? ` (${line.cp > 0 ? '+' : ''}${decimal(line.cp / 100, 2)})` : ''),
-          h('div', { class: 'btn-row' },
-            h('button', { type: 'button', class: 'btn', id: 'again-btn', onclick: () => startAttempt(true) }, T.train.again),
-            next
-              ? h('a', { class: 'btn secondary', id: 'next-line-btn', href: `${hrefFor('train', courseId, next.id)}?mode=learn` }, `${T.train.nextLine} (${next.n})`)
-              : h('a', { class: 'btn secondary', id: 'next-line-btn', href: hrefFor('course', courseId) }, T.train.toCourse),
-          ),
           next ? null : h('p', { class: 'hint' }, T.train.allLearned),
         ].filter(Boolean));
+        againBtn.set(() => startAttempt(true));
+        if (next) nextBtn.set(() => go(`${hrefFor('train', courseId, next.id)}?mode=learn`), `${T.train.nextLine} (${next.n})`);
+        else nextBtn.set(() => go(hrefFor('course', courseId)), T.train.toCourse);
         showDone();
       }
 
@@ -419,14 +506,12 @@ export default {
           res.errors.length ? h('p', { class: 'hint' }, fmt(T.train.errorsList, {
             list: res.errors.map((e) => `${moveLabel(e.ply, e.played)} → ${e.expected}`).join(', '),
           })) : null,
-          h('div', { class: 'btn-row' },
-            k > 0 ? h('button', { type: 'button', class: 'btn', id: 'again-btn', onclick: () => startAttempt(true) }, T.train.repeat) : null,
-            next
-              ? h('a', { class: k > 0 ? 'btn secondary' : 'btn', id: 'next-review-btn', href: `${hrefFor('train', next.courseId, next.lineId)}?mode=review` }, fmt(T.train.nextReview, { left }))
-              : h('a', { class: k > 0 ? 'btn secondary' : 'btn', id: 'next-review-btn', href: hrefFor('review') }, T.train.reviewDone),
-          ),
           !next && k === 0 ? h('p', { class: 'hint', id: 'review-all-done' }, T.review.allDone) : null,
         ].filter(Boolean));
+        // „Пак“ в преговора — само докато тече повторение след „Отново“ (k > 0), както досега.
+        againBtn.set(k > 0 ? () => startAttempt(true) : null);
+        if (next) nextBtn.set(() => go(`${hrefFor('train', next.courseId, next.lineId)}?mode=review`), fmt(T.train.nextReview, { left }));
+        else nextBtn.set(() => go(hrefFor('review')), T.train.reviewDone);
         showDone();
       }
 
@@ -437,10 +522,12 @@ export default {
         recorded = false;
         donePanel.hidden = true;
         restartBtn.disabled = false;
+        againBtn.set(null);
+        nextBtn.set(null, T.train.nextLine);
         board.clearArrows();
         board.clearMarks();
         const f = session.frame(0);
-        board.setPosition(f.fen, null, false).catch(() => {});
+        setPos(f.fen, null, false);
         drawStreak();
         drawMoves();
         step();
