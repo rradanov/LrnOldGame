@@ -3,6 +3,7 @@ import { T, fmt } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
 import { courseProgress } from '../../data/progress.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
+import { dbRecoverBox } from '../dbRecover.js';
 import { loadToday, whenText } from '../../data/today.js';
 import { nextReviewAt } from '../../srs/queue.js';
 import { summarize, updateIsRecent } from '../../data/dataUpdate.js';
@@ -93,7 +94,7 @@ export default {
   render(root, ctx) {
     let alive = true;
     root.append(screenHeader(T.courses.title));
-    if (!ctx.userDb) root.append(h('p', { class: 'error' }, T.dbError));
+    if (!ctx.userDb) root.append(dbRecoverBox(ctx));
     asyncBlock(root, () => load(ctx), (box, { cards, today, notices }) => {
       box.append(...notices);
       if (!cards.length) {

@@ -144,7 +144,7 @@ test('научена линия → карта; след 3 дни е в „Пр�
 
   await page.locator('#next-review-btn').click();
   await expect(page.locator('#review-empty')).toContainText('Преговорът за днес е готов ✓');
-  await expect(page.locator('#review-today')).toHaveText('Днес: 1 преговора · 0 с „Отново“');
+  await expect(page.locator('#review-today')).toHaveText('Днес: 1 преговор · 0 с „Отново“');
   await expect(page.locator('#review-next')).toBeVisible();
   // повторно отваряне в режим review в същия ден → упражнение без оценка
   await open(page, `#/train/italian/${L1.id}?mode=review`);
@@ -169,14 +169,14 @@ test('грешка при преговор → Отново (lapse), повто�
 
   // линия 1: грешка на първия ход (d4 вместо e4), после довършване
   await playLine(page, L1, 'w', { wrongAt: 0, wrong: ['d2', 'd4'] });
-  await expect(page.locator('#done-text')).toHaveText('Оценка: Отново · изиграй линията още 1 път(и) без грешка');
+  await expect(page.locator('#done-text')).toHaveText('Оценка: Отново · изиграй линията още 1 път без грешка');
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'again');
   let r = await row(page, 'italian', L1.id);
   expect(r.fsrs.lapses).toBe(1);
   expect(r.fsrs.state).toBe('relearning');
   expect(r.relearnLeft).toBe(1);
   expect(r.due).toBe(new Date(2026, 10, 30, 4).getTime()); // утре
-  await expect(page.locator('#streak')).toHaveText('Повторение след грешка · остават 1 чисти пробега');
+  await expect(page.locator('#streak')).toHaveText('Повторение след грешка · остава 1 чист пробег');
   // повторението: чисто → готово, картата не се пипа
   await page.locator('#again-btn').click();
   await playLine(page, L1, 'w');
@@ -237,7 +237,7 @@ test('лимит „Макс. преговори на ден“ и миграц�
   await page.locator('#review-start').click();
   await playLine(page, L1, 'w');
   await page.locator('#next-review-btn').click();
-  await expect(page.locator('#review-empty')).toContainText('Достигнат е лимитът за днес (1 преговора)');
+  await expect(page.locator('#review-empty')).toContainText('Достигнат е лимитът за днес (1 преговор)');
   // Курсът показва 1 за преговор (без лимита)
   await open(page, '#/course/italian');
   await expect(page.locator('#course-due')).toHaveText('За преговор днес: 1');

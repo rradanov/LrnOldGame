@@ -8,6 +8,8 @@ export function h(tag, attrs = {}, ...children) {
     if (v === undefined || v === null || v === false) continue;
     if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
     else if (k === 'dataset') Object.assign(el.dataset, v);
+    // T013-D8: CSSOM вместо атрибут style — CSP не разрешава inline стилове.
+    else if (k === 'style') { if (typeof v === 'string') el.style.cssText = v; else Object.assign(el.style, v); }
     else if (v === true) el.setAttribute(k, '');
     else el.setAttribute(k, String(v));
   }
@@ -16,6 +18,16 @@ export function h(tag, attrs = {}, ...children) {
     el.append(c instanceof Node ? c : document.createTextNode(String(c)));
   }
   return el;
+}
+
+/** Изтегля текст като файл (бекъп). */
+export function download(name, text, type = 'application/json') {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = h('a', { href: url, download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function screenHeader(title) {

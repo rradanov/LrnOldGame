@@ -3,10 +3,10 @@
 // повторение до relearnStreak чисти пробега; после „Следваща за преговор“. Линия, която не е
 // за преговор днес, се отваря като упражнение (learn) с бележка.
 // Логиката е в src/train/session.js (без DOM); тук са само дъската, текстовете и записът в IndexedDB.
-import { T, fmt } from '../../i18n/bg.js';
+import { T, fmt, decimal } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
 import { Position } from '../../chess/position.js';
-import { createSession, PHASE, lineFrames } from '../../train/session.js';
+import { createSession, PHASE, lineFrames, mergeCarry } from '../../train/session.js';
 import { nextAfter } from '../../data/progress.js';
 import { lineInfo } from '../../data/dataUpdate.js';
 import { isDueToday, inRelearn } from '../../srs/review.js';
@@ -24,14 +24,33 @@ async function load(ctx, courseId, lineId) {
   const line = course.byId.get(lineId) || null;
   let row = null;
   let rowsById = new Map();
+  let settled = false;
   if (line && ctx.userDb) {
     try {
       row = await ctx.userDb.touchLine(courseId, lineId, line.n, lineInfo(line));
+      // T013-D1: прекъснат (презареждане, убито приложение) нечист опит в режим learn се приключва като
+      // неуспешен (броячът вече е 0 от markDirty; тук остава и записът в журнала). Режим review — в render.
+      if (row?.pending?.mode === 'learn') {
+        const p = row.pending;
+        const out = await ctx.userDb.recordAttempt({
+          courseId, lineId, n: line.n, mode: 'learn', learnStreak: ctx.settings.get('learnStreak'),
+          dayStartHour: ctx.settings.get('dayStartHour'), srs: ctx.srs(),
+          result: abandonedResult(p, line.sans.length),
+        });
+        row = out.row;
+        settled = true;
+      }
       rowsById = new Map((await ctx.userDb.progressByCourse(courseId)).map((r) => [r.lineId, r]));
     } catch (e) { console.error(e); }
   }
-  return { meta, course, line, row, rowsById };
+  return { meta, course, line, row, rowsById, settled };
 }
+
+/** Резултат на прекъснат опит от маркера pending (T013-D1). */
+const abandonedResult = (p, total) => ({
+  done: false, clean: false, errors: (p.errors || []).map((e) => ({ ...e })), hints: p.hints || 0,
+  plies: 0, total, userMoves: 0, ms: 0, maxMoveMs: 0, transposeTo: null, attempt: 1, abandoned: true,
+});
 
 const moveLabel = (i, san) => (i % 2 === 0 ? `${i / 2 + 1}.${san}` : san);
 
@@ -53,7 +72,7 @@ export default {
     };
     const clearTimers = () => { for (const t of timers) clearTimeout(t); timers.clear(); };
 
-    asyncBlock(root, () => load(ctx, courseId, lineId), (box, { meta, course, line, row: row0, rowsById }) => {
+    asyncBlock(root, () => load(ctx, courseId, lineId), (box, { meta, course, line, row: row0, rowsById, settled }) => {
       if (!line) { box.append(screenHeader(T.titles.train), h('p', { class: 'error' }, T.train.notFound)); return; }
       const S = ctx.settings;
       const need = S.get('learnStreak');
@@ -63,6 +82,8 @@ export default {
       const mode = review ? 'review' : 'learn';
       let reviewOut = null; // резултатът от последния запис в режим review
       let queueLeft = null; // колко остават в опашката (без текущата)
+      // T013-D1: грешките/подсказките от прекъснат опит в преговор се добавят към този опит.
+      let carry = review && row?.pending?.mode === 'review' ? row.pending : null;
       if (!review) back.textContent = fmt(T.train.back, { course: meta.name.bg });
       const title = review
         ? fmt(T.train.reviewHeader, { course: meta.name.bg, n: line.n })
@@ -92,6 +113,7 @@ export default {
       box.append(...[
         screenHeader(title),
         wantReview && !review ? h('p', { class: 'notice', id: 'practice-note' }, T.train.practice) : null,
+        settled || carry ? h('p', { class: 'notice', id: 'resumed-note' }, carry ? T.train.resumedReview : T.train.resumedLearn) : null,
         h('p', { class: 'hint course-sub' }, line.name ? `${line.eco || ''} ${line.name}` : (line.eco || meta.name.en)),
         streakEl,
         holder,
@@ -244,6 +266,7 @@ export default {
         }
         // Грешка: червен маркер, връщане, стрелка с верния ход, брояч → 0.
         drawStreak(true);
+        persistDirty();
         board.mark(m.to, 'bad');
         say(fmt(res.restart ? T.train.restarting : T.train.wrong, { san: res.expected.san }), 'bad');
         later(S.get('wrongMoveMs'), () => {
@@ -272,6 +295,19 @@ export default {
         board.mark(hnt.from, 'hint');
         say(fmt(T.train.hintText, { san: hnt.san }), auto ? 'hint auto' : 'hint');
         if (session.dirty()) drawStreak(true);
+        persistDirty();
+      }
+
+      /**
+       * T013-D1: нечистият опит се записва веднага (learn: брояч 0; review: грешки и подсказки),
+       * за да не се загуби при презареждане или убиване на приложението.
+       */
+      function persistDirty() {
+        if (recorded || !ctx.userDb) return;
+        const r = mergeCarry(session.result(), carry);
+        if (mode === 'learn' ? !session.dirty() : !(r.errors.length || r.hints)) return;
+        ctx.userDb.markDirty({ courseId, lineId, mode, errors: r.errors, hints: r.hints })
+          .catch((e) => console.error('Нечистият опит не се записа:', e));
       }
 
       async function record() {
@@ -279,10 +315,11 @@ export default {
         recorded = true;
         try {
           const out = await ctx.userDb.recordAttempt({
-            courseId, lineId, n: line.n, result: session.result(),
+            courseId, lineId, n: line.n, result: mergeCarry(session.result(), carry),
             learnStreak: need, dayStartHour: dsh, mode, srs: ctx.srs(),
           });
           row = out.row;
+          carry = null;
           if (out.review) reviewOut = out.review;
           ctx.refreshBadge?.();
           rowsById.set(lineId, row);
@@ -296,7 +333,7 @@ export default {
 
       /** Прекъснат опит с грешка/подсказка се записва като неуспешен — иначе „Отначало“ би заобиколил нулирането. */
       function abandonAttempt() {
-        if (!recorded && session.dirty() && session.phase() !== PHASE.DONE) return record();
+        if (!recorded && (session.dirty() || carry) && session.phase() !== PHASE.DONE) return record();
         return Promise.resolve(null);
       }
       abandon = abandonAttempt;
@@ -328,7 +365,7 @@ export default {
           })) : null,
           toLine ? h('p', { class: 'hint transpose-note' }, fmt(T.train.transposeNote, { n: toLine.n }), ' · ',
             h('a', { href: `${hrefFor('train', courseId, toLine.id)}?mode=learn`, id: 'transpose-go' }, fmt(T.train.transposeGo, { n: toLine.n }))) : null,
-          h('p', { class: 'hint line-end' }, T.train.end[line.end] || '', line.cp !== null ? ` (${line.cp > 0 ? '+' : ''}${(line.cp / 100).toFixed(2)})` : ''),
+          h('p', { class: 'hint line-end' }, T.train.end[line.end] || '', line.cp !== null ? ` (${line.cp > 0 ? '+' : ''}${decimal(line.cp / 100, 2)})` : ''),
           h('div', { class: 'btn-row' },
             h('button', { type: 'button', class: 'btn', id: 'again-btn', onclick: () => startAttempt(true) }, T.train.again),
             next
@@ -337,7 +374,13 @@ export default {
           ),
           next ? null : h('p', { class: 'hint' }, T.train.allLearned),
         ].filter(Boolean));
+        showDone();
+      }
+
+      /** D4: панелът в края на линията се показва и се превърта до видимото (над долната лента). */
+      function showDone() {
         donePanel.hidden = false;
+        try { donePanel.scrollIntoView({ block: 'nearest' }); } catch { /* стар браузър */ }
       }
 
       /** Следващата линия от опашката за днес (без текущата, освен ако е в повторение). */
@@ -384,7 +427,7 @@ export default {
           ),
           !next && k === 0 ? h('p', { class: 'hint', id: 'review-all-done' }, T.review.allDone) : null,
         ].filter(Boolean));
-        donePanel.hidden = false;
+        showDone();
       }
 
       function startAttempt(again) {

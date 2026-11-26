@@ -336,3 +336,26 @@ a { color: var(--accent); }
 .about-list a { min-height: 24px; display: inline-block; }
 .about-note { display: block; margin: 0; }
 .nowrap { white-space: nowrap; }
+
+/* --- T-025 (T013-D4, D6, D7) --- */
+/* D6: отметка в цял докосваем ред */
+.field-bool .check-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; margin: 0; cursor: pointer;
+}
+.field-bool .check-row input { width: 24px; height: 24px; flex: 0 0 auto; margin: 0; accent-color: var(--accent); }
+.about-list a, .about p > a { display: inline-block; min-height: 44px; padding-block: 10px; }
+/* D4: на ниски екрани дъската отстъпва място на брояча, бутоните и долната лента */
+.board-wrap { max-width: min(var(--maxw), 70vh, calc(100dvh - var(--tabs-h) - 220px - env(safe-area-inset-bottom))); }
+@media (max-height: 700px) {
+  .screen[data-screen="train"] .screen-title { font-size: 1.1rem; margin: 0 0 6px; }
+  .screen[data-screen="train"] .back { min-height: 36px; padding: 4px 0; }
+  .screen[data-screen="train"] .course-sub { display: none; }
+  .screen[data-screen="train"] .board-wrap { margin-bottom: 6px; }
+  .screen[data-screen="train"] .btn-row { margin: 4px 0; }
+}
+.train-done { scroll-margin-bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom)); }
+/* D7: повредено хранилище */
+.db-recover { margin: 0 0 12px; }
+.db-recover .btn-row { margin-top: 8px; }
+.btn.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }

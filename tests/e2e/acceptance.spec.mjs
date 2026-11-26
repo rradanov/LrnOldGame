@@ -559,11 +559,9 @@ test.describe('T-013 устойчивост', () => {
   });
 });
 
-// Известни дефекти (T-013): тестовете описват ОЧАКВАНОТО поведение и са маркирани test.fail.
-// Когато дефектът се поправи, тестът „неочаквано минава“ — тогава махни test.fail.
-test.describe('T-013 известни дефекти', () => {
+// Дефекти от T-013, поправени в T-025 (0.5.1): тестовете вече са без test.fail.
+test.describe('T-013 дефекти (поправени в T-025)', () => {
   test('T013-D1: презареждане след грешка не бива да запази брояча (learn)', async ({ page }) => {
-    test.fail(true, 'T013-D1: грешката се записва едва в края на опита; reload/убиване на приложението я губи');
     await open(page);
     await fast(page);
     await open(page, `#/train/italian/${I1.id}?mode=learn`);
@@ -577,7 +575,6 @@ test.describe('T-013 известни дефекти', () => {
   });
 
   test('T013-D1: презареждане по време на преговор след грешка не бива да даде „Добре“', async ({ page }) => {
-    test.fail(true, 'T013-D1');
     await open(page);
     await fast(page, { learnStreak: 1 });
     await open(page, `#/train/italian/${I1.id}?mode=learn`);
@@ -594,7 +591,6 @@ test.describe('T-013 известни дефекти', () => {
   });
 
   test('T013-D2: „Преговор“ не показва текст „null“', async ({ page }) => {
-    test.fail(true, 'T013-D2: box.append(…, null, …) в src/ui/screens/review.js');
     await open(page);
     await fast(page, { learnStreak: 1 });
     await open(page, `#/train/italian/${I1.id}?mode=learn`);
@@ -605,7 +601,6 @@ test.describe('T-013 известни дефекти', () => {
   });
 
   test('T013-D5: текстовете в „Настройки“ — без „(дни) (дни)“ и „false“', async ({ page }) => {
-    test.fail(true, 'T013-D5');
     await open(page, '#/settings');
     await expect(page.locator('[data-key="firstReviewDays"] label')).toHaveText('Първи преговор след (дни)', { timeout: 1000 });
     await expect(page.locator('form.settings')).not.toContainText(/: (true|false)\./, { timeout: 1000 });

@@ -40,7 +40,7 @@ test('версията е една и съща в sw.js, src/version.js и packa
   const pkg = JSON.parse(read('package.json'));
   assert.equal(swVer, APP_VERSION);
   assert.equal(pkg.version, APP_VERSION);
-  assert.equal(APP_VERSION, '0.5.0');
+  assert.equal(APP_VERSION, '0.5.1');
   assert.match(sw, /const BUILD = 'dev';/, 'BUILD се заменя от deploy.yml');
 });
 

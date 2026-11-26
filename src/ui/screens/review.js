@@ -8,6 +8,7 @@ import { inRelearn } from '../../srs/review.js';
 import { dayNumber } from '../../srs/fsrs.js';
 import { formatMoves } from '../../data/courseStore.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
+import { dbRecoverBox } from '../dbRecover.js';
 
 export const reviewHref = (it) => `${hrefFor('train', it.courseId, it.lineId)}?mode=review`;
 
@@ -28,7 +29,7 @@ export default {
   render(root, ctx) {
     let alive = true;
     root.append(screenHeader(T.review.title));
-    if (!ctx.userDb) root.append(h('p', { class: 'error' }, T.dbError));
+    if (!ctx.userDb) root.append(dbRecoverBox(ctx));
     asyncBlock(root, () => load(ctx), (box, { today, lines }) => {
       const dsh = ctx.settings.get('dayStartHour');
       const { queue, day } = today;
@@ -49,11 +50,11 @@ export default {
             : null));
         return;
       }
-      box.append(
+      box.append(...[
         h('p', { class: 'review-count', id: 'review-count' }, fmt(T.review.count, { n })),
         queue.limited ? h('p', { class: 'hint' }, fmt(T.review.limited, { n, total: queue.dueTotal })) : null,
         h('a', { class: 'btn block', id: 'review-start', href: reviewHref(lines[0]) }, T.review.start),
-      );
+      ].filter(Boolean)); // T013-D2: нативният append превръща null в текст „null“
       let lastCourse = null;
       const list = h('ol', { class: 'line-list review-list', id: 'review-list' });
       for (const it of lines) {

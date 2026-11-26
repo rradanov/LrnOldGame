@@ -4,7 +4,7 @@
  * всеки деплой сменя байтовете на sw.js → браузърът инсталира новата версия,
  * а приложението показва „Има нова версия — Обнови“.
  */
-const APP_VERSION = '0.5.0';
+const APP_VERSION = '0.5.1';
 const BUILD = 'dev';
 const CACHE_PREFIX = 'lrnoldgame-shell-';
 const CACHE = `${CACHE_PREFIX}${APP_VERSION}-${BUILD}`;
@@ -29,6 +29,8 @@ const SHELL = [
   'src/db/idb.js',
   'src/db/schema.js',
   'src/db/userdb.js',
+  'src/db/rescue.js',
+  'src/ui/dbRecover.js',
   'src/data/courseStore.js',
   'src/data/progress.js',
   'src/train/session.js',
@@ -75,7 +77,7 @@ const DATA_INDEX = ['catalog.json', 'manifest.json'];
 
 async function precacheData(cache) {
   const fetchOk = async (path) => {
-    const res = await fetch(new Request(DATA_BASE + path, { cache: 'reload' }));
+    const res = await fetch(new Request(DATA_BASE + path, { cache: 'no-cache' }));
     if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
     return res;
   };
@@ -92,8 +94,10 @@ async function precacheData(cache) {
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    // cache: 'reload' заобикаля HTTP кеша, за да не запишем стари файлове.
-    await cache.addAll(SHELL.map((url) => new Request(url, { cache: 'reload' })));
+    // cache: 'no-cache' (T013-D9): винаги се пита сървърът, но с условна заявка (ETag) — файловете, които
+    // страницата току-що е изтеглила, идват като 304 от HTTP кеша, а не втори път по мрежата. Стари файлове
+    // не се записват, защото сървърът потвърждава всеки от тях.
+    await cache.addAll(SHELL.map((url) => new Request(url, { cache: 'no-cache' })));
     await precacheData(cache);
   })());
   // Не викаме skipWaiting() тук: при обновяване новата версия чака

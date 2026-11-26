@@ -3,7 +3,8 @@ import { SETTINGS_GROUPS } from '../../settings.js';
 import { APP_VERSION, BUILD } from '../../version.js';
 import { dataSummary } from '../../data/courseStore.js';
 import { checkBackup } from '../../db/userdb.js';
-import { h, screenHeader, asyncBlock } from '../dom.js';
+import { h, screenHeader, asyncBlock, download } from '../dom.js';
+import { dbRecoverBox } from '../dbRecover.js';
 
 const fmtDate = (v) => {
   if (!v) return T.backup.never;
@@ -35,7 +36,7 @@ function dataSection(ctx, isAlive) {
         h('summary', {}, T.data.params),
         h('dl', {}, Object.entries(lines).flatMap(([k, v]) => [
           h('dt', {}, GEN_PARAM_LABELS[k] || k, h('code', {}, ` ${k}`)),
-          h('dd', {}, Array.isArray(v) ? v.join(', ') : String(v)),
+          h('dd', {}, Array.isArray(v) ? v.map((x) => displayValue({}, x)).join('; ') : displayValue({}, v)),
         ])),
       ) : null,
     ].filter(Boolean));
@@ -68,19 +69,11 @@ function aboutSection(ctx, offline, isAlive) {
   );
 }
 
-function download(name, text) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const a = h('a', { href: url, download: name });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 /** Бекъп: изтегли/зареди JSON (D-010) и състояние на постоянното хранилище. */
 function backupSection(ctx) {
   const sec = h('section', { class: 'backup', id: 'backup' }, h('h2', {}, T.backup.title));
-  if (!ctx.userDb) { sec.append(h('p', { class: 'error' }, T.dbError)); return sec; }
+  if (!ctx.userDb) { sec.append(dbRecoverBox(ctx)); return sec; }
   const msg = h('p', { class: 'saved', role: 'status', 'aria-live': 'polite', id: 'backup-msg' });
   const persisted = ctx.persisted === true ? T.backup.persisted : ctx.persisted === false ? T.backup.notPersisted : T.backup.unknown;
   const last = h('p', { class: 'hint', id: 'last-backup' });
@@ -127,9 +120,12 @@ function backupSection(ctx) {
   return sec;
 }
 
-function displayValue(def, v) {
+/** Стойност за показване (D5): да/не вместо true/false, десетична запетая, единица. */
+export function displayValue(def, v) {
   if (def.type === 'enum') return def.options.find(([val]) => val === v)?.[1] ?? String(v);
-  return def.unit ? `${v} ${def.unit}` : String(v);
+  if (def.type === 'bool' || typeof v === 'boolean') return v ? T.settings.yes : T.settings.no;
+  const s = typeof v === 'number' ? v.toLocaleString('bg-BG', { useGrouping: false, maximumFractionDigits: 6 }) : String(v);
+  return def.unit ? `${s} ${def.unit}` : s;
 }
 
 function field(def, settings, onSaved, refreshers) {
@@ -172,6 +168,13 @@ function field(def, settings, onSaved, refreshers) {
     onSaved();
   });
 
+  // D6: отметката е в целия ред-етикет (≥ 44 px), самата отметка е 24 px.
+  if (def.type === 'bool') {
+    return h('div', { class: 'field field-bool', dataset: { key: def.key } },
+      h('label', { for: id, class: 'check-row' }, h('span', { class: 'check-text' }, def.label), input),
+      h('p', { class: 'hint' }, hintParts.join(' ')),
+    );
+  }
   return h('div', { class: 'field', dataset: { key: def.key } },
     h('label', { for: id }, def.label, def.unit ? h('span', { class: 'unit' }, ` (${def.unit})`) : null),
     input,

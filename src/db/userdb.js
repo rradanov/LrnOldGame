@@ -160,6 +160,25 @@ export function createUserDb(db, now = () => Date.now()) {
   }
 
   /**
+   * T013-D1: опитът стана „нечист“ (грешка или подсказка) — записва се ВЕДНАГА, а не едва в края,
+   * за да не се загуби при презареждане или убиване на приложението.
+   * Пази row.pending = {mode, errors, hints, at}; в режим learn нулира и брояча (D-015).
+   * recordAttempt в същия режим изтрива pending. Връща обновения ред (или null, ако редът липсва).
+   */
+  async function markDirty({ courseId, lineId, mode = 'learn', errors = [], hints = 0 }) {
+    const ts = now();
+    return db.tx(['lineProgress'], 'readwrite', async (t) => {
+      const os = t.store('lineProgress');
+      const cur = await reqP(os.get(lineKey(courseId, lineId)));
+      if (!cur) return null;
+      const row = { ...cur, pending: { mode, errors: (errors || []).map((e) => ({ ...e })), hints: hints || 0, at: ts } };
+      if (mode === 'learn') row.streak = 0;
+      os.put(row);
+      return row;
+    });
+  }
+
+  /**
    * Записва един опит: lineProgress + attempts + daily в една транзакция.
    * mode 'learn': брояч до learnStreak; при „научена“ се създава FSRS картата (първи преглед Good).
    * mode 'review': автоматична оценка Again/Hard/Good и нова дата (src/srs/review.js); след Again —
@@ -186,6 +205,8 @@ export function createUserDb(db, now = () => Date.now()) {
         ({ row, becameLearned } = applyAttempt(cur, result, { courseId, lineId, n, learnStreak, now: ts }));
         if (becameLearned) row = createCard(row, ts, so);
       }
+      // T013-D1: опитът в този режим е приключил — маркерът за прекъснат нечист опит отпада.
+      if (row.pending && row.pending.mode === mode) { row = { ...row }; delete row.pending; }
       lp.put(row);
       const att = {
         lineKey: key, ts, mode, ok: !!result.clean, done: !!result.done, ms: result.ms,
@@ -315,7 +336,7 @@ export function createUserDb(db, now = () => Date.now()) {
   return {
     db, getMeta, setMeta, loadSettings, saveSettings, migrateLegacySettings,
     listMyCourses, selectedIds, setSelected, applyFirstRun, progressByCourse,
-    getLine, touchLine, recordAttempt, attemptsFor, ensureCards, learnedRows, dayStats,
+    getLine, touchLine, markDirty, recordAttempt, attemptsFor, ensureCards, learnedRows, dayStats,
     applyDataUpdate, orphanRows,
     exportBackup, importBackup,
     /** Изчаква чакащите записи на настройки (за тестове). */

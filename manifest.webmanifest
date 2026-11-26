@@ -5,7 +5,7 @@
   "lang": "bg",
   "dir": "ltr",
   "id": "./",
-  "start_url": "./#/today",
+  "start_url": "./#/courses",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

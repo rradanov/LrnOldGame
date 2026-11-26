@@ -3,6 +3,7 @@ import { T, fmt } from './i18n/bg.js';
 import { createSettings, memoryStorage } from './settings.js';
 import { TABS, startRouter, hrefFor } from './router.js';
 import { openUserDb } from './db/userdb.js';
+import { DB_NAME } from './db/schema.js';
 import { createClock, parseNowParam } from './clock.js';
 import { loadToday, srsSettings } from './data/today.js';
 import { createCourseStore } from './data/courseStore.js';
@@ -179,7 +180,7 @@ async function initUserData(ctx, { manifest, view }) {
 async function boot() {
   const params = new URLSearchParams(location.search);
   const clock = createClock(parseNowParam(params.get('now')));
-  const ctx = { userDb: null, settings: null, store: createCourseStore(), persisted: null, now: clock.now, clock };
+  const ctx = { dbName: clock.simulated ? SIM_DB : DB_NAME, dbErrorText: '', userDb: null, settings: null, store: createCourseStore(), persisted: null, now: clock.now, clock };
   ctx.refreshBadge = () => refreshBadge(ctx);
   ctx.srs = () => srsSettings(ctx.settings);
 
@@ -205,7 +206,9 @@ async function boot() {
     } catch (e) { console.error('FSRS миграция:', e); }
   } catch (err) {
     console.error('IndexedDB:', err);
+    try { ctx.userDb?.close(); } catch { /* няма значение */ }
     ctx.userDb = null;
+    ctx.dbErrorText = err?.message || String(err);
     ctx.settings = createSettings(memoryStorage());
   }
 

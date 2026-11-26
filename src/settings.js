@@ -39,7 +39,7 @@ export const SETTINGS_SCHEMA = Object.freeze([
     group: 'learn', label: 'При грешка',
   },
   {
-    key: 'errorPauseMs', type: 'int', default: 1200, min: 0, max: 5000, step: 100, unit: 'ms',
+    key: 'errorPauseMs', type: 'int', default: 1200, min: 0, max: 5000, step: 100, unit: 'мс',
     group: 'learn', label: 'Пауза за показване на верния ход',
   },
   {
@@ -87,7 +87,7 @@ export const SETTINGS_SCHEMA = Object.freeze([
   },
   {
     key: 'firstReviewDays', type: 'int', default: 3, min: 1, max: 14, step: 1, unit: 'дни',
-    group: 'review', label: 'Първи преговор след (дни)',
+    group: 'review', label: 'Първи преговор след',
     help: 'Колко дни след „научена“ линията идва за първи преговор. После интервалите са по FSRS.',
   },
   {
@@ -101,11 +101,11 @@ export const SETTINGS_SCHEMA = Object.freeze([
   },
   // Дъска
   {
-    key: 'opponentDelayMs', type: 'int', default: 400, min: 0, max: 3000, step: 100, unit: 'ms',
+    key: 'opponentDelayMs', type: 'int', default: 400, min: 0, max: 3000, step: 100, unit: 'мс',
     group: 'board', label: 'Пауза преди хода на противника',
   },
   {
-    key: 'wrongMoveMs', type: 'int', default: 500, min: 0, max: 3000, step: 100, unit: 'ms',
+    key: 'wrongMoveMs', type: 'int', default: 500, min: 0, max: 3000, step: 100, unit: 'мс',
     group: 'board', label: 'Колко дълго се вижда грешният ход',
     help: 'После фигурата се връща и се показва верният ход.',
   },
@@ -115,7 +115,7 @@ export const SETTINGS_SCHEMA = Object.freeze([
     group: 'board', label: 'Ориентация на дъската',
   },
   {
-    key: 'animationMs', type: 'int', default: 300, min: 0, max: 1000, step: 50, unit: 'ms',
+    key: 'animationMs', type: 'int', default: 300, min: 0, max: 1000, step: 50, unit: 'мс',
     group: 'board', label: 'Анимация на ходовете',
   },
   // Данни

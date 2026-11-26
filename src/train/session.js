@@ -194,3 +194,14 @@ export function createSession({
     isMine,
   };
 }
+
+/**
+ * T013-D1: резултатът на опита + грешките/подсказките от прекъснат (презареждане, убито приложение) нечист опит
+ * в преговор (lineProgress.pending). Така оценката е по реалните грешки, а не „Добре“ след чисто повторение.
+ */
+export function mergeCarry(res, carry) {
+  if (!carry) return res;
+  const errors = [...(carry.errors || []).map((e) => ({ ...e })), ...res.errors];
+  const hints = (res.hints || 0) + (carry.hints || 0);
+  return { ...res, errors, hints, clean: res.clean && errors.length === 0 && hints === 0, resumed: true };
+}

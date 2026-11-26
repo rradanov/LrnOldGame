@@ -21,12 +21,14 @@ export function parseHash(hash) {
   const name = segs[0] || '';
   const ok = ROUTES.includes(name);
   const resolved = ok ? name : DEFAULT_ROUTE;
+  const params = new URLSearchParams(query);
   return {
     name: resolved,
     parts: ok ? segs.slice(1) : [],
     known: name === '' || ok,
-    tab: INNER[resolved] || resolved,
-    params: new URLSearchParams(query),
+    // T013-D9: тренировка в режим преговор свети под „Преговор“.
+    tab: resolved === 'train' && params.get('mode') === 'review' ? 'review' : (INNER[resolved] || resolved),
+    params,
   };
 }
 

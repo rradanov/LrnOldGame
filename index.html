@@ -2,6 +2,9 @@
 <html lang="bg">
 <head>
   <meta charset="utf-8">
+  <!-- T013-D8: само собствен origin, без inline скриптове. style-src-attr 'unsafe-inline' е нужен само за
+       атрибута style на влачената фигура в cm-chessboard (VisualMoveInput); <style> елементи не се разрешават. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2f6b4f" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#161a17" media="(prefers-color-scheme: dark)">
