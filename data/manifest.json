@@ -1,11 +1,14 @@
 {
   "v": 1,
-  "dataVersion": "2026-11-26.2",
-  "built": "2026-11-26T10:02:00Z",
+  "dataVersion": "2026-11-26.3",
+  "built": "2026-11-26T21:42:35Z",
+  "features": [
+    "ev"
+  ],
   "generator": {
     "tool": "tools/build-courses",
-    "commit": "e0a2c3d",
-    "node": "v22.23.5",
+    "commit": "313120e",
+    "node": "v24.22.3",
     "catalogSha256": "b05b3e28783189f0d34811fc680bbe67b67acfd768b787a3f3730c7b1fedbd0e"
   },
   "engine": {
@@ -19,7 +22,7 @@
     "hashMb": 64,
     "threads": 1,
     "workers": 4,
-    "nps": 1439719,
+    "nps": 2042447,
     "npsSource": "bench"
   },
   "source": {
@@ -93,217 +96,217 @@
     {
       "id": "italian",
       "file": "courses/italian.json",
-      "sha256": "e3454704d1e03b6d2bd83c85f5baf6b281ef142b97b6c23540649cd922a274f5",
+      "sha256": "a48b935043c2efce3b2ee8798cf511ba0475a0c729fde4b432048a92d48f4754",
       "lines": 22,
       "coverage": 0.2815
     },
     {
       "id": "ruy-lopez",
       "file": "courses/ruy-lopez.json",
-      "sha256": "aaff7601a9028d11d5fa77195e367b0504af508e296c8509932fcd4c696a81d0",
+      "sha256": "c7536a9318ffa57203e898f33497b7f45450893faeec95133e63692c3690aec3",
       "lines": 22,
       "coverage": 0.3228
     },
     {
       "id": "scotch",
       "file": "courses/scotch.json",
-      "sha256": "babcb61019bab8249f39502c36d5fa539ed0ab86444138838574df6e289cc5bd",
+      "sha256": "b410244f377c9b6895b5cb720329e653c35c378f5294ee0896871b8e53cab9b4",
       "lines": 20,
       "coverage": 0.3027
     },
     {
       "id": "vienna",
       "file": "courses/vienna.json",
-      "sha256": "89e8d627d8cc8fdd7daa55764c048dd90406f6b6073465e438ce8f3a7eac7ade",
+      "sha256": "f9d21757496157431b3d4cbf823cc269d3d87f8240619c731da7335ebd06ef77",
       "lines": 20,
       "coverage": 0.4093
     },
     {
       "id": "kings-gambit",
       "file": "courses/kings-gambit.json",
-      "sha256": "0e9e26a88e692db54ea29da2b9b75ed4604cc41f1adb4d55c33ec61532840307",
+      "sha256": "74d933fac8d29e42fe85cc6ce5bde8a954411a455922b1fe37886fe8b14a784b",
       "lines": 20,
       "coverage": 0.2125
     },
     {
       "id": "alapin",
       "file": "courses/alapin.json",
-      "sha256": "8a08cc99a3ebab02f5979fd7c85aaff95edc9393b61eb8eef0bb49f16d976adf",
+      "sha256": "2d3f50546a8d045024cd609c81c94e78b4600d2529fba1a22d79002a14e869dc",
       "lines": 20,
       "coverage": 0.4134
     },
     {
       "id": "smith-morra",
       "file": "courses/smith-morra.json",
-      "sha256": "7035a3b6ddcc17d9a7319ca7c383d31bd9bb67cb1ada8b4416e4ff1caa9d32a3",
+      "sha256": "a9646944928fe72bf3fe50d0139b4eb64ba5ea678694d1af68aca4ec248b6683",
       "lines": 20,
       "coverage": 0.3007
     },
     {
       "id": "french-advance",
       "file": "courses/french-advance.json",
-      "sha256": "bc8ed6436b05cb2c98a671147cd635ebef9de21b4cad2be030a4817914d9b5a9",
+      "sha256": "a02e6e23e254115c9f2ccad0ee014f9ef0496d6d04dd71f4e1dc0606ea3d340a",
       "lines": 19,
       "coverage": 0.2847
     },
     {
       "id": "caro-advance",
       "file": "courses/caro-advance.json",
-      "sha256": "78505f9e28ed4a0b2508eeebc8b4259e7e1af41cd36c3298958d05ccfa842f34",
+      "sha256": "6b366453470406a4c936b5e2ede1e541de401daed0dba9041311d4bac3aed0bd",
       "lines": 15,
       "coverage": 0.3012
     },
     {
       "id": "vs-scandinavian",
       "file": "courses/vs-scandinavian.json",
-      "sha256": "65b1b91dc9ba2dc3e0b82d363f7b719700638cebc68d8714c860235a4d7d7a31",
+      "sha256": "8372af185727a87dae60eac392bdbb39808fb0aae88441f63852aefd233ef4bf",
       "lines": 20,
       "coverage": 0.5609
     },
     {
       "id": "pirc-austrian",
       "file": "courses/pirc-austrian.json",
-      "sha256": "14fad92ca1b32f63c4bb89fccb2661b6423139c86fa2f96cffc94d03569f5b6d",
+      "sha256": "1499dc9067563d16b8227763e6cab62c07ee2452d8bb2bcf69e683e69114c319",
       "lines": 13,
       "coverage": 0.2088
     },
     {
       "id": "london-d5",
       "file": "courses/london-d5.json",
-      "sha256": "2e39db3f23e70e2babbac4410c6468fdab3a01297089d17daef8f2589ef49f25",
+      "sha256": "0bf6f04c936089f8c36620e148808766345f1732e3b4dce92cd2e401cd197882",
       "lines": 26,
       "coverage": 0.3383
     },
     {
       "id": "london-nf6",
       "file": "courses/london-nf6.json",
-      "sha256": "d2aeb61188f5418ee6eaab65ebbd6c4af1662f8487e8d085320fc50023e7a545",
+      "sha256": "39b5896b84a0866e4a48ac4af6d88e50a0e91bfe6d13795d269d4979928915fe",
       "lines": 20,
       "coverage": 0.1935
     },
     {
       "id": "queens-gambit",
       "file": "courses/queens-gambit.json",
-      "sha256": "f6e820781a569952ef13a1993826fb67cf0b0991059e0f1c9828964bd8d51568",
+      "sha256": "85e2ccf6adae7f444ff15f752d666f6cccf242e9d3094abc6fbd4bf44c1ec45a",
       "lines": 21,
       "coverage": 0.2728
     },
     {
       "id": "english",
       "file": "courses/english.json",
-      "sha256": "713b487f4740c69714823d53224969e8df44a6cdef6e816df9b69e1ffb698f3a",
+      "sha256": "53581f78cea661caa4a566be81ceef4cf3f6285f4edd6ef80ee7e89941b555b5",
       "lines": 20,
       "coverage": 0.1355
     },
     {
       "id": "najdorf",
       "file": "courses/najdorf.json",
-      "sha256": "dabdcb0c9c98686548b6743171668f789c671c986193a27e69601adc200f341a",
+      "sha256": "4da392fe49fd375de8e307e592c83533f21da137565d398bc3ca5f1b383b827d",
       "lines": 22,
       "coverage": 0.1396
     },
     {
       "id": "accel-dragon",
       "file": "courses/accel-dragon.json",
-      "sha256": "c61a5e3930dc2cb8dc800415190dc0562edfa4a4bc76933aa56e5bc9ef74257b",
+      "sha256": "4f338379345d085c64dbdd4bc84f2d0762ee1f16c22983bf6965f76f94d281f8",
       "lines": 21,
       "coverage": 0.1906
     },
     {
       "id": "caro-kann",
       "file": "courses/caro-kann.json",
-      "sha256": "c846f06fca7a1081f6d0415668ea903c78d860f00b455215d9a0f649ef230b3e",
+      "sha256": "ce08d4a923c191485f947ef8810caa52313235bb39488366a8482d7ac4f7dd1a",
       "lines": 20,
       "coverage": 0.1556
     },
     {
       "id": "french",
       "file": "courses/french.json",
-      "sha256": "1e27357ebeb8f93972cfcd89bc2aba276f4e7bebf3ec7c4e10942c6354a54fe1",
+      "sha256": "d498b0d125e736e0d7d964092b9dcadf6abec7c78b3628fd0399588aec0a541a",
       "lines": 20,
       "coverage": 0.2162
     },
     {
       "id": "scandinavian",
       "file": "courses/scandinavian.json",
-      "sha256": "82b26bd5eccdf706c8b76b0848cd075f542d655a88354450bcdf532ef1f5352b",
+      "sha256": "2e0079c2eb8e61b6fbb4452dcd6939791c313e5ed386bcbbd56bbf6f63477c55",
       "lines": 20,
       "coverage": 0.2211
     },
     {
       "id": "open-e5",
       "file": "courses/open-e5.json",
-      "sha256": "c968c971944428eb1de4f8cfcfea09c34cda2447945b2ca46c77890678e4636b",
+      "sha256": "7c4882f4a74ec8a5afa2b47e812d4c91ca1b2ccb0d95c124653b72b224e9c114",
       "lines": 20,
       "coverage": 0.2549
     },
     {
       "id": "petrov",
       "file": "courses/petrov.json",
-      "sha256": "9e95272d1e39e3f16ddae0599815c1db5ebabdb61c6f614f50431b3edc9a57f7",
+      "sha256": "675ee3080eefef3c045fb7e5df5a420bc2828d4ed7eaf50682740e946f5f17fe",
       "lines": 22,
       "coverage": 0.3116
     },
     {
       "id": "pirc",
       "file": "courses/pirc.json",
-      "sha256": "ef60ab241db12a817574d215e6b49a050ff49c294943d125b46c65bd74c80819",
+      "sha256": "9f300bf1a650565da2c0828e28cdef9bca732798f757e6871ddbd72516fea349",
       "lines": 21,
       "coverage": 0.2438
     },
     {
       "id": "alekhine",
       "file": "courses/alekhine.json",
-      "sha256": "f048da9bc5974fdee0825ce1143a91f90e2758988d02acc8a5159b1a62ba4d50",
+      "sha256": "ed8f72efcb6bcf1c91b2d1bc53f1f569267372a62d2d0d4e6287a7be887b4ad4",
       "lines": 20,
       "coverage": 0.2477
     },
     {
       "id": "slav",
       "file": "courses/slav.json",
-      "sha256": "20d825c0716a65e643e422fd18aeb5df73f80158695f7eab143556f7f458b428",
+      "sha256": "e50269cf7f38f35b60788d61acfab42f3c3f85d2f5acf6c5e80af96453225313",
       "lines": 28,
       "coverage": 0.346
     },
     {
       "id": "qgd",
       "file": "courses/qgd.json",
-      "sha256": "a7a2d7260cb8f79166a42c2d4c7c0b666b954552097671336f6728572b99a678",
+      "sha256": "06b55992830807f67c0282d130526270033bc4e9782aaa210e77b20bc749f6fe",
       "lines": 26,
       "coverage": 0.3041
     },
     {
       "id": "kid",
       "file": "courses/kid.json",
-      "sha256": "3553ee169cca46ce811048e4dc247c0ec8f3374ef7ebb97b48dc149d67ba51a2",
+      "sha256": "375093c0c53abd57d3e5bf867c3ea0a2356ed0a4c52b105bae98c63e48627e4a",
       "lines": 23,
       "coverage": 0.2349
     },
     {
       "id": "nimzo",
       "file": "courses/nimzo.json",
-      "sha256": "f2712b8df4e7571e1c51001373b06c03d6d5bb34922fadea528e2238bd02b481",
+      "sha256": "f36add3f4bd54fdf159006874179837f42ce56fa32ec43ed65e5a1306d1f4cd7",
       "lines": 22,
       "coverage": 0.2708
     },
     {
       "id": "grunfeld",
       "file": "courses/grunfeld.json",
-      "sha256": "f30fbd54f303956da9dc25bd989bfcdcdb36cfff05c72251ae1845d2a3f50309",
+      "sha256": "48a85a88c476ec0041163d1f4de5e4dfcfbfbd6c369a4dbfb5acda32df46022f",
       "lines": 26,
       "coverage": 0.2664
     },
     {
       "id": "vs-english",
       "file": "courses/vs-english.json",
-      "sha256": "dcee0e16d26547c99d20b0f88af9e3bcc116696b261eb041b1756511fcde71de",
+      "sha256": "270791115352ea6709d37549730c6c3076476137d7414eab8f7829f9cf1b8c9a",
       "lines": 21,
       "coverage": 0.2559
     },
     {
       "id": "vs-nf3",
       "file": "courses/vs-nf3.json",
-      "sha256": "6b9e22074626b1f70e174dc7c2598baf899fcb4ef85f7f7aab5d2d6650d2114c",
+      "sha256": "e6e9441b0db099b57c0007e716d0c8dd743eab8e3e6dab1ea496d3f2e15400a0",
       "lines": 21,
       "coverage": 0.281
     }
