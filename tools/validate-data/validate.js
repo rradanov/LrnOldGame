@@ -183,7 +183,8 @@ export function validateCourse(course, ctx = {}) {
   const schemaErrors = [];
   check(COURSE_SCHEMA, course, 'course', schemaErrors);
   errors.push(...schemaErrors.map((e) => `${file}: ${e}`));
-  const out = { errors, coverage: 0, lines: 0 };
+  const warnings = [];
+  const out = { errors, warnings, coverage: 0, lines: 0 };
   if (!course || typeof course !== 'object' || !Array.isArray(course.lines)) return out;
   const err = (msg) => errors.push(`${file}: ${msg}`);
   const id = course.id;
@@ -211,6 +212,7 @@ export function validateCourse(course, ctx = {}) {
   const byN = new Map();
   const seenMoves = new Map();
   let sumP = 0;
+  const evStat = { plies: 0, nulls: 0, lines: 0 };
   course.lines.forEach((line, i) => {
     if (!line || typeof line !== 'object' || !Array.isArray(line.m)) return;
     const where = `линия ${line.n ?? '?'} (${line.id ?? `lines[${i}]`})`;
@@ -260,6 +262,15 @@ export function validateCourse(course, ctx = {}) {
     if (Array.isArray(line.c) && line.c.length !== line.m.length) {
       lerr(`c (коментари) има ${line.c.length} елемента, а ходовете са ${line.m.length}`);
     }
+    // T-027 (D-035): ev — по една оценка за всеки ход; null = няма (предупреждение)
+    if (Array.isArray(line.ev)) {
+      evStat.lines++;
+      if (line.ev.length !== line.m.length) lerr(`ev има ${line.ev.length} елемента, а ходовете са ${line.m.length}`);
+      evStat.plies += line.ev.length;
+      evStat.nulls += line.ev.filter((v) => v === null).length;
+    } else if (ctx.requireEv && !('ev' in line)) {
+      lerr('липсва поле „ev“ (manifest.features съдържа "ev")');
+    }
     if (Array.isArray(line.c)) {
       line.c.forEach((t, ci) => { if (typeof t === 'string' && !t.trim()) lerr(`c[${ci}]: празен коментар (ползвай null)`); });
     }
@@ -272,6 +283,8 @@ export function validateCourse(course, ctx = {}) {
   });
   out.coverage = sumP;
   out.lines = course.lines.length;
+  out.ev = evStat;
+  if (evStat.nulls) warnings.push(`${file}: ev — ${evStat.nulls} от ${evStat.plies} оценки са null`);
 
   // ---- номерация и вероятности ----
   const N = course.lines.length;
@@ -365,13 +378,15 @@ export function validateManifest(manifestPath, opts) {
   const errors = [];
   const label = rel(manifestPath);
   const r = readJson(manifestPath, LIMITS.manifestBytes, errors, label);
-  const summary = { courses: 0, lines: 0, bytes: 0, sample: null };
-  if (!r) return { errors, summary };
+  const warnings = [];
+  const summary = { courses: 0, lines: 0, bytes: 0, sample: null, evPlies: 0, evNulls: 0, evLines: 0 };
+  if (!r) return { errors, warnings, summary };
   const m = r.json;
   const schemaErrors = [];
   check(MANIFEST_SCHEMA, m, 'manifest', schemaErrors);
   errors.push(...schemaErrors.map((e) => `${label}: ${e}`));
-  if (!m || typeof m !== 'object' || !Array.isArray(m.courses)) return { errors, summary };
+  if (!m || typeof m !== 'object' || !Array.isArray(m.courses)) return { errors, warnings, summary };
+  const requireEv = Array.isArray(m.features) && m.features.includes('ev');
   const sample = m.sample === true;
   summary.sample = sample;
   if (expectSample === true && !sample) errors.push(`${label}: тестовите данни трябва да имат "sample": true`);
@@ -407,9 +422,13 @@ export function validateManifest(manifestPath, opts) {
     }
     const res = validateCourse(cr.json, {
       file: rel(path), expectedId: e.id, catalogCourse: catalogCourse ?? undefined,
-      dataVersion: m.dataVersion, sample, openings,
+      dataVersion: m.dataVersion, sample, openings, requireEv,
     });
     errors.push(...res.errors);
+    warnings.push(...res.warnings);
+    summary.evPlies += res.ev?.plies ?? 0;
+    summary.evNulls += res.ev?.nulls ?? 0;
+    summary.evLines += res.ev?.lines ?? 0;
     if (Number.isInteger(e.lines) && e.lines !== res.lines) {
       errors.push(`${where}: lines ${e.lines}, а във файла са ${res.lines}`);
     }
@@ -428,7 +447,7 @@ export function validateManifest(manifestPath, opts) {
       if (!listed.has(f)) errors.push(`${rel(join(cdir, f))}: файлът не е в manifest (излишен или забравен)`);
     }
   }
-  return { errors, summary };
+  return { errors, warnings, summary };
 }
 
 /**
@@ -465,7 +484,9 @@ export function validateAll({ root, openings, catalogPath, manifests } = {}) {
     const res = validateManifest(path, { root, catalogCourses, openings, expectSample });
     errors.push(...res.errors);
     const s = res.summary;
-    info.push(`${rel(path)}: ${s.courses} курса, ${s.lines} линии, ${(s.bytes / 1024).toFixed(1)} KB${s.sample ? ' (ТЕСТОВИ ДАННИ)' : ''}`);
+    const evInfo = s.evLines ? `, ev в ${s.evLines} линии (null ${s.evNulls} от ${s.evPlies})` : '';
+    info.push(`${rel(path)}: ${s.courses} курса, ${s.lines} линии, ${(s.bytes / 1024).toFixed(1)} KB${evInfo}${s.sample ? ' (ТЕСТОВИ ДАННИ)' : ''}`);
+    for (const w of res.warnings) info.push(`⚠ ${w}`);
   }
   return { errors, info };
 }

@@ -167,6 +167,8 @@ export async function buildCourses(opts) {
     v: 1,
     dataVersion,
     built,
+    // T-027 (D-035): всяка линия има `ev` (оценка след всеки ход); старите версии на приложението го игнорират
+    features: ['ev'],
     generator: {
       tool: 'tools/build-courses', commit: gitCommit(), node: process.version,
       // T-022: с кой каталог са генерирани данните (тестовете за book го сверяват)
@@ -255,6 +257,10 @@ function renderReport({ manifest, results, prevCourses, totals, errors }) {
     const p = totals.pool;
     L.push(`- Двигател: ${p.analyses} изчисления, ${p.nps} nps на процес, рестарти ${p.restarts} (таймаути ${p.timeouts}, сривове ${p.crashes})`);
   }
+  const evPos = results.reduce((a, r) => a + (r.stats.evPositions ?? 0), 0);
+  const evPlies = results.reduce((a, r) => a + r.lines.reduce((b, l) => b + (l.ev?.length ?? 0), 0), 0);
+  const evNulls = results.reduce((a, r) => a + (r.stats.evNulls ?? 0), 0);
+  L.push(`- ev (T-027): ${evPlies} хода, ${evPos} позиции по курсове, null ${evNulls}`);
   L.push(`- Общо време: ${totals.seconds} s`, '');
   L.push(...summaryBySide(results), '');
   L.push('| Курс | Линии | adv | equal | depth | data | transpose | mate/draw | с опашка | довърш. | Покритие Σp | Ср. полуходове | Оценки | book/попул./двиг. | Време s | Нови / махнати / същите |');

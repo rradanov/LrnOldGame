@@ -116,6 +116,11 @@ export const LINE_ID_RE = /^[0-9a-f]{8}$/;
 export const DATA_VERSION_RE = /^\d{4}-\d{2}-\d{2}\.\d+$/;
 export const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 export const SHA256_RE = /^[0-9a-f]{64}$/;
+/** T-027 (D-035): мат в `ev` — "#n" (белите матират) / "#-n" (черните), n ходове (UCI `mate`); 0 = матирана позиция. */
+export const EV_MATE_RE = /^#-?\d{1,3}$/;
+/** Известни стойности на manifest.features (какво допълнително има в данните). */
+export const DATA_FEATURES = ['ev'];
+
 export const END_REASONS = ['adv', 'equal', 'depth', 'data', 'transpose', 'mate', 'draw']; // equal — D-026 (черни)
 
 const str = (extra = {}) => ({ type: 'string', min: 1, ...extra });
@@ -202,6 +207,19 @@ export const COURSE_SCHEMA = {
           tail: { type: 'int', min: 0, max: LIMITS.maxPly - 1 },
           eco: str({ re: ECO_RE }),
           name: str({ max: 200 }),
+          // T-027 (D-035): незадължително — ev[i] = оценка след хода m[i], от гледна точка на белите:
+          // сантипешки (цяло число), "#n"/"#-n" (мат) или null (няма оценка)
+          ev: {
+            type: 'array', max: LIMITS.maxPly,
+            items: {
+              anyOf: [
+                { type: 'int', min: -LIMITS.maxAbsCp, max: LIMITS.maxAbsCp },
+                str({ re: EV_MATE_RE, reHint: '"#n" или "#-n"' }),
+                { type: 'null' },
+              ],
+              label: 'цяло число (сантипешки), "#n"/"#-n" или null',
+            },
+          },
           c: {
             anyOf: [
               { type: 'null' },
@@ -223,6 +241,8 @@ export const MANIFEST_SCHEMA = {
     built: str({ re: ISO_RE, reHint: 'ISO 8601 UTC, напр. 2026-12-01T10:12:00Z' }),
     sample: { type: 'bool' },
     note: str({ max: 500 }),
+    // T-027: какво допълнително има в данните (напр. "ev" — оценка за всеки ход); старите версии на приложението го игнорират
+    features: { type: 'array', max: 20, items: { type: 'string', enum: DATA_FEATURES } },
     generator: { type: 'object', extra: true },
     engine: { type: 'object', extra: true },
     source: { type: 'object', extra: true },

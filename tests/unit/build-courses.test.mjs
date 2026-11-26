@@ -522,6 +522,15 @@ test('CLI: дърво → курсове + manifest (минава валидат
   assert.deepEqual(manifest.params.lines.courses, ['italian', 'caro-kann', 'vs-nf3']);
   assert.equal(manifest.params.engine.nodes, 1000);
   assert.equal(manifest.engine.id, 'FakeFish 1');
+  // T-027: ev за всеки ход във всяка линия, без null
+  assert.deepEqual(manifest.features, ['ev']);
+  for (const c of manifest.courses) {
+    const course = JSON.parse(readFileSync(join(out1, c.file), 'utf8'));
+    for (const l of course.lines) {
+      assert.equal(l.ev.length, l.m.length);
+      assert.ok(l.ev.every((v) => Number.isInteger(v) || /^#-?\d+$/.test(v)), JSON.stringify(l.ev));
+    }
+  }
   assert.equal(manifest.source.positions, getTsvTree().size);
   assert.ok(manifest.courses.every((c) => c.lines >= 3 && c.lines <= 8), JSON.stringify(manifest.courses));
   // валидаторът на T-015 (истински, не sample)

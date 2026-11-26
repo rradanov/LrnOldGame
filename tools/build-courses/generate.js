@@ -18,8 +18,28 @@
 //     няма ход над прага или всички са под minLineProb), линията продължава с най-добрия ход
 //     на двигателя за противника и моя ход по правилото до tailMaxPly (край depth) или до
 //     край по D-026. Индексът на първия ход без данни се записва в линията като `tail`.
+//   • ev (T-027, D-035): за всяка линия ev[i] = оценката на позицията след m[i] от гледна точка
+//     на белите (cp или "#n"/"#-n"). Взима се най-добрият ред на същото търсене (кеш → двигател):
+//     позициите, в които съм на ход, вече са изчислени; липсват обикновено тези след моя ход.
 import { Position, applySan, applySans, sanToUci, lineId, START_FEN } from '../../src/chess/position.js';
 import { lineName } from './names.js';
+
+/**
+ * Стойност за `ev` от най-добрия ред на двигателя ({cp, mate} от гледна точка на страната на
+ * ход `turn`) → от гледна точка на белите: цяло cp или "#n" / "#-n" (n — ходове, както UCI
+ * `mate`; „+“ = белите матират). Без ред → null.
+ */
+export function evValue(top, turn) {
+  if (!top) return null;
+  const s = turn === 'b' ? -1 : 1;
+  if (top.mate !== null && top.mate !== undefined) {
+    // mate 0 = страната на ход е матирана
+    const whiteWins = top.mate === 0 ? s < 0 : s * top.mate > 0;
+    return `#${whiteWins ? '' : '-'}${Math.abs(top.mate)}`;
+  }
+  if (!Number.isFinite(top.cp)) return null;
+  return Math.round(s * top.cp) || 0;
+}
 
 /** Максимум линии в курс (валидаторът: LIMITS.maxLines). */
 export const MAX_LINES = 100;
@@ -333,7 +353,25 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
 
   // ---- подреждане, id, имена ----
   lines.sort((a, b) => (Heap.before(a, b) ? -1 : Heap.before(b, a) ? 1 : 0));
+
+  // ---- ev (T-027): оценка след всеки ход, от гледна точка на белите ----
+  const evMemo = new Map(); // EPD → Promise(стойност)
+  async function positionEv(k) {
+    const pos = new Position(k);
+    if (pos.isCheckmate()) return pos.turn() === 'w' ? '#-0' : '#0';
+    if (pos.isGameOver()) return 0; // пат / недостатъчен материал
+    const cands = await evaluator.analyse(k);
+    return evValue(cands[0], pos.turn());
+  }
+  const evOf = (k) => {
+    if (!evMemo.has(k)) evMemo.set(k, positionEv(k));
+    return evMemo.get(k);
+  };
+  const evs = await Promise.all(lines.map((l) => Promise.all(l.keys.map(evOf))));
+  stats.evPositions = evMemo.size;
+  stats.evNulls = evs.reduce((s, e) => s + e.filter((v) => v === null).length, 0);
   const out = lines.map((l, i) => {
+    if (l.keys.length !== l.sans.length) throw new Error(`${courseId}: keys/ходове се разминават в [${l.str}]`);
     const o = { id: lineId(courseId, l.sans), n: i + 1, m: l.sans, p: Number(l.p.toPrecision(6)), end: l.end };
     if (l.end === 'transpose') o.to = lineId(courseId, target(l).sans);
     o.cp = Math.round(l.cp);
@@ -345,6 +383,7 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
     const nm = names ? lineName(names, l.sans, l.keys) : null;
     if (nm) { o.eco = nm.eco; o.name = nm.name; }
     o.c = null; // коментари — след MVP (D-018)
+    o.ev = evs[i];
     stats.ends[l.end] = (stats.ends[l.end] ?? 0) + 1;
     return o;
   });
