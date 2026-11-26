@@ -3,7 +3,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { lineFrames } from '../../src/train/session.js';
-import { againBtn, nextBtn } from './helpers.mjs';
+import { againBtn, nextBtn, checks, doneKind, hintBtn } from './helpers.mjs';
 
 const course = (id) => JSON.parse(readFileSync(new URL(`../../data/courses/${id}.json`, import.meta.url), 'utf8'));
 const ITALIAN = course('italian');
@@ -74,7 +74,7 @@ const row = (page, c, id) => page.evaluate(([cc, ii]) => globalThis.__lrn.userDb
 async function learn(page, courseId, line, side) {
   await open(page, `#/train/${courseId}/${line.id}?mode=learn`);
   await playLine(page, line, side);
-  await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (1/1)');
+  await doneKind(page, 'learned'); await checks(page, 1, 1);
 }
 
 test('научена линия → карта; след 3 дни е в „Преговор“ (значка, Курсове, Курс); Good → нова дата', async ({ page }) => {
@@ -127,11 +127,11 @@ test('научена линия → карта; след 3 дни е в „Пр�
   await expect(page.locator('#streak')).toHaveAttribute('data-mode', 'review');
   await expect(page.locator('#streak')).toHaveText('Преговор · остават 1');
   await playLine(page, L1, 'w');
-  await expect(page.locator('#done-text')).toHaveText(/^Оценка: Добре · следващ преговор след \d+ дни/);
+  await expect(page.locator('#done-text')).toHaveText(/^Добре · след \d+ дни$/);
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'good');
-  await expect(againBtn(page)).toHaveAttribute('aria-disabled', 'true'); // един опит на линия: „Пак“ е неактивна
+  await expect(againBtn(page)).toHaveAttribute('aria-disabled', 'false'); // T-028: „Пак“ винаги активна — тук отваря упражнение без оценка
   await expect(nextBtn(page)).toHaveAccessibleName('Към „Преговор“');
-  await expect(page.locator('#review-all-done')).toBeVisible();
+  await expect(page.locator('#train-done')).toHaveAttribute('data-all-done', '1');
   await expect(page.locator('#review-badge')).toBeHidden();
 
   const r1 = await row(page, 'italian', L1.id);
@@ -170,18 +170,19 @@ test('грешка при преговор → Отново (lapse), повто�
 
   // линия 1: грешка на първия ход (d4 вместо e4), после довършване
   await playLine(page, L1, 'w', { wrongAt: 0, wrong: ['d2', 'd4'] });
-  await expect(page.locator('#done-text')).toHaveText('Оценка: Отново · изиграй линията още 1 път без грешка');
+  await expect(page.locator('#done-text')).toHaveText('Отново');
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'again');
   let r = await row(page, 'italian', L1.id);
   expect(r.fsrs.lapses).toBe(1);
   expect(r.fsrs.state).toBe('relearning');
   expect(r.relearnLeft).toBe(1);
   expect(r.due).toBe(new Date(2026, 10, 30, 4).getTime()); // утре
-  await expect(page.locator('#streak')).toHaveText('Повторение след грешка · остава 1 чист пробег');
+  await expect(page.locator('#streak')).toHaveText('Повторение');
+  await expect(page.locator('#streak')).toHaveAttribute('aria-label', 'Повторение след грешка: остава 1 чист пробег');
   // повторението: чисто → готово, картата не се пипа
   await againBtn(page).click();
   await playLine(page, L1, 'w');
-  await expect(page.locator('#done-text')).toHaveText(/^Повторението е готово ✓ · следващ преговор утре/);
+  await expect(page.locator('#done-text')).toHaveText('✓ · утре');
   const r2 = await row(page, 'italian', L1.id);
   expect(r2.fsrs).toEqual(r.fsrs);
   expect(r2.relearnLeft).toBe(0);
@@ -192,9 +193,9 @@ test('грешка при преговор → Отново (lapse), повто�
   await expect(page.locator('h1.screen-title')).toHaveText('Италианска партия · линия 2 · преговор');
   // подсказка → Трудно
   await expect.poll(() => turn(page)).toBe('user@0');
-  await page.locator('#hint-btn').click();
+  await hintBtn(page).click();
   await playLine(page, L2, 'w');
-  await expect(page.locator('#done-text')).toHaveText(/^Оценка: Трудно · следващ преговор/);
+  await expect(page.locator('#done-text')).toHaveText(/^Трудно · /);
   await expect(nextBtn(page)).toHaveAccessibleName('Към „Преговор“');
 
   const atts = await page.evaluate(() => globalThis.__lrn.userDb.db.getAll('attempts'));
@@ -254,7 +255,7 @@ test('скрит ?now=+3d: отделно копие на данните — и�
   await expect(page.locator('#review-count')).toHaveText('За преговор днес: 1');
   await page.locator('#review-start').click();
   await playLine(page, C1, 'b');
-  await expect(page.locator('#done-text')).toHaveText(/^Оценка: Добре/);
+  await expect(page.locator('#done-text')).toHaveText(/^Добре/);
   const sim = await row(page, 'caro-kann', C1.id);
   expect(sim.fsrs.reps).toBe(2);
   // истинската база: картата е непокътната
@@ -285,7 +286,7 @@ test('офлайн: преговор след 3 дни без мрежа', async
   await expect(page.locator('#review-badge')).toHaveText('1');
   await page.locator('#review-start').click();
   await playLine(page, L1, 'w');
-  await expect(page.locator('#done-text')).toHaveText(/^Оценка: Добре/);
+  await expect(page.locator('#done-text')).toHaveText(/^Добре/);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-ready', '1');
   await open(page, '#/review');

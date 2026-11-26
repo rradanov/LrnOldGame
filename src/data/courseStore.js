@@ -3,6 +3,8 @@
 // Файловете идват от кеша на Service Worker-а (всички курсове от manifest, D-023),
 // така че след първото зареждане всичко работи офлайн.
 
+import { normalizeEv } from '../chess/notation.js';
+
 export const DATA_BASE = 'data/';
 
 export class DataError extends Error {
@@ -49,6 +51,8 @@ export function normalizeCourse(raw) {
     eco: l.eco ?? null,
     name: l.name ?? null,
     tail: Number.isInteger(l.tail) ? l.tail : null,
+    // T-028 (D-035): оценка след всеки ход (от T-027); липсва или е повредена → null (без число до дъската).
+    ev: normalizeEv(l.ev, l.m.length),
   })).sort((a, b) => a.n - b.n);
   const byId = new Map(lines.map((l) => [l.id, l]));
   for (const l of lines) l.toN = l.to ? byId.get(l.to)?.n ?? null : null;

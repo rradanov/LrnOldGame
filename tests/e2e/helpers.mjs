@@ -83,7 +83,7 @@ export async function playLine(page, line, side, { how = 'tap', from = null, wro
     await expect.poll(() => turn(page)).toMatch(new RegExp(`^(user|correct)@${i}$`));
     if (i === stopAt) return;
     if (i === hintAt) {
-      await page.locator('#hint-btn').click();
+      await hintBtn(page).click();
       await expect(page.locator('#train-msg')).toHaveAttribute('data-kind', /hint/);
     }
     if (i === wrongAt) {
@@ -125,3 +125,15 @@ export const iconBar = (page) => page.getByRole('toolbar', { name: 'Действ
 export const againBtn = (page) => iconBar(page).getByRole('button', { name: 'Пак — повтори линията' });
 /** „Следваща“: aria-label е „Следваща линия (n)“, „Към курса“, „Следваща за преговор (n)“ или „Към „Преговор““. */
 export const nextBtn = (page) => iconBar(page).getByRole('button', { name: /^(Следваща|Към )/ });
+
+// T-028 (D-033): подсказка — крушка встрани от лентата; Назад/Напред (D-037); отметки (D-034).
+export const hintBtn = (page) => page.getByRole('button', { name: 'Подсказка — покажи верния ход' });
+export const backBtn = (page) => iconBar(page).getByRole('button', { name: 'Стъпка назад' });
+export const fwdBtn = (page) => iconBar(page).getByRole('button', { name: 'Стъпка напред' });
+/** Резултатът в края (data-kind: clean | learned | errors | again | hard | good). */
+export const doneKind = (page, kind) => expect(page.locator('#done-text')).toHaveAttribute('data-kind', kind);
+/** Отметки ✓: data-streak и брой запълнени слотове. */
+export async function checks(page, filled, total) {
+  await expect(page.locator('#streak .chk')).toHaveCount(total);
+  await expect(page.locator('#streak .chk.on')).toHaveCount(filled);
+}

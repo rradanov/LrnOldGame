@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { checks } from './helpers.mjs';
 
 // E2E върху истинските данни от data/ (приложението не зарежда data/fixtures).
 const MANIFEST = JSON.parse(readFileSync(new URL('../../data/manifest.json', import.meta.url), 'utf8'));
@@ -133,9 +134,10 @@ test('курс → линии (всички нови) → тренировка �
   await expect(page).toHaveURL(/#\/train\/italian\/[0-9a-f]{8}\?mode=learn$/);
   await expect(page.locator('h1.screen-title')).toHaveText(`Италианска партия · линия 1/${LINES.italian}`);
   await expect(page.locator('.board-wrap g[data-piece]')).toHaveCount(32);
-  // T-021: тренировка вместо преглед — брояч, съобщение „Твой ход“, без изиграни ходове.
-  await expect(page.locator('#streak .streak-n')).toHaveText('0/3');
+  // T-021/T-028: тренировка — отметки, индикатор „твой ход“, без изиграни ходове.
+  await checks(page, 0, 3);
   await expect(page.locator('#train-msg')).toHaveAttribute('data-kind', 'turn');
+  await expect(page.locator('#turn')).toHaveAttribute('data-turn', 'user');
   await expect(page.locator('#played .mv')).toHaveCount(0);
   // дъската се побира в ширината на телефона
   const box = await page.locator('.board-wrap').boundingBox();
@@ -226,7 +228,7 @@ test('„Настройки → Данни“: версия, параметри,
   await expect(page.locator('.gen-params')).toContainText('Брой линии на курс');
   await expect(page.locator('#data-info')).not.toContainText('ТЕСТОВИ');
   await expect(page.locator('#data-info')).not.toContainText('null');
-  await expect(page.locator('#app-version')).toHaveText('0.5.2');
+  await expect(page.locator('#app-version')).toHaveText('0.6.0');
 });
 
 test('бекъп: изтегляне и зареждане (schemaVersion)', async ({ page }) => {
@@ -291,7 +293,7 @@ test.describe('обновяване', () => {
       bar.getByRole('button', { name: 'Обнови' }).click(),
     ]);
     await expect(page.locator('h1.screen-title')).toHaveText('Настройки');
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.5.2-e2e2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.6.0-e2e2']);
   });
 
   test('нови данни (нов manifest) запазват избора и настройките', async ({ page, request }) => {
@@ -319,7 +321,7 @@ test.describe('обновяване', () => {
     await expect(cards(page)).toHaveCount(9);
     await expect(page.locator('.course-card[data-course="ruy-lopez"]')).toBeVisible();
     await expect(page.locator('.course-card[data-course="slav"]')).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.5.2-data2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.6.0-data2']);
   });
 
   test('T-012: нови данни — научена линия изчезва → „вече не е в курса“, новата е „ново“, резюме +1/−1', async ({ page, request }) => {
@@ -391,7 +393,7 @@ test('T-012: първо отваряне без мрежа до данните �
 test('T-012: „Настройки → За приложението“: версия, версия на данните, лицензи, репо', async ({ page }) => {
   await open(page, '#/settings');
   const about = page.locator('#about');
-  await expect(about.locator('#app-version')).toHaveText('0.5.2');
+  await expect(about.locator('#app-version')).toHaveText('0.6.0');
   await expect(about.locator('#about-data-version')).toHaveText(MANIFEST.dataVersion);
   for (const [lib, lic] of [['lichess-db', 'CC0'], ['chess-openings', 'CC0'], ['chess.js', 'BSD-2-Clause'], ['cm-chessboard', 'MIT'], ['pieces', 'CC BY-SA 3.0'], ['tabler-icons', 'MIT']]) {
     await expect(about.locator(`li[data-lib="${lib}"]`)).toContainText(lic);

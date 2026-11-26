@@ -4,7 +4,7 @@
  * всеки деплой сменя байтовете на sw.js → браузърът инсталира новата версия,
  * а приложението показва „Има нова версия — Обнови“.
  */
-const APP_VERSION = '0.5.2';
+const APP_VERSION = '0.6.0';
 const BUILD = 'dev';
 const CACHE_PREFIX = 'lrnoldgame-shell-';
 const CACHE = `${CACHE_PREFIX}${APP_VERSION}-${BUILD}`;
@@ -42,8 +42,10 @@ const SHELL = [
   'src/clock.js',
   'src/chess/position.js',
   'src/chess/material.js',
+  'src/chess/notation.js',
   'src/ui/dom.js',
   'src/ui/board.js',
+  'src/ui/notation.js',
   'src/ui/screens/courses.js',
   'src/ui/screens/review.js',
   'src/ui/screens/catalog.js',
@@ -72,6 +74,10 @@ const SHELL = [
   'vendor/tabler/arrow-right.svg',
   'vendor/tabler/arrow-back-up.svg',
   'vendor/tabler/arrow-bar-to-right.svg',
+  'vendor/tabler/bulb.svg',
+  'vendor/tabler/player-play.svg',
+  'vendor/tabler/check.svg',
+  'vendor/tabler/eye.svg',
 ];
 
 // Данните на курсовете (D-023): catalog + manifest + всички файлове от manifest.courses.

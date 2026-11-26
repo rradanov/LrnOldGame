@@ -1,6 +1,6 @@
 // T-025: поправки след приемането на MVP (T013-D1, D3, D4, D6, D7, D8, D9). Pixel 7, истинските данни.
 import { test, expect } from '@playwright/test';
-import { course, lineN, open, fast, move, playLine, row, waitForSW, againBtn } from './helpers.mjs';
+import { course, lineN, open, fast, move, playLine, row, waitForSW, againBtn, checks, doneKind, hintBtn } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const I1 = lineN(ITALIAN, 1);
@@ -25,7 +25,7 @@ test('D1: подсказка в преговор → презареждане �
   await open(page, `#/train/italian/${I1.id}?mode=review`, '?now=+3d');
   await fast(page, { learnStreak: 1 });
   await playLine(page, I1, 'w', { stopAt: 2 });
-  await page.locator('#hint-btn').click();
+  await hintBtn(page).click();
   await expect.poll(async () => (await row(page, 'italian', I1.id))?.pending?.hints).toBe(1);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-ready', '1');
@@ -51,12 +51,9 @@ test('D1: грешка в учене → презареждане → брояч
   await expect(page.locator('#resumed-note')).toBeVisible();
   await expect(page.locator('#streak')).toHaveAttribute('data-streak', '0');
   await playLine(page, I1, 'w');
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
+  await doneKind(page, 'clean'); await checks(page, 1, 3);
   const atts = await page.evaluate((id) => globalThis.__lrn.userDb.attemptsFor('italian', id), I1.id);
   expect(atts.map((a) => a.ok)).toEqual([true, false, true]);
-  // D3: десетична запетая в оценката на позицията
-  await expect(page.locator('.line-end')).not.toContainText(/\d\.\d/);
-  if (I1.cp !== null && I1.cp !== undefined) await expect(page.locator('.line-end')).toContainText(',');
 });
 
 for (const [w, h] of [[360, 640], [320, 568]]) {
@@ -66,7 +63,7 @@ for (const [w, h] of [[360, 640], [320, 568]]) {
     await fast(page);
     await open(page, `#/train/italian/${I1.id}?mode=learn`);
     const tabsTop = await page.locator('#tabs').evaluate((e) => e.getBoundingClientRect().top);
-    const btn = await page.locator('#restart-btn').boundingBox();
+    const btn = await hintBtn(page).boundingBox();
     expect(btn.y + btn.height).toBeLessThanOrEqual(tabsTop);
     await playLine(page, I1, 'w');
     await expect.poll(async () => {

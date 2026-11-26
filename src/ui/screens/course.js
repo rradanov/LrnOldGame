@@ -1,7 +1,8 @@
 // „Курс“ (#/course/<id>) — списък на линиите и „Учи следващата“ (ARCH_T-014 §5.3).
 import { T, fmt } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
-import { formatMoves, fullMoves } from '../../data/courseStore.js';
+import { fullMoves } from '../../data/courseStore.js';
+import { movesLine } from '../notation.js';
 import { lineStatus, nextToLearn, courseProgress } from '../../data/progress.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 import { hasCard, isDueToday } from '../../srs/review.js';
@@ -36,7 +37,7 @@ function orphanSection(rows, startPly) {
         h('span', { class: 'ln-n' }, String(r.orphan?.n ?? r.n ?? '')),
         h('span', { class: 'ln-body' },
           h('span', { class: 'ln-name' }, r.info?.name ? `${r.info.eco || ''} ${r.info.name.replace(/^[^:]*:\s*/, '') || r.info.name}`.trim() : fmt(T.course.orphanLine, { n: r.orphan?.n ?? r.n })),
-          h('span', { class: 'ln-moves' }, m ? formatMoves(m, { from: Math.min(startPly, m.length - 1), max: 10 }) : T.course.orphanNoMoves),
+          h('span', { class: 'ln-moves' }, m ? movesLine(m, { from: Math.min(startPly, m.length - 1), max: 10 }) : T.course.orphanNoMoves),
           h('span', { class: 'ln-meta' }, [was, r.orphan?.dataVersion ? fmt(T.course.orphanSince, { v: r.orphan.dataVersion }) : null].filter(Boolean).join(' · '))));
     })));
 }
@@ -108,7 +109,7 @@ export default {
             h('span', { class: 'ln-n' }, String(l.n)),
             h('span', { class: 'ln-body' },
               h('span', { class: 'ln-name' }, l.name ? `${l.eco} ${l.name.replace(/^[^:]*:\s*/, '') || l.name}` : (l.eco || meta.name.en)),
-              h('span', { class: 'ln-moves' }, formatMoves(l.sans, { from: Math.min(course.startPly, l.sans.length - 1), max: 10 })),
+              h('span', { class: 'ln-moves' }, movesLine(l.sans, { from: Math.min(course.startPly, l.sans.length - 1), max: 10 })),
               h('span', { class: 'ln-meta' },
                 fmt(T.course.moves, { n: fullMoves(l.sans.length) }),
                 l.toN ? h('span', { class: 'ln-to' }, ` · ${fmt(T.course.transpose, { n: l.toN })}`) : null),
@@ -116,7 +117,10 @@ export default {
             h('span', { class: `ln-status st-${st}`, title: T.course.status[st] },
               newIds.has(l.id) && st === 'new' ? h('span', { class: 'badge-new' }, T.course.newBadge) : null,
               h('span', { 'aria-hidden': 'true' }, STATUS_ICON[st]), ' ', label),
-          ));
+          ),
+          // T-028 (D-037): преглед на линията (Назад/Напред, без опит и без запис).
+          h('a', { class: 'ln-view', href: `${hrefFor('train', id, l.id)}?mode=view`, 'aria-label': fmt(T.course.view, { n: l.n }), title: fmt(T.course.view, { n: l.n }) },
+            h('span', { class: 'ico ico-eye', 'aria-hidden': 'true' })));
       })));
       const orphans = [...rowsById.values()].filter((r) => r.status === 'orphan').sort((a, b) => (a.n || 0) - (b.n || 0));
       if (orphans.length) box.append(orphanSection(orphans, course.startPly));

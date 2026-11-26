@@ -1,6 +1,6 @@
 // „Каталог“ (#/catalog) — ARCH_T-014 §5.1, D-017.
 import { T, fmt } from '../../i18n/bg.js';
-import { formatMoves } from '../../data/courseStore.js';
+import { movesLine } from '../notation.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 
 // Филтърът се помни, докато приложението е отворено.
@@ -76,7 +76,7 @@ export default {
               h('span', { class: 'cr-en' }, c.name.en),
               h('span', { class: 'cr-meta' },
                 h('span', { class: 'eco' }, c.eco), ' · ',
-                h('span', { class: 'cr-start' }, c.start.length ? formatMoves(c.start) : '—'), ' · ',
+                h('span', { class: 'cr-start' }, c.start.length ? movesLine(c.start) : '—'), ' · ',
                 h('span', { class: 'cr-lines' }, meta)),
             ),
             h('span', { class: 'cr-pick' }, input, h('span', { class: 'visually-hidden' }, T.catalog.learnIt)),

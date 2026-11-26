@@ -1,7 +1,7 @@
 // Проверки на app shell: версии, списък за precache, manifest.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, normalize, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { APP_VERSION } from '../../src/version.js';
@@ -40,7 +40,7 @@ test('версията е една и съща в sw.js, src/version.js и packa
   const pkg = JSON.parse(read('package.json'));
   assert.equal(swVer, APP_VERSION);
   assert.equal(pkg.version, APP_VERSION);
-  assert.equal(APP_VERSION, '0.5.2');
+  assert.equal(APP_VERSION, '0.6.0');
   assert.match(sw, /const BUILD = 'dev';/, 'BUILD се заменя от deploy.yml');
 });
 
@@ -86,10 +86,12 @@ test('vendor: версии и лицензи', () => {
   assert.match(read('vendor/chess.js/LICENSE'), /Redistribution and use/);
   assert.match(read('vendor/cm-chessboard/LICENSE'), /MIT License/);
   assert.ok(!existsSync(join(ROOT, 'vendor/cm-chessboard/assets/pieces/staunty.svg')), 'staunty (NC) не се ползва');
-  // T-026: иконките на Tabler (MIT) — само 4-те SVG, без webfont
+  // T-026, T-028: иконките на Tabler (MIT) — само нужните SVG, без webfont
   assert.match(read('vendor/tabler/VERSION').trim(), /^@tabler\/icons 3\./);
   assert.match(read('vendor/tabler/LICENSE'), /MIT License/);
-  for (const n of ['arrow-left', 'arrow-right', 'arrow-back-up', 'arrow-bar-to-right']) {
+  const svgs = readdirSync(join(ROOT, 'vendor/tabler')).filter((f) => f.endsWith('.svg')).map((f) => f.replace(/\.svg$/, '')).sort();
+  assert.deepEqual(svgs, ['arrow-back-up', 'arrow-bar-to-right', 'arrow-left', 'arrow-right', 'bulb', 'check', 'eye', 'player-play']);
+  for (const n of svgs) {
     assert.match(read(`vendor/tabler/${n}.svg`), /icon-tabler-/, n);
     assert.ok(shellList().includes(`vendor/tabler/${n}.svg`), `${n} в SHELL`);
   }

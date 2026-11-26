@@ -3,10 +3,10 @@
 // повторение до relearnStreak чисти пробега; после „Следваща за преговор“. Линия, която не е
 // за преговор днес, се отваря като упражнение (learn) с бележка.
 // Логиката е в src/train/session.js (без DOM); тук са само дъската, текстовете и записът в IndexedDB.
-import { T, fmt, decimal } from '../../i18n/bg.js';
+import { T, fmt } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
 import { Position } from '../../chess/position.js';
-import { createSession, PHASE, lineFrames, mergeCarry } from '../../train/session.js';
+import { createSession, PHASE, lineFrames, mergeCarry, colorAt } from '../../train/session.js';
 import { nextAfter } from '../../data/progress.js';
 import { lineInfo } from '../../data/dataUpdate.js';
 import { isDueToday, inRelearn } from '../../srs/review.js';
@@ -14,10 +14,12 @@ import { loadToday, whenText } from '../../data/today.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 import { createBoard, orientationFor } from '../board.js';
 import { material, CAPTURE_TYPES } from '../../chess/material.js';
+import { evalAt, formatEval, evalLeader } from '../../chess/notation.js';
+import { sanNodes } from '../notation.js';
 
 export { lineFrames };
 
-async function load(ctx, courseId, lineId) {
+async function load(ctx, courseId, lineId, viewOnly = false) {
   const { view } = await ctx.data();
   const meta = view.byId.get(courseId);
   if (!meta || !meta.available) return {};
@@ -26,7 +28,13 @@ async function load(ctx, courseId, lineId) {
   let row = null;
   let rowsById = new Map();
   let settled = false;
-  if (line && ctx.userDb) {
+  if (line && ctx.userDb && viewOnly) {
+    // T-028: прегледът не отваря линията (няма touchLine/firstSeen) — само чете прогреса за отметките.
+    try {
+      rowsById = new Map((await ctx.userDb.progressByCourse(courseId)).map((r) => [r.lineId, r]));
+      row = rowsById.get(lineId) || null;
+    } catch (e) { console.error(e); }
+  } else if (line && ctx.userDb) {
     try {
       row = await ctx.userDb.touchLine(courseId, lineId, line.n, lineInfo(line));
       // T013-D1: прекъснат (презареждане, убито приложение) нечист опит в режим learn се приключва като
@@ -53,10 +61,8 @@ const abandonedResult = (p, total) => ({
   plies: 0, total, userMoves: 0, ms: 0, maxMoveMs: 0, transposeTo: null, attempt: 1, abandoned: true,
 });
 
-const moveLabel = (i, san) => (i % 2 === 0 ? `${i / 2 + 1}.${san}` : san);
-
 /**
- * T-026 (D-031): бутон-иконка от лентата под дъската. Иконката е SVG от vendor/tabler/ като CSS маска
+ * T-026 (D-031), T-028 (D-033): бутон-иконка (лентата под дъската и подсказката). Иконката е SVG от vendor/tabler/ като CSS маска
  * (цвят = currentColor, работи и в тъмна тема; без inline SVG/скриптове заради CSP).
  * Неактивното действие е бледо с aria-disabled="true" (остава на мястото си и във фокуса).
  */
@@ -121,7 +127,10 @@ export default {
     const timers = new Set();
     let abandon = null;
     const [courseId = '', lineId = ''] = route.parts;
-    const wantReview = route.params.get('mode') === 'review';
+    const wantMode = route.params.get('mode');
+    const wantReview = wantMode === 'review';
+    // T-028 (D-037): преглед на линия от Курс — само разглеждане (Назад/Напред), без опит и без запис.
+    const viewOnly = wantMode === 'view';
     const back = h('a', { class: 'back', href: wantReview ? hrefFor('review') : hrefFor('course', courseId) }, wantReview ? T.train.backReview : T.course.back);
     root.append(back);
 
@@ -132,13 +141,13 @@ export default {
     };
     const clearTimers = () => { for (const t of timers) clearTimeout(t); timers.clear(); };
 
-    asyncBlock(root, () => load(ctx, courseId, lineId), (box, { meta, course, line, row: row0, rowsById, settled }) => {
+    asyncBlock(root, () => load(ctx, courseId, lineId, viewOnly), (box, { meta, course, line, row: row0, rowsById, settled }) => {
       if (!line) { box.append(screenHeader(T.titles.train), h('p', { class: 'error' }, T.train.notFound)); return; }
       const S = ctx.settings;
       const need = S.get('learnStreak');
       const dsh = S.get('dayStartHour');
       let row = row0;
-      const review = wantReview && isDueToday(row, ctx.now(), dsh);
+      const review = !viewOnly && wantReview && isDueToday(row, ctx.now(), dsh);
       const mode = review ? 'review' : 'learn';
       let reviewOut = null; // резултатът от последния запис в режим review
       let queueLeft = null; // колко остават в опашката (без текущата)
@@ -147,7 +156,9 @@ export default {
       if (!review) back.textContent = fmt(T.train.back, { course: meta.name.bg });
       const title = review
         ? fmt(T.train.reviewHeader, { course: meta.name.bg, n: line.n })
-        : fmt(T.train.header, { course: meta.name.bg, n: line.n, total: course.lines.length });
+        : (viewOnly
+          ? fmt(T.train.viewHeader, { course: meta.name.bg, n: line.n })
+          : fmt(T.train.header, { course: meta.name.bg, n: line.n, total: course.lines.length }));
       document.title = `${title} · ${T.appName}`;
 
       const session = createSession({
@@ -162,7 +173,9 @@ export default {
       });
 
       // --- DOM ---
-      const streakEl = h('p', { class: 'streak', id: 'streak', 'aria-live': 'polite' });
+      // D-034: серия като отметки ✓ (N слота); индикатор за страната на ход вместо изречение.
+      const streakEl = h('p', { class: 'streak', id: 'streak' });
+      const turnEl = h('span', { class: 'turn-ind', id: 'turn', role: 'img', dataset: { turn: '' } });
       // D-032: взетите фигури — над дъската за горната страна (в реда на брояча), под дъската за долната.
       const showCap = S.get('showCaptured');
       const bottomSide = orientationFor(S.get('boardOrientation'), meta.side);
@@ -177,82 +190,163 @@ export default {
         drawCapturedRow(capBottom, bottomSide, m);
       }
       const holder = h('div', { class: 'board-wrap', 'aria-label': T.train.boardLabel });
+      // D-035: оценка от Stockfish (поле ev на линията) — вдясно до дъската; без ev или при „не“ — няма колона.
+      const showEval = S.get('showEval') && Array.isArray(line.ev);
+      const evalEl = showEval ? h('div', { class: 'eval', id: 'eval', role: 'img', dataset: { ev: '' } }, h('span', { class: 'eval-n' })) : null;
       const msg = h('p', { class: 'train-msg', id: 'train-msg', role: 'status', 'aria-live': 'polite' });
-      const hintBtn = h('button', { type: 'button', class: 'btn secondary', id: 'hint-btn', onclick: () => doHint(false) }, T.train.hint);
-      const restartBtn = h('button', { type: 'button', class: 'btn secondary', id: 'restart-btn', onclick: async () => { await abandonAttempt(); startAttempt(true); } }, T.train.restart);
       const moves = h('ol', { class: 'move-list played', id: 'played' });
       const donePanel = h('section', { class: 'train-done', id: 'train-done', hidden: true });
-      // T-026: лента „стрелки“ (D-031, вариант Б) — Назад/Напред (стъпки по ходовете; в тренировката няма такова действие →
-      // винаги неактивни), разделител, Пак и Следваща (активни само в края на линията).
+      // D-033: подсказка — крушка, встрани от лентата; „Отначало“ и „Пак“ са една иконка (винаги активна).
+      const hintBtn = iconButton('hint-btn', 'hint', T.train.hint, T.train.ariaHint);
       const stepBackBtn = iconButton('step-back-btn', 'back', T.train.icoBack, T.train.ariaBack);
       const stepFwdBtn = iconButton('step-fwd-btn', 'fwd', T.train.icoFwd, T.train.ariaFwd);
-      const againBtn = iconButton('again-btn', 'again', T.train.icoAgain, T.train.ariaAgain);
+      const againBtn = viewOnly
+        ? iconButton('again-btn', 'learn', T.train.icoLearn, T.train.ariaLearn)
+        : iconButton('again-btn', 'again', T.train.icoAgain, T.train.ariaAgain);
       const nextBtn = iconButton(review ? 'next-review-btn' : 'next-line-btn', 'nextline', T.train.icoNext, T.train.nextLine);
-      const iconBar = h('div', {
-        class: `icon-bar${S.get('iconLabels') ? '' : ' no-labels'}`, id: 'icon-bar', role: 'toolbar', 'aria-label': T.train.bar,
-      }, stepBackBtn, stepFwdBtn, h('span', { class: 'icon-sep', 'aria-hidden': 'true' }), againBtn, nextBtn);
+      const labels = S.get('iconLabels') ? '' : ' no-labels';
+      const iconBar = h('div', { class: `icon-bar${labels}`, id: 'icon-bar', role: 'toolbar', 'aria-label': T.train.bar },
+        stepBackBtn, stepFwdBtn, h('span', { class: 'icon-sep', 'aria-hidden': 'true' }), againBtn, nextBtn);
+      const ctrlRow = h('div', { class: `ctrl-row${labels}`, id: 'ctrl-row' }, hintBtn, iconBar);
 
       box.append(...[
         screenHeader(title),
         wantReview && !review ? h('p', { class: 'notice', id: 'practice-note' }, T.train.practice) : null,
         settled || carry ? h('p', { class: 'notice', id: 'resumed-note' }, carry ? T.train.resumedReview : T.train.resumedLearn) : null,
         h('p', { class: 'hint course-sub' }, line.name ? `${line.eco || ''} ${line.name}` : (line.eco || meta.name.en)),
-        h('div', { class: 'train-top' }, streakEl, capTop),
-        holder,
-        capBottom,
-        msg,
-        h('div', { class: 'btn-row train-actions' }, hintBtn, restartBtn),
-        iconBar,
-        donePanel,
+        h('div', { class: 'train-top' }, turnEl, streakEl, capTop),
+        h('div', { class: `board-row${showEval ? ' has-eval' : ''}` }, holder, evalEl),
+        h('div', { class: 'train-under' }, capBottom || h('span', { class: 'cap-none' }), msg, donePanel),
+        ctrlRow,
         moves,
         line.tail !== null ? h('p', { class: 'hint tail-note' }, T.train.tailNote) : null,
       ].filter(Boolean));
 
-      function drawStreak(dirty = false) {
+      let shownChecks = 0; // колко отметки се виждат (за анимацията при изчистване)
+      /** N слота; запълнените — чисти пробези; изчистените при грешка — с кратка анимация (клас cleared). */
+      function drawChecks(total, filled) {
+        const out = [];
+        for (let i = 0; i < total; i++) {
+          const cls = i < filled ? ' on' : (i < shownChecks ? ' cleared' : '');
+          out.push(h('span', { class: `chk${cls}`, 'aria-hidden': 'true' }));
+        }
+        shownChecks = filled;
+        return h('span', { class: 'checks' }, out);
+      }
+
+      function drawStreak(dirty = false, celebrate = false) {
         if (review) {
           const k = inRelearn(row, ctx.now(), dsh) ? row.relearnLeft : 0;
-          streakEl.replaceChildren(h('span', { class: 'review-state' }, k > 0
-            ? fmt(T.train.relearnLeft, { k })
-            : (queueLeft !== null ? fmt(T.train.reviewLeft, { left: queueLeft + 1 }) : T.train.reviewOne)));
+          const R = S.get('relearnStreak');
+          if (k > 0) {
+            streakEl.replaceChildren(h('span', { class: 'review-state' }, T.train.relearnLeft), drawChecks(R, dirty ? 0 : Math.max(0, R - k)));
+            streakEl.setAttribute('aria-label', fmt(T.train.relearnLabel, { k }));
+          } else {
+            streakEl.replaceChildren(h('span', { class: 'review-state' }, queueLeft !== null ? fmt(T.train.reviewLeft, { left: queueLeft + 1 }) : T.train.reviewOne));
+            streakEl.removeAttribute('aria-label');
+          }
           streakEl.dataset.mode = 'review';
           streakEl.dataset.relearn = String(k);
           streakEl.dataset.status = row?.status || 'new';
           return;
         }
         const cur = dirty ? 0 : (row?.streak || 0);
-        const shown = Math.min(cur, need);
-        const dots = '●'.repeat(shown) + '○'.repeat(Math.max(0, need - shown));
         const learned = row?.status === 'learned';
-        streakEl.replaceChildren(
-          h('span', { class: 'dots', 'aria-hidden': 'true' }, dots), ' ',
-          h('span', { class: 'streak-n' }, fmt(T.train.streak, { streak: cur, need })),
-          ...(learned ? [h('span', { class: 'learned-badge' }, ` · ● ${T.train.learnedBadge}`)] : []),
-        );
-        streakEl.setAttribute('aria-label', fmt(T.train.streakLabel, { streak: cur, need }));
+        streakEl.replaceChildren(drawChecks(need, Math.min(cur, need)));
+        streakEl.setAttribute('role', 'img');
+        streakEl.setAttribute('aria-label', fmt(T.train.streakLabel, { streak: cur, need }) + (learned ? ` · ${T.train.learnedBadge}` : ''));
+        streakEl.classList.toggle('learned', learned);
+        if (celebrate) {
+          streakEl.classList.remove('celebrate');
+          void streakEl.offsetWidth; // рестарт на анимацията
+          streakEl.classList.add('celebrate');
+        }
         streakEl.dataset.streak = String(cur);
         streakEl.dataset.status = row?.status || 'new';
       }
 
+      /** D-034: кратко съобщение (до 2 думи); видът е в data-kind (цвят и тестове). */
       function say(text, kind = '') {
         msg.textContent = text;
         msg.dataset.kind = kind;
       }
 
+      /** Индикатор: кой е на ход (кръгче в цвета на страната); „твой ход“ — с акцентен пръстен. */
+      function setTurn(state) {
+        turnEl.dataset.turn = state;
+        const color = colorAt(session.ply);
+        turnEl.dataset.color = state === 'user' ? meta.side : (state === 'opponent' ? (meta.side === 'w' ? 'b' : 'w') : color);
+        const label = state === 'user' ? T.train.yourMove : (state === 'opponent' ? T.train.opponent : (state === 'done' ? T.train.turnDone : ''));
+        if (label) { turnEl.setAttribute('aria-label', label); turnEl.title = label; } else { turnEl.removeAttribute('aria-label'); turnEl.removeAttribute('title'); }
+      }
+
+      function drawEval(ply) {
+        if (!evalEl) return;
+        const v = evalAt(line.ev, ply);
+        const text = formatEval(v);
+        evalEl.firstChild.textContent = text;
+        evalEl.dataset.ev = v === null ? '' : String(v);
+        evalEl.dataset.lead = evalLeader(v);
+        if (text) evalEl.setAttribute('aria-label', fmt(T.train.evalLabel, { v: text }));
+        else evalEl.removeAttribute('aria-label');
+      }
+
+      // --- D-037: разглеждане на изиграната линия (край на линията и преглед от Курс) ---
+      let browse = false;
+      let viewPly = 0;
+      const errorsNow = () => (viewOnly ? [] : session.result().errors);
+
       function drawMoves() {
-        const n = session.ply;
-        moves.replaceChildren(...line.sans.slice(0, n).map((san, i) => h('li', {},
-          h('span', {
-            class: `mv${i < course.startPly ? ' mv-start' : ''}${session.fromEngine(i) ? ' mv-tail' : ''}`,
-            title: session.fromEngine(i) ? T.train.tailTitle : null,
+        const n = browse ? line.sans.length : session.ply;
+        const bad = new Map();
+        for (const e of errorsNow()) bad.set(e.ply, [...(bad.get(e.ply) || []), e.played]);
+        moves.replaceChildren(...line.sans.slice(0, n).map((san, i) => {
+          const tail = session.fromEngine(i);
+          const attrs = {
+            class: `mv${i < course.startPly ? ' mv-start' : ''}${tail ? ' mv-tail' : ''}${bad.has(i) ? ' mv-bad' : ''}`,
+            title: bad.has(i) ? fmt(T.train.moveBad, { played: bad.get(i).join(', ') }) : (tail ? T.train.tailTitle : null),
             dataset: { ply: i + 1 },
-          }, moveLabel(i, san)))));
+            'aria-current': browse && viewPly === i + 1 ? 'true' : null,
+          };
+          const body = [i % 2 === 0 ? `${i / 2 + 1}.` : '', ...sanNodes(san, colorAt(i))];
+          return h('li', {}, browse
+            ? h('button', { type: 'button', ...attrs, onclick: () => showView(i + 1) }, ...body)
+            : h('span', attrs, ...body));
+        }));
+      }
+
+      function updateNav() {
+        stepBackBtn.set(browse && viewPly > 0 ? () => showView(viewPly - 1) : null);
+        stepFwdBtn.set(browse && viewPly < line.sans.length ? () => showView(viewPly + 1) : null);
+      }
+
+      /** Позиция след p полухода; на мястото на грешката — червено поле (изиграният ход) и стрелка с верния. */
+      function showView(p) {
+        if (!browse) return;
+        viewPly = Math.max(0, Math.min(p, line.sans.length));
+        const f = session.frame(viewPly);
+        board.clearArrows();
+        board.clearMarks();
+        setPos(f.fen, f.last, false);
+        const errs = errorsNow().filter((e) => e.ply === viewPly);
+        if (errs.length) {
+          for (const e of errs) {
+            const mv = new Position(f.fen).findSan(e.played);
+            if (mv) board.mark(mv.to, 'bad');
+          }
+          const exp = session.frame(viewPly + 1).last;
+          board.arrow(exp.from, exp.to);
+        }
+        drawEval(viewPly);
+        drawMoves();
+        updateNav();
       }
 
       // --- дъска ---
       try {
         board = createBoard(holder, {
           fen: session.frame(0).fen,
-          orientation: orientationFor(S.get('boardOrientation'), meta.side),
+          orientation: bottomSide,
           animationMs: S.get('animationMs'),
         });
       } catch (err) {
@@ -261,10 +355,11 @@ export default {
         return;
       }
 
-      /** Позиция на дъската + взетите фигури (D-032: изчислени от самата позиция). */
-      function setPos(fen, last, animate) {
+      /** Позиция на дъската + взетите фигури (D-032: изчислени от самата позиция) + оценката (D-035). */
+      function setPos(fen, last, animate, ply = null) {
         board.setPosition(fen, last, animate).catch(() => {});
         drawCaptured(fen);
+        if (ply !== null) drawEval(ply);
       }
 
       let inputOn = false;
@@ -282,7 +377,8 @@ export default {
           onMove,
         });
         inputOn = true;
-        hintBtn.disabled = false;
+        hintBtn.set(() => doHint(false));
+        setTurn('user');
         const sec = S.get('hintAfterSec');
         if (sec > 0) hintTimer = later(sec * 1000, () => doHint(true));
       }
@@ -290,7 +386,7 @@ export default {
         if (hintTimer) { clearTimeout(hintTimer); timers.delete(hintTimer); hintTimer = null; }
         board.disableInput();
         inputOn = false;
-        hintBtn.disabled = true;
+        hintBtn.set(null);
       }
 
       function step() {
@@ -300,30 +396,33 @@ export default {
           // Стартовите ходове на курса — веднага, без пауза.
           while (session.phase() === PHASE.AUTO) session.playAuto();
           const f = session.frame();
-          setPos(f.fen, f.last, false);
+          setPos(f.fen, f.last, false, session.ply);
           drawMoves();
           step();
           return;
         }
         if (ph === PHASE.OPPONENT) {
           disableInput();
-          say(T.train.opponent, 'wait');
+          setTurn('opponent');
+          if (msg.dataset.kind !== 'ok') say('', 'wait');
           later(S.get('opponentDelayMs'), () => {
             const ev = session.playAuto();
             board.clearMarks('ok');
-            setPos(ev.fen, ev, true);
+            setPos(ev.fen, ev, true, session.ply);
             drawMoves();
+            say('', 'wait');
             step();
           });
           return;
         }
         if (ph === PHASE.USER) {
-          say(session.ply === 0 ? T.train.yourMoveStart : T.train.yourMove, 'turn');
+          if (msg.dataset.kind !== 'ok') say('', 'turn');
+          else msg.dataset.kind = 'turn';
           enableInput();
           return;
         }
         if (ph === PHASE.CORRECT) {
-          say(fmt(T.train.playCorrect, { san: session.expected().san }), 'correct');
+          say(T.train.wrong, 'correct');
           enableInput();
           return;
         }
@@ -346,7 +445,7 @@ export default {
         board.clearArrows();
         board.clearMarks('hint');
         if (res.ok) {
-          setPos(res.fen, res, false);
+          setPos(res.fen, res, false, session.ply);
           board.clearMarks('ok');
           board.mark(res.to, 'ok');
           say(T.train.good, 'ok');
@@ -354,17 +453,18 @@ export default {
           step();
           return;
         }
-        // Грешка: червен маркер, връщане, стрелка с верния ход, брояч → 0.
+        // Грешка: червен маркер, връщане, стрелка с верния ход, отметките се изчистват.
         drawStreak(true);
         persistDirty();
         board.mark(m.to, 'bad');
-        say(fmt(res.restart ? T.train.restarting : T.train.wrong, { san: res.expected.san }), 'bad');
+        say(T.train.wrong, 'bad');
         later(S.get('wrongMoveMs'), () => {
           board.clearMarks('bad');
           setPos(before.fen, before.last, false);
           board.arrow(res.expected.from, res.expected.to);
           board.mark(res.expected.from, 'hint');
           if (res.restart) {
+            say(T.train.restarting, 'bad');
             later(S.get('errorPauseMs'), async () => {
               await record();
               startAttempt(true);
@@ -383,7 +483,7 @@ export default {
         board.clearMarks('hint');
         board.arrow(hnt.from, hnt.to);
         board.mark(hnt.from, 'hint');
-        say(fmt(T.train.hintText, { san: hnt.san }), auto ? 'hint auto' : 'hint');
+        say(T.train.hintText, auto ? 'hint auto' : 'hint');
         if (session.dirty()) drawStreak(true);
         persistDirty();
       }
@@ -421,53 +521,76 @@ export default {
         }
       }
 
-      /** Прекъснат опит с грешка/подсказка се записва като неуспешен — иначе „Отначало“ би заобиколил нулирането. */
+      /** Прекъснат опит с грешка/подсказка се записва като неуспешен — иначе „Пак“ би заобиколил нулирането. */
       function abandonAttempt() {
         if (!recorded && (session.dirty() || carry) && session.phase() !== PHASE.DONE) return record();
         return Promise.resolve(null);
       }
-      abandon = abandonAttempt;
+      abandon = viewOnly ? null : abandonAttempt;
+
+      /**
+       * D-033: „Пак“ — винаги активна. По време на опита: нечист опит (грешка/подсказка) се записва като неуспешен,
+       * чист — просто рестарт без наказание. В края: нов опит (в преговор без повторение — упражнение без оценка).
+       */
+      async function again() {
+        if (session.phase() === PHASE.DONE && recorded && review && !(reviewOut?.relearnLeft > 0)) {
+          go(`${hrefFor('train', courseId, lineId)}?mode=review&again=1`);
+          return;
+        }
+        await abandonAttempt();
+        if (alive) startAttempt(true);
+      }
+
+      /** Кратък резултат в края (D-034): иконка или до 2 думи; подробностите — в aria-label/title. */
+      function doneChip(kind, text, { icon = false, label = null } = {}) {
+        return h('span', { class: `done-chip`, id: 'done-text', dataset: { kind }, title: label, 'aria-label': label },
+          icon ? h('span', { class: 'ico ico-check', 'aria-hidden': 'true' }) : null, text);
+      }
+
+      function enterBrowse() {
+        browse = true;
+        viewPly = line.sans.length;
+        drawMoves();
+        updateNav();
+      }
 
       async function finish() {
         disableInput();
-        restartBtn.disabled = true;
+        setTurn('done');
         const res = session.result();
         const out = await record();
         if (!alive) return;
         if (review) { await finishReview(res, out); return; }
-        drawStreak();
         const st = out?.row || row;
-        const streak = st?.streak || 0;
-        let text;
+        let chip;
         let kind;
-        if (out?.becameLearned) { text = fmt(T.train.doneLearned, { streak, need }); kind = 'learned'; }
-        else if (res.clean && st?.status === 'learned') { text = T.train.doneAlreadyLearned; kind = 'clean'; }
-        else if (res.clean) { text = fmt(T.train.doneClean, { streak, need }); kind = 'clean'; }
-        else { text = fmt(T.train.doneErrors, { streak, need }); kind = 'errors'; }
+        if (out?.becameLearned) { kind = 'learned'; chip = doneChip(kind, T.train.doneLearned, { icon: true }); }
+        else if (res.clean) { kind = 'clean'; chip = doneChip(kind, '', { icon: true, label: T.train.doneClean }); }
+        else if (res.errors.length) { kind = 'errors'; chip = doneChip(kind, fmt(T.train.doneErrors, { n: res.errors.length })); }
+        else { kind = 'errors'; chip = doneChip(kind, T.train.hint); } // нечист само заради подсказка
+        drawStreak(false, kind === 'learned');
         say('', '');
         const next = nextAfter(course.lines, rowsById, lineId);
         const toLine = res.transposeTo ? course.byId.get(res.transposeTo) : null;
         donePanel.dataset.kind = kind;
+        donePanel.dataset.status = st?.status || '';
         donePanel.replaceChildren(...[
-          h('p', { class: 'done-text', id: 'done-text' }, text),
-          res.errors.length ? h('p', { class: 'hint' }, fmt(T.train.errorsList, {
-            list: res.errors.map((e) => `${moveLabel(e.ply, e.played)} → ${e.expected}`).join(', '),
-          })) : null,
-          toLine ? h('p', { class: 'hint transpose-note' }, fmt(T.train.transposeNote, { n: toLine.n }), ' · ',
-            h('a', { href: `${hrefFor('train', courseId, toLine.id)}?mode=learn`, id: 'transpose-go' }, fmt(T.train.transposeGo, { n: toLine.n }))) : null,
-          h('p', { class: 'hint line-end' }, T.train.end[line.end] || '', line.cp !== null ? ` (${line.cp > 0 ? '+' : ''}${decimal(line.cp / 100, 2)})` : ''),
-          next ? null : h('p', { class: 'hint' }, T.train.allLearned),
+          chip,
+          toLine ? h('a', {
+            class: 'done-link transpose-note', id: 'transpose-go', href: `${hrefFor('train', courseId, toLine.id)}?mode=learn`,
+            'aria-label': fmt(T.train.transposeAria, { n: toLine.n }), title: fmt(T.train.transposeAria, { n: toLine.n }),
+          }, fmt(T.train.transposeGo, { n: toLine.n })) : null,
         ].filter(Boolean));
-        againBtn.set(() => startAttempt(true));
         if (next) nextBtn.set(() => go(`${hrefFor('train', courseId, next.id)}?mode=learn`), `${T.train.nextLine} (${next.n})`);
         else nextBtn.set(() => go(hrefFor('course', courseId)), T.train.toCourse);
+        enterBrowse();
         showDone();
       }
 
-      /** D4: панелът в края на линията се показва и се превърта до видимото (над долната лента). */
+      /** D4: в края редът с иконките се превърта до видимото (над долната лента). */
       function showDone() {
         donePanel.hidden = false;
-        try { donePanel.scrollIntoView({ block: 'nearest' }); } catch { /* стар браузър */ }
+        try { ctrlRow.scrollIntoView({ block: 'nearest' }); } catch { /* стар браузър */ }
       }
 
       /** Следващата линия от опашката за днес (без текущата, освен ако е в повторение). */
@@ -487,54 +610,62 @@ export default {
         drawStreak();
         const k = rv ? rv.relearnLeft : 0;
         const when = whenText(row?.due, ctx.now(), dsh);
-        let text;
+        const short = when.replace(/\s*\(.*\)$/, '');
+        let chip;
         let kind;
-        if (!rv) { text = T.train.saveError; kind = 'errors'; }
+        if (!rv) { kind = 'errors'; chip = doneChip(kind, T.train.saveError); }
         else if (rv.grade) {
           kind = rv.gradeName;
-          text = rv.gradeName === 'again'
-            ? fmt(T.train.gradeAgain, { k })
-            : fmt(T.train.gradeDone, { grade: T.grade[rv.gradeName], when });
-        } else if (k > 0) { text = fmt(T.train.relearnMore, { k }); kind = 'again'; }
-        else { text = fmt(T.train.relearnDone, { when }); kind = 'good'; }
+          const why = T.train.gradeWhy[rv.gradeName] || '';
+          chip = rv.gradeName === 'again'
+            ? doneChip(kind, T.train.gradeAgain, { label: `${T.grade.again} · ${why}` })
+            : doneChip(kind, fmt(T.train.gradeDone, { grade: T.grade[rv.gradeName], when: short }), { label: `${fmt(T.train.gradeDone, { grade: T.grade[rv.gradeName], when })} · ${why}` });
+        } else if (k > 0) { kind = 'again'; chip = doneChip(kind, T.train.relearnMore); }
+        else { kind = 'good'; chip = doneChip(kind, fmt(T.train.relearnDone, { when: short }), { label: fmt(T.train.relearnDone, { when }) }); }
         say('', '');
         donePanel.dataset.kind = kind;
         donePanel.dataset.grade = rv?.gradeName || (rv?.relearn ? 'relearn' : '');
-        donePanel.replaceChildren(...[
-          h('p', { class: 'done-text', id: 'done-text' }, text),
-          rv?.grade ? h('p', { class: 'hint', id: 'grade-why' }, T.train.gradeWhy[rv.gradeName] || '') : null,
-          res.errors.length ? h('p', { class: 'hint' }, fmt(T.train.errorsList, {
-            list: res.errors.map((e) => `${moveLabel(e.ply, e.played)} → ${e.expected}`).join(', '),
-          })) : null,
-          !next && k === 0 ? h('p', { class: 'hint', id: 'review-all-done' }, T.review.allDone) : null,
-        ].filter(Boolean));
-        // „Пак“ в преговора — само докато тече повторение след „Отново“ (k > 0), както досега.
-        againBtn.set(k > 0 ? () => startAttempt(true) : null);
+        donePanel.dataset.allDone = !next && k === 0 ? '1' : '';
+        donePanel.replaceChildren(chip);
         if (next) nextBtn.set(() => go(`${hrefFor('train', next.courseId, next.lineId)}?mode=review`), fmt(T.train.nextReview, { left }));
         else nextBtn.set(() => go(hrefFor('review')), T.train.reviewDone);
+        enterBrowse();
         showDone();
       }
 
-      function startAttempt(again) {
+      function startAttempt(isAgain) {
         clearTimers();
         hintTimer = null;
-        if (again) session.restart();
+        if (isAgain) session.restart();
         recorded = false;
+        browse = false;
         donePanel.hidden = true;
-        restartBtn.disabled = false;
-        againBtn.set(null);
         nextBtn.set(null, T.train.nextLine);
         board.clearArrows();
         board.clearMarks();
         const f = session.frame(0);
-        setPos(f.fen, null, false);
+        setPos(f.fen, null, false, 0);
+        say('', '');
         drawStreak();
         drawMoves();
+        updateNav();
         step();
       }
 
       // За e2e и отстраняване на проблеми.
-      ctx.train = { session, line, courseId, mode };
+      ctx.train = { session, line, courseId, mode: viewOnly ? 'view' : mode };
+      if (viewOnly) {
+        // Преглед: всички ходове, Назад/Напред и тап върху ход; „Учи“ отваря тренировката.
+        drawStreak();
+        setTurn('view');
+        hintBtn.set(null);
+        againBtn.set(() => go(`${hrefFor('train', courseId, lineId)}?mode=learn`));
+        nextBtn.set(null);
+        browse = true;
+        showView(0);
+        return;
+      }
+      againBtn.set(() => again());
       startAttempt(false);
       if (review) nextInQueue().then(({ left }) => { if (!alive) return; queueLeft = left; if (donePanel.hidden) drawStreak(session.dirty()); });
     }, () => alive);

@@ -2,15 +2,13 @@
 // Pixel 7, истинските данни. Снимки: T026_SCREENS=/home/claude/t026 npx playwright test t026
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
-import { course, lineN, open, fast, playLine, iconBar, againBtn, nextBtn } from './helpers.mjs';
+import { course, lineN, open, fast, playLine, iconBar, againBtn, nextBtn, checks, doneKind, backBtn, fwdBtn } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const I1 = lineN(ITALIAN, 1);
 const SHOTS = process.env.T026_SCREENS || '';
 if (SHOTS) mkdirSync(SHOTS, { recursive: true });
 
-const backBtn = (page) => iconBar(page).getByRole('button', { name: 'Стъпка назад' });
-const fwdBtn = (page) => iconBar(page).getByRole('button', { name: 'Стъпка напред' });
 const disabled = (loc) => expect(loc).toHaveAttribute('aria-disabled', 'true');
 const enabled = (loc) => expect(loc).toHaveAttribute('aria-disabled', 'false');
 
@@ -26,7 +24,7 @@ async function watch(page) {
   return errors;
 }
 
-test('лента: 4 иконки с подписи и aria-label; Назад/Напред винаги неактивни; Пак/Следваща — само в края на линията', async ({ page }) => {
+test('лента: 4 иконки с подписи и aria-label; Пак винаги активна (T-028); Назад/Напред и Следваща — в края на линията', async ({ page }) => {
   const errors = await watch(page);
   await open(page);
   await fast(page);
@@ -47,33 +45,32 @@ test('лента: 4 иконки с подписи и aria-label; Назад/Н�
     expect(ico.w).toBe(28);
     expect(ico.mask).toMatch(/vendor\/tabler\/(arrow-left|arrow-right|arrow-back-up|arrow-bar-to-right)\.svg/);
   }
-  // по време на опита: всички неактивни, но видими (стабилна подредба); Подсказка/Отначало — както досега
-  for (const b of [backBtn(page), fwdBtn(page), againBtn(page), nextBtn(page)]) { await expect(b).toBeVisible(); await disabled(b); }
+  // по време на опита: Назад/Напред/Следваща неактивни, но видими; Пак — активна (D-033)
+  for (const b of [backBtn(page), fwdBtn(page), nextBtn(page)]) { await expect(b).toBeVisible(); await disabled(b); }
+  await enabled(againBtn(page));
   await expect(nextBtn(page)).toHaveAccessibleName('Следваща линия');
-  await expect(page.locator('#hint-btn')).toHaveText('Подсказка');
-  await expect(page.locator('#restart-btn')).toHaveText('Отначало');
+  await expect(page.getByRole('button', { name: 'Отначало' })).toHaveCount(0);
   // тап върху неактивна иконка не прави нищо
   const url = page.url();
   await nextBtn(page).click({ force: true });
-  await againBtn(page).click({ force: true });
   expect(page.url()).toBe(url);
 
   await playLine(page, I1, 'w');
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
+  await doneKind(page, 'clean'); await checks(page, 1, 3);
   await enabled(againBtn(page));
   await enabled(nextBtn(page));
-  await disabled(backBtn(page));
+  await enabled(backBtn(page));
   await disabled(fwdBtn(page));
   await expect(nextBtn(page)).toHaveAccessibleName('Следваща линия (2)');
-  // Пак → нов опит, иконките пак са неактивни
+  // Пак → нов опит
   await againBtn(page).click();
   await expect(page.locator('#train-done')).toBeHidden();
-  await disabled(againBtn(page));
+  await enabled(againBtn(page));
   await disabled(nextBtn(page));
+  await disabled(backBtn(page));
   await playLine(page, I1, 'w');
   await nextBtn(page).click();
   await expect(page).toHaveURL(new RegExp(`#/train/italian/${lineN(ITALIAN, 2).id}\\?mode=learn$`));
-  // клавиатура: иконките са във фокуса и Enter работи
   await expect(page.locator('h1.screen-title')).toContainText('линия 2/');
   expect(await page.evaluate(() => globalThis.__csp)).toEqual([]);
   expect(errors).toEqual([]);

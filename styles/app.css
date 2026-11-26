@@ -421,3 +421,130 @@ a { color: var(--accent); }
 @media (prefers-color-scheme: dark) {
   .cap-piece { filter: drop-shadow(0 0 1px var(--fg)) drop-shadow(0 0 .5px var(--fg)); }
 }
+
+/* --- T-028 (D-033…D-037): по-малко текст, повече иконки --- */
+.ico-hint { --ico: url(../vendor/tabler/bulb.svg); }
+.ico-learn { --ico: url(../vendor/tabler/player-play.svg); }
+.ico-check { --ico: url(../vendor/tabler/check.svg); }
+.ico-eye { --ico: url(../vendor/tabler/eye.svg); }
+.ico {
+  display: inline-block; width: 1em; height: 1em; background-color: currentColor; flex: 0 0 auto;
+  -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat;
+}
+/* Ред с действията: крушката вляво, встрани от лентата (за да не се натиска случайно). */
+.ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin: 2px 0 6px; }
+.ctrl-row > .icon-btn { flex: 0 0 56px; }
+.ctrl-row .icon-bar { margin: 0; flex: 0 1 auto; }
+#hint-btn { color: var(--warn); }
+/* Индикатор „кой е на ход“: кръгче в цвета на страната; „твой ход“ — с акцентен пръстен. */
+.train-top { min-height: 24px; }
+.turn-ind {
+  flex: 0 0 auto; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--muted);
+  background: transparent; transition: opacity .2s, box-shadow .2s;
+}
+.turn-ind[data-color="w"] { background: #fafafa; }
+.turn-ind[data-color="b"] { background: #1d1d1b; }
+.turn-ind[data-turn="user"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
+.turn-ind[data-turn="opponent"] { opacity: .45; }
+.turn-ind[data-turn="done"], .turn-ind[data-turn="view"], .turn-ind[data-turn=""] { visibility: hidden; }
+.train-top .streak { margin: 0 auto 0 0; flex: 0 1 auto; min-width: 0; }
+/* D-034: серия като отметки ✓ */
+.checks { display: inline-flex; gap: 4px; align-items: center; }
+.chk {
+  position: relative; display: inline-block; width: 20px; height: 20px; border-radius: 6px;
+  border: 1.5px solid var(--border); background: transparent; color: var(--accent-fg);
+}
+.chk::after {
+  content: ''; position: absolute; inset: 2px; background-color: currentColor;
+  -webkit-mask: url(../vendor/tabler/check.svg) center / contain no-repeat; mask: url(../vendor/tabler/check.svg) center / contain no-repeat;
+  opacity: 0;
+}
+.chk.on { background: var(--accent); border-color: var(--accent); }
+.chk.on::after { opacity: 1; }
+.chk.cleared { animation: chk-clear .45s ease-out; }
+@keyframes chk-clear {
+  0% { background: var(--danger); border-color: var(--danger); transform: scale(1); }
+  40% { transform: scale(.75); }
+  100% { background: transparent; border-color: var(--border); transform: scale(1); }
+}
+.streak.learned .chk.on { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.streak.celebrate .chk { animation: chk-pop .7s ease-out; }
+.streak.celebrate .chk:nth-child(2) { animation-delay: .08s; }
+.streak.celebrate .chk:nth-child(3) { animation-delay: .16s; }
+.streak.celebrate .chk:nth-child(4) { animation-delay: .24s; }
+.streak.celebrate .chk:nth-child(n+5) { animation-delay: .32s; }
+@keyframes chk-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); }
+  100% { transform: scale(1); }
+}
+.review-state { margin-right: 6px; }
+/* Ред под дъската: взетите от долната страна вляво, кратко съобщение / резултат вдясно — един ред. */
+.train-under { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; margin: 0 0 2px; }
+.train-under .cap-bottom { margin: 0; flex: 1 1 auto; }
+.train-under .cap-none { flex: 1 1 auto; }
+.train-under .train-msg { margin: 0; min-height: 0; flex: 0 0 auto; white-space: nowrap; font-size: .875rem; line-height: 1.3; }
+.train-msg[data-kind="hint"], .train-msg[data-kind="hint auto"] { color: var(--warn); }
+.train-done {
+  background: transparent; border: 0; padding: 0; margin: 0;
+  display: flex; align-items: center; gap: 8px; flex: 0 0 auto; white-space: nowrap;
+}
+.done-chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: .875rem; font-weight: 600; line-height: 1.3;
+  padding: 1px 8px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent);
+}
+.done-chip .ico { width: 16px; height: 16px; }
+.done-chip[data-kind="errors"], .done-chip[data-kind="again"] { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.done-chip[data-kind="hard"] { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.done-chip[data-kind="learned"] { background: var(--accent); color: var(--accent-fg); }
+.done-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; margin: -11px 0; font-weight: 600; color: var(--accent); }
+/* D-035: оценка вдясно до дъската */
+.board-row { display: flex; justify-content: center; align-items: stretch; gap: 4px; margin: 0 auto 4px; }
+.board-row .board-wrap { margin: 0; }
+.board-row.has-eval .board-wrap { width: calc(100% - 34px); }
+.eval {
+  flex: 0 0 30px; display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; background: var(--surface); border: 1px solid var(--border);
+  font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted);
+  writing-mode: horizontal-tb; overflow: hidden;
+}
+.eval[data-lead="w"] { background: #f7f5ef; color: #1d1d1b; }
+.eval[data-lead="b"] { background: #2a2d2a; color: #f2efe6; }
+.eval-n { letter-spacing: -.02em; white-space: nowrap; }
+/* D-036: фигурна нотация (фигурките са от спрайта на дъската) */
+.fig-wrap { display: inline-block; position: relative; } /* скритата буква не излиза извън реда (overflow) */
+.fig { width: 1.15em; height: 1.15em; vertical-align: -.22em; margin-right: -.05em; }
+@media (prefers-color-scheme: dark) {
+  .fig, .cap-piece { filter: drop-shadow(0 0 1px var(--fg)) drop-shadow(0 0 .5px var(--fg)); }
+  .fig-w { filter: none; }
+}
+/* D-037: грешният ход в записа; разглеждане — ходовете са бутони */
+.mv-bad { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }
+.move-list.played button.mv { cursor: pointer; }
+.mv-bad[aria-current] { background: var(--danger); border-color: var(--danger); color: var(--surface); }
+/* Курс: бутон „Преглед“ до реда */
+.line-row { display: flex; align-items: stretch; }
+.line-row > a:first-child { flex: 1 1 auto; min-width: 0; }
+.ln-view {
+  flex: 0 0 44px; display: flex; align-items: center; justify-content: center; color: var(--accent);
+  border-bottom: 1px solid var(--border);
+}
+.ln-view .ico { width: 22px; height: 22px; }
+@media (max-height: 700px) {
+  .screen[data-screen="train"] .train-top { min-height: 22px; }
+  .screen[data-screen="train"] .chk { width: 18px; height: 18px; }
+  .screen[data-screen="train"] .train-under { min-height: 18px; }
+  .screen[data-screen="train"] .train-under .train-msg, .screen[data-screen="train"] .done-chip { font-size: .8125rem; line-height: 1.2; }
+  .screen[data-screen="train"] .board-row { margin-bottom: 2px; }
+  .screen[data-screen="train"] .ctrl-row { margin: 0 0 4px; }
+}
+.move-list.played .mv { display: inline-flex; align-items: center; gap: 0; }
+/* Тесни екрани (320–360 px): лентата и крушката се побират без хоризонтален скрол. */
+@media (max-width: 380px) {
+  .ctrl-row { gap: 0; }
+  .ctrl-row > .icon-btn { flex: 0 0 48px; }
+  .icon-bar { gap: 0; }
+  .icon-btn { flex: 0 1 60px; min-width: 44px; padding: 2px 0; }
+  .icon-btn .ico-cap { font-size: .66rem; letter-spacing: -.01em; }
+  .icon-sep { margin: 0 4px; }
+}

@@ -6,7 +6,7 @@ import { hrefFor } from '../../router.js';
 import { loadToday, whenText } from '../../data/today.js';
 import { inRelearn } from '../../srs/review.js';
 import { dayNumber } from '../../srs/fsrs.js';
-import { formatMoves } from '../../data/courseStore.js';
+import { movesLine } from '../notation.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 import { dbRecoverBox } from '../dbRecover.js';
 
@@ -69,7 +69,7 @@ export default {
             h('span', { class: 'ln-n' }, String(it.n)),
             h('span', { class: 'ln-body' },
               h('span', { class: 'ln-name' }, it.line?.name ? `${it.line.eco} ${it.line.name.replace(/^[^:]*:\s*/, '') || it.line.name}` : (it.line?.eco || '')),
-              it.line ? h('span', { class: 'ln-moves' }, formatMoves(it.line.sans, { from: 0, max: 8 })) : null),
+              it.line ? h('span', { class: 'ln-moves' }, movesLine(it.line.sans, { from: 0, max: 8 })) : null),
             h('span', { class: 'ln-status st-due' },
               relearn ? T.review.relearnTag : (late > 0 ? fmt(T.review.dueIn, { n: late }) : '')),
           )));

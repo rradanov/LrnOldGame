@@ -30,7 +30,7 @@ test('подразбиращи се стойности от ARCH_T-014 §6.1', (
     hintResetsStreak: true, autoPlayStart: false, hintAfterSec: 0,
     retention: 0.9, maxReviewsPerDay: 50, relearnStreak: 1, hardAfterSec: 15, dayStartHour: 4,
     reviewErrorsForAgain: 1, firstReviewDays: 3, maxIntervalDays: 3650, reviewFuzz: false,
-    opponentDelayMs: 400, wrongMoveMs: 500, boardOrientation: 'auto', animationMs: 300, iconLabels: true,
+    opponentDelayMs: 400, wrongMoveMs: 500, boardOrientation: 'auto', animationMs: 300, iconLabels: true, showEval: true,
     showCaptured: true, valuePawn: 1, valueKnight: 3, valueBishop: 3, valueRook: 5, valueQueen: 9,
     backupReminderDays: 14,
   });

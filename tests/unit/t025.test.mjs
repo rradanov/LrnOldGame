@@ -73,10 +73,11 @@ test('D3: форми за число и десетична запетая', () =
   assert.equal(plural(1, 'ден', 'дни'), 'ден');
   assert.equal(plural(2, 'ден', 'дни'), 'дни');
   assert.equal(plural(0, 'ден', 'дни'), 'дни');
-  assert.equal(fmt(T.train.relearnLeft, { k: 1 }), 'Повторение след грешка · остава 1 чист пробег');
-  assert.equal(fmt(T.train.relearnLeft, { k: 2 }), 'Повторение след грешка · остават 2 чисти пробега');
-  assert.equal(fmt(T.train.gradeAgain, { k: 1 }), 'Оценка: Отново · изиграй линията още 1 път без грешка');
-  assert.equal(fmt(T.train.relearnMore, { k: 3 }), 'Още 3 чисти пробега за повторението');
+  assert.equal(fmt(T.train.relearnLabel, { k: 1 }), 'Повторение след грешка: остава 1 чист пробег');
+  assert.equal(fmt(T.train.relearnLabel, { k: 2 }), 'Повторение след грешка: остават 2 чисти пробега');
+  // T-028 (D-034): резултатът е до 2 думи; формата за число остава в aria-label и в „N грешки“.
+  assert.equal(fmt(T.train.doneErrors, { n: 1 }), '1 грешка');
+  assert.equal(fmt(T.train.doneErrors, { n: 3 }), '3 грешки');
   assert.equal(fmt(T.review.dueIn, { n: 1 }), 'просрочена с 1 ден');
   assert.equal(fmt(T.when.inDays, { n: 2, date: 'x' }), 'след 2 дни (x)');
   assert.equal(fmt(T.review.doneToday, { reviews: 1, again: 0 }), 'Днес: 1 преговор · 0 с „Отново“');

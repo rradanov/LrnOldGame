@@ -1,9 +1,7 @@
 // T-013: пълно приемане на MVP (тестер) — потребителски сценарий от първо пускане до бекъп.
 // Pixel 7, портрет, истинските данни. Независим от останалите spec-ове.
 import { test, expect } from '@playwright/test';
-import {
-  MANIFEST, course, lineN, shot, open, waitForSW, fast, move, turn, playLine, row, legalWrong, firstMine, againBtn, nextBtn,
-} from './helpers.mjs';
+import { MANIFEST, course, lineN, shot, open, waitForSW, fast, move, turn, playLine, row, legalWrong, firstMine, againBtn, nextBtn, checks, doneKind, hintBtn } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const CARO = course('caro-kann');
@@ -56,12 +54,12 @@ test('T-013 сценарий: първо пускане → каталог → �
   await fast(page);
   await page.locator('#learn-next').click();
   await expect(page.locator('h1.screen-title')).toHaveText(`Италианска партия · линия 1/${LINES.italian}`);
-  await expect(page.locator('#streak .streak-n')).toHaveText('0/3');
+  await checks(page, 0, 3);
   await shot(page, '05-trenirovka-nachalo');
 
   // 1) чисто с плъзгане → 1/3
   await playLine(page, I1, 'w', { how: 'drag' });
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
+  await doneKind(page, 'clean'); await checks(page, 1, 3);
   await shot(page, '06-trenirovka-izigrana-1-3');
 
   // 2) грешка на втория мой ход → брояч 0, показан верен ход
@@ -73,30 +71,30 @@ test('T-013 сценарий: първо пускане → каталог → �
   const w = await legalWrong(page);
   await move(page, w[0], w[1]);
   await expect(page.locator('#streak')).toHaveAttribute('data-streak', '0');
-  await expect(page.locator('#train-msg')).toContainText(`Грешка. Верният ход е ${f[2]}`);
+  await expect(page.locator('#train-msg')).toHaveText('Грешка');
   await shot(page, '07-greshka-veren-hod');
   await expect(page.locator('#train-msg')).toHaveAttribute('data-kind', 'correct');
-  await expect(page.locator('#train-msg')).toHaveText(`Изиграй верния ход ${f[2]}`);
+  await expect(page.locator('#train-msg')).toHaveText('Грешка');
   await expect(page.locator('.board-wrap .arrow, .board-wrap [class*="arrow"]').first()).toBeAttached();
   await shot(page, '08-greshka-strelka');
   await playLine(page, I1, 'w', { from: 2 });
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна с грешки (0/3)');
+  await doneKind(page, 'errors'); await checks(page, 0, 3);
   expect((await row(page, 'italian', I1.id)).streak).toBe(0);
 
   // 3) подсказка → брояч 0 (hintResetsStreak = да)
   await againBtn(page).click();
   await playLine(page, I1, 'w', { hintAt: 2 });
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна с грешки (0/3)');
+  await doneKind(page, 'errors'); await checks(page, 0, 3);
 
   // 4) три чисти (тап-тап) → научена
   for (const k of [1, 2]) {
     await againBtn(page).click();
     await playLine(page, I1, 'w');
-    await expect(page.locator('#done-text')).toHaveText(`Линията е изиграна ✓ (${k}/3)`);
+    await doneKind(page, 'clean'); await checks(page, k, 3);
   }
   await againBtn(page).click();
   await playLine(page, I1, 'w');
-  await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (3/3)');
+  await doneKind(page, 'learned'); await checks(page, 3, 3);
   await shot(page, '09-nauchena');
   const r1 = await row(page, 'italian', I1.id);
   expect(r1.status).toBe('learned');
@@ -124,9 +122,9 @@ test('T-013 сценарий: първо пускане → каталог → �
   const a8 = await page.locator('.board-wrap rect[data-square="a8"]').boundingBox();
   expect(a1.y).toBeLessThan(a8.y);
   await playLine(page, C1, 'b');
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/3)');
-  await expect(page.locator('.transpose-note')).toContainText('Оттук линията продължава като линия 3');
-  await expect(page.locator('.line-end')).toContainText('Край: транспозиция');
+  await doneKind(page, 'clean'); await checks(page, 1, 3);
+  await expect(page.locator('#transpose-go')).toHaveText('→ линия 3');
+  await expect(page.locator('#transpose-go')).toHaveAccessibleName('Линията продължава като линия 3 — продължи с нея');
   await shot(page, '11-cherni-transpoziciya');
   await page.locator('#transpose-go').click();
   await expect(page.locator('h1.screen-title')).toHaveText(`Каро-Кан · линия 3/${LINES['caro-kann']}`);
@@ -146,7 +144,7 @@ test('T-013 преговор със симулирано време: Добре 
   for (const l of [I1, I2, I3, I4]) {
     await open(page, `#/train/italian/${l.id}?mode=learn`);
     await playLine(page, l, 'w');
-    await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (1/1)');
+    await doneKind(page, 'learned'); await checks(page, 1, 1);
   }
   // ден 2: още нищо
   await open(page, '#/review', '?now=+2d');
@@ -163,7 +161,7 @@ test('T-013 преговор със симулирано време: Добре 
   await page.locator('#review-start').click();
   await playLine(page, I1, 'w');
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'good');
-  await expect(page.locator('#done-text')).toContainText('Оценка: Добре · следващ преговор след');
+  await expect(page.locator('#done-text')).toHaveText(/^Добре · след \d+ дни$/);
   await shot(page, '13-pregovor-dobre');
   const good = await row(page, 'italian', I1.id);
   // I2 с подсказка → Трудно
@@ -175,13 +173,13 @@ test('T-013 преговор със симулирано време: Добре 
   await nextBtn(page).click();
   await playLine(page, I3, 'w', { wrongAt: 2, wrong: ['a2', 'a3'] });
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'again');
-  await expect(page.locator('#done-text')).toContainText('Оценка: Отново');
+  await expect(page.locator('#done-text')).toHaveText('Отново');
   await shot(page, '14-pregovor-otnovo');
   await againBtn(page).click();
-  await expect(page.locator('#streak')).toContainText('Повторение след грешка');
+  await expect(page.locator('#streak')).toHaveText('Повторение');
   await shot(page, '15-povtorenie-sled-greshka');
   await playLine(page, I3, 'w');
-  await expect(page.locator('#done-text')).toContainText('Повторението е готово ✓ · следващ преговор утре');
+  await expect(page.locator('#done-text')).toHaveText('✓ · утре');
   const again = await row(page, 'italian', I3.id);
   // reviewErrorsForAgain = 2: една грешка → Трудно
   await fast(page, { reviewErrorsForAgain: 2 });
@@ -189,7 +187,7 @@ test('T-013 преговор със симулирано време: Добре 
   await playLine(page, I4, 'w', { wrongAt: 2, wrong: ['a2', 'a3'] });
   await expect(page.locator('#train-done')).toHaveAttribute('data-grade', 'hard');
   const hard2 = await row(page, 'italian', I4.id);
-  await expect(page.locator('#review-all-done')).toBeVisible();
+  await expect(page.locator('#train-done')).toHaveAttribute('data-all-done', '1');
 
   // Интервали: Отново (1) < Трудно < Добре
   expect(daysOf(again)).toBe(1);
@@ -243,17 +241,18 @@ test('T-013 настройки през UI: стойността се пази �
   await shot(page, '16-nastroiki', { fullPage: false });
   await open(page, `#/train/italian/${I2.id}?mode=learn`);
   await quick();
-  await expect(page.locator('#streak .streak-n')).toHaveText('0/2');
+  await checks(page, 0, 2);
   await move(page, 'e2', 'e4');
   const t0 = Date.now();
-  await expect(page.locator('#train-msg')).toHaveText('Противникът мисли…');
+  await expect(page.locator('#turn')).toHaveAttribute('data-turn', 'opponent');
+  await expect(page.locator('#turn')).toHaveAccessibleName('Ход на противника');
   await expect.poll(() => turn(page), { timeout: 5000 }).toBe('user@2');
   expect(Date.now() - t0).toBeGreaterThanOrEqual(1200);
   await page.evaluate(() => globalThis.__lrn.settings.set('opponentDelayMs', 0));
   await playLine(page, I2, 'w', { from: 2 });
   await againBtn(page).click();
   await playLine(page, I2, 'w');
-  await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (2/2)');
+  await doneKind(page, 'learned'); await checks(page, 2, 2);
   await setUi(page, 'opponentDelayMs', 0);
 
   // 3. boardOrientation = black → бял курс с черните долу
@@ -278,7 +277,8 @@ test('T-013 настройки през UI: стойността се пази �
   await open(page, `#/train/italian/${I4.id}?mode=learn`);
   await quick();
   await move(page, 'a2', 'a3');
-  await expect(page.locator('#train-msg')).toContainText('започваме отначало');
+  // errorPauseMs = 0: кратката дума „Отначало“ се сменя веднага — проверява се самият рестарт
+  await expect.poll(() => page.evaluate(() => globalThis.__lrn.train.session.attempt)).toBe(2);
   await expect.poll(() => turn(page)).toBe('user@0');
   await setUi(page, 'onError', 'continue');
 
@@ -286,7 +286,7 @@ test('T-013 настройки през UI: стойността се пази �
   await setUi(page, 'hintAfterSec', 1);
   await open(page, `#/train/italian/${I4.id}?mode=learn`);
   await expect(page.locator('#train-msg')).toHaveAttribute('data-kind', 'hint auto', { timeout: 4000 });
-  await expect(page.locator('#train-msg')).toHaveText('Подсказка: e4');
+  await expect(page.locator('#train-msg')).toHaveText('Подсказка');
   await setUi(page, 'hintAfterSec', 0);
 
   // 7. hintResetsStreak = не → подсказката не нулира брояча
@@ -294,7 +294,7 @@ test('T-013 настройки през UI: стойността се пази �
   await open(page, `#/train/italian/${I4.id}?mode=learn`);
   await quick();
   await playLine(page, I4, 'w', { hintAt: 2 });
-  await expect(page.locator('#done-text')).toHaveText('Линията е изиграна ✓ (1/2)');
+  await doneKind(page, 'clean'); await checks(page, 1, 2);
   await setUi(page, 'hintResetsStreak', true);
 
   // 8. firstReviewDays = 7 → научената линия е за преговор след 7 дни
@@ -302,7 +302,7 @@ test('T-013 настройки през UI: стойността се пази �
   await open(page, `#/train/italian/${I4.id}?mode=learn`);
   await quick();
   await playLine(page, I4, 'w');
-  await expect(page.locator('#done-text')).toHaveText('Научена! ✓ (2/2)');
+  await doneKind(page, 'learned'); await checks(page, 2, 2);
   await open(page, '#/course/italian');
   await expect(page.locator(`.line-row[data-line="${I4.id}"]`)).toContainText('преговор след 7 дни');
   await expect(page.locator(`.line-row[data-line="${I2.id}"]`)).toContainText('преговор след 3 дни');
@@ -473,8 +473,8 @@ test.describe('T-013 устойчивост', () => {
     await expect.poll(() => turn(page)).toBe('user@2');
     await expect(page.locator('#played .mv')).toHaveCount(2);
     await expect(page.locator('#streak')).toHaveAttribute('data-streak', '2');
-    await page.locator('#hint-btn').dblclick();
-    await expect(page.locator('#train-msg')).toHaveText(`Подсказка: ${I1.m[2]}`);
+    await hintBtn(page).dblclick();
+    await expect(page.locator('#train-msg')).toHaveText('Подсказка');
   });
 
   for (const [w, h] of [[360, 640], [320, 568]]) {
