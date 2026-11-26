@@ -100,3 +100,36 @@ test('в позициите от book линиите, до които курсъ
     }
     assert.deepEqual(bad, []);
   });
+
+// T-023 (тестер): опашката от двигателя (D-027) — проверки, които валидаторът не прави.
+test('опашка (D-027): depth/data са в съгласие с tailMaxPly; линия с tail не свършва с data; опашката не се разклонява',
+  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+    const { manifest, courses } = load();
+    const bad = [];
+    for (const course of courses) {
+      const P = paramsOf(manifest, course.id);
+      if (!(P.tailMaxPly > 0)) continue; // стари данни / опашката е изключена
+      const tailOpp = new Map(); // EPD (противникът на ход) в опашка → множество от ходовете му
+      for (const l of course.lines) {
+        const n = l.m.length;
+        const id = `${course.id} n=${l.n}`;
+        const hasTail = Number.isInteger(l.tail);
+        // depth: или maxPly, или опашка, чийто следващ мой ход би минал tailMaxPly
+        if (l.end === 'depth' && !(n >= P.maxPly || (hasTail && n + 2 > P.tailMaxPly))) {
+          bad.push(`${id}: depth на ${n} полухода (tail ${l.tail ?? '—'}, tailMaxPly ${P.tailMaxPly})`);
+        }
+        // data: само когато опашката вече не може да започне (следващият мой ход > tailMaxPly)
+        if (l.end === 'data' && n + 2 <= P.tailMaxPly) bad.push(`${id}: data на ${n} полухода, а опашката е до ${P.tailMaxPly}`);
+        if (l.end === 'data' && hasTail) bad.push(`${id}: линия с tail свършва с data`);
+        if (!hasTail) continue;
+        const { keys } = applySans(l.m, START_FEN);
+        for (let i = l.tail; i < n; i += 2) { // m[tail] е ход на противника (валидаторът)
+          const k = keys[i - 1];
+          if (!tailOpp.has(k)) tailOpp.set(k, new Set());
+          tailOpp.get(k).add(l.m[i]);
+        }
+      }
+      for (const [k, s] of tailOpp) if (s.size > 1) bad.push(`${course.id}: опашката се разклонява в ${k}: ${[...s].join(', ')}`);
+    }
+    assert.deepEqual(bad, []);
+  });
