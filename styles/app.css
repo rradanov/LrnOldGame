@@ -348,8 +348,11 @@ a { color: var(--accent); }
 /* D4: на ниски екрани дъската отстъпва място на брояча, бутоните и долната лента */
 .board-wrap { max-width: min(var(--maxw), 70vh, calc(100dvh - var(--tabs-h) - 220px - env(safe-area-inset-bottom))); }
 @media (max-height: 700px) {
-  .screen[data-screen="train"] .screen-title { font-size: 1.1rem; margin: 0 0 6px; }
-  .screen[data-screen="train"] .back { min-height: 36px; padding: 4px 0; }
+  .screen[data-screen="train"] { padding-top: calc(4px + env(safe-area-inset-top)); }
+  .screen[data-screen="train"] .screen-title { font-size: 1rem; margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .screen[data-screen="train"] .back { min-height: 32px; padding: 2px 0; }
+  .screen[data-screen="train"] .streak { margin: 0 0 4px; }
+  .screen[data-screen="train"] .train-msg { font-size: .875rem; line-height: 1.3; }
   .screen[data-screen="train"] .course-sub { display: none; }
   .screen[data-screen="train"] .board-wrap { margin-bottom: 6px; }
   .screen[data-screen="train"] .btn-row { margin: 4px 0; }
