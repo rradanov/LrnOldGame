@@ -103,7 +103,9 @@ test('изиграване чисто ×3 → „научена“; прогре
   expect(row.status).toBe('learned');
   expect(row.streak).toBe(3);
   expect(row.learnedAt).toBeGreaterThan(0);
-  expect(row.fsrs.reps).toBe(0);
+  // T-010: при „научена“ се създава FSRS картата (първи преглед Good), due след 3 дни
+  expect(row.fsrs.reps).toBe(1);
+  expect(row.due).toBeGreaterThan(row.learnedAt);
   const atts = await page.evaluate((id) => globalThis.__lrn.userDb.attemptsFor('italian', id), L1.id);
   expect(atts.map((a) => a.ok)).toEqual([true, true, true]);
   const daily = await page.evaluate(() => globalThis.__lrn.userDb.db.getAll('daily'));

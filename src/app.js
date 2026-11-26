@@ -1,10 +1,15 @@
 // Bootstrap: IndexedDB, настройки, данни на курсовете, долна лента, hash router, Service Worker.
-import { T } from './i18n/bg.js';
+import { T, fmt } from './i18n/bg.js';
 import { createSettings, memoryStorage } from './settings.js';
 import { TABS, startRouter, hrefFor } from './router.js';
 import { openUserDb } from './db/userdb.js';
+import { createClock, parseNowParam } from './clock.js';
+import { loadToday, srsSettings } from './data/today.js';
 import { createCourseStore } from './data/courseStore.js';
 import { h } from './ui/dom.js';
+import { APP_VERSION } from './version.js';
+
+const SIM_DB = 'lrnoldgame-sim';
 import courses from './ui/screens/courses.js';
 import review from './ui/screens/review.js';
 import catalog from './ui/screens/catalog.js';
@@ -27,7 +32,24 @@ function buildNav(nav) {
     h('a', { href: hrefFor(name), class: 'tab', dataset: { route: name } },
       h('span', { class: 'tab-icon', 'aria-hidden': 'true' }, TAB_ICONS[name]),
       h('span', { class: 'tab-label' }, T.tabs[name]),
+      name === 'review' ? h('span', { class: 'tab-badge', id: 'review-badge', hidden: true }) : null,
     )));
+}
+
+/** Значката с броя за преговор днес на раздела „Преговор“. */
+async function refreshBadge(ctx) {
+  const el = document.getElementById('review-badge');
+  if (!el) return;
+  try {
+    const t = await loadToday(ctx);
+    const n = t.queue.items.length;
+    el.textContent = n > 99 ? '99+' : String(n);
+    el.hidden = n === 0;
+    el.setAttribute('aria-label', fmt(T.review.badge, { n }));
+    el.closest('a')?.setAttribute('data-due', String(n));
+  } catch (e) {
+    console.warn('Значка:', e);
+  }
 }
 
 function mountRouter(main, nav, ctx) {
@@ -45,6 +67,7 @@ function mountRouter(main, nav, ctx) {
     const res = screen.render(main, ctx, route);
     cleanup = typeof res === 'function' ? res : null;
     window.scrollTo(0, 0);
+    ctx.refreshBadge();
   });
 }
 
@@ -97,25 +120,59 @@ async function requestPersist() {
   } catch { return null; }
 }
 
+/**
+ * Симулирано време (?now=…): отделна база „lrnoldgame-sim“, копие на истинската
+ * (при първо влизане или с &simreset=1). Истинските данни не се пипат.
+ */
+async function openSimDb(clock, reset) {
+  const real = await openUserDb();
+  const snap = await real.exportBackup({ appVersion: APP_VERSION, touch: false });
+  real.close();
+  const sim = await openUserDb({ name: SIM_DB, now: clock.now });
+  if (reset || !(await sim.getMeta('simCopiedAt'))) {
+    await sim.importBackup(snap);
+    await sim.setMeta('simCopiedAt', Date.now());
+  }
+  return sim;
+}
+
+function showSimBar(clock) {
+  const bar = h('div', { class: 'sim-bar', id: 'sim-bar', role: 'status' },
+    h('span', {}, fmt(T.sim.bar, { date: new Date(clock.now()).toLocaleString('bg-BG', { dateStyle: 'medium', timeStyle: 'short' }) })),
+    ' ',
+    h('a', { href: location.pathname, id: 'sim-exit', onclick: (e) => { e.preventDefault(); location.href = `${location.pathname}${location.hash}`; } }, T.sim.exit));
+  document.body.prepend(bar);
+}
+
 async function boot() {
-  const ctx = { userDb: null, settings: null, store: createCourseStore(), persisted: null, dataUpdated: null };
+  const params = new URLSearchParams(location.search);
+  const clock = createClock(parseNowParam(params.get('now')));
+  const ctx = { userDb: null, settings: null, store: createCourseStore(), persisted: null, dataUpdated: null, now: clock.now, clock };
+  ctx.refreshBadge = () => refreshBadge(ctx);
+  ctx.srs = () => srsSettings(ctx.settings);
 
   let viewP = null;
   ctx.data = () => (viewP ||= ctx.store.loadView().catch((e) => { viewP = null; throw e; }));
 
   try {
-    ctx.userDb = await openUserDb();
+    ctx.userDb = clock.simulated ? await openSimDb(clock, params.has('simreset')) : await openUserDb();
     await ctx.userDb.migrateLegacySettings(globalThis.localStorage);
     const stored = await ctx.userDb.loadSettings();
     ctx.settings = createSettings({ load: () => stored, save: (obj) => ctx.userDb.saveSettings(obj) });
+    // T-010: научените линии без FSRS карта (0.3.0, стар бекъп) получават карта от learnedAt.
+    try {
+      const made = await ctx.userDb.ensureCards(ctx.srs());
+      if (made) console.info(`FSRS: създадени ${made} карти за научени линии`);
+    } catch (e) { console.error('FSRS миграция:', e); }
   } catch (err) {
     console.error('IndexedDB:', err);
     ctx.userDb = null;
     ctx.settings = createSettings(memoryStorage());
   }
 
+  if (clock.simulated) showSimBar(clock);
   if (ctx.userDb) {
-    requestPersist().then((v) => { ctx.persisted = v; });
+    if (!clock.simulated) requestPersist().then((v) => { ctx.persisted = v; });
     try {
       const { manifest, view } = await ctx.data();
       // Първо пускане (D-017): предварително избраните ★ курсове, които имат данни.

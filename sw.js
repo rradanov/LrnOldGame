@@ -4,7 +4,7 @@
  * всеки деплой сменя байтовете на sw.js → браузърът инсталира новата версия,
  * а приложението показва „Има нова версия — Обнови“.
  */
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 const BUILD = 'dev';
 const CACHE_PREFIX = 'lrnoldgame-shell-';
 const CACHE = `${CACHE_PREFIX}${APP_VERSION}-${BUILD}`;
@@ -32,6 +32,11 @@ const SHELL = [
   'src/data/courseStore.js',
   'src/data/progress.js',
   'src/train/session.js',
+  'src/srs/fsrs.js',
+  'src/srs/review.js',
+  'src/srs/queue.js',
+  'src/data/today.js',
+  'src/clock.js',
   'src/chess/position.js',
   'src/ui/dom.js',
   'src/ui/board.js',

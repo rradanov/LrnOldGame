@@ -78,6 +78,21 @@ export const SETTINGS_SCHEMA = Object.freeze([
   {
     key: 'dayStartHour', type: 'int', default: 4, min: 0, max: 12, step: 1, unit: 'ч.',
     group: 'review', label: 'Новият ден започва в',
+    help: 'Преговорите и лимитите за деня се броят от този час (напр. 4 = до 03:59 е още вчера).',
+  },
+  {
+    key: 'reviewErrorsForAgain', type: 'int', default: 1, min: 1, max: 3, step: 1,
+    group: 'review', label: 'Грешки при преговор за оценка „Отново“',
+    help: '1 = всяка грешка дава „Отново“ и линията се повтаря веднага. При 2 една грешка дава „Трудно“.',
+  },
+  {
+    key: 'maxIntervalDays', type: 'int', default: 3650, min: 7, max: 36500, step: 1, unit: 'дни',
+    group: 'review', label: 'Най-дълъг интервал между преговорите',
+  },
+  {
+    key: 'reviewFuzz', type: 'bool', default: false,
+    group: 'review', label: 'Разпръсни датите на преговор',
+    help: 'Мести интервалите над 2 дни с ±1–2 дни, за да не се трупат линиите в един ден. Изборът е детерминиран.',
   },
   // Дъска
   {

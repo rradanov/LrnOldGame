@@ -4,6 +4,9 @@ import { hrefFor } from '../../router.js';
 import { formatMoves, fullMoves } from '../../data/courseStore.js';
 import { lineStatus, nextToLearn, courseProgress } from '../../data/progress.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
+import { hasCard, isDueToday } from '../../srs/review.js';
+import { nextReviewAt } from '../../srs/queue.js';
+import { whenText } from '../../data/today.js';
 
 const STATUS_ICON = { new: '○', learning: '◐', learned: '●' };
 
@@ -46,6 +49,17 @@ export default {
         h('span', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': prog.total, 'aria-valuenow': prog.learned },
           h('span', { class: 'progress-fill', style: `width:${pct}%` })),
         h('span', { id: 'course-learned' }, fmt(T.course.learnedCount, { learned: prog.learned, total: prog.total }))));
+      const now = ctx.now();
+      const dsh = ctx.settings.get('dayStartHour');
+      const cur = [...rowsById.values()].filter((r) => ids.has(r.lineId));
+      const due = course.lines.filter((l) => isDueToday(rowsById.get(l.id), now, dsh));
+      const nextAt = nextReviewAt(cur, now, dsh);
+      if (cur.some(hasCard)) {
+        box.append(h('div', { class: 'course-review', id: 'course-review' },
+          h('span', { id: 'course-due' }, fmt(T.course.reviewSummary, { n: due.length })),
+          nextAt ? h('span', { class: 'hint', id: 'course-next' }, ` · ${fmt(T.course.reviewNext, { when: whenText(nextAt, now, dsh) })}`) : null,
+          due.length ? h('a', { class: 'btn secondary small', id: 'course-review-btn', href: hrefFor('review') }, fmt(T.course.reviewBtn, { n: due.length })) : null));
+      }
       const next = nextToLearn(course.lines, rowsById);
       box.append(next
         ? h('a', { class: 'btn block', id: 'learn-next', href: `${hrefFor('train', id, next.id)}?mode=learn` }, `${T.course.learnNext} (${next.n})`)
@@ -55,8 +69,14 @@ export default {
       box.append(h('ol', { class: 'line-list' }, course.lines.map((l) => {
         const r = rowsById.get(l.id);
         const st = lineStatus(r);
-        const label = st === 'learning' ? `${T.course.status.learning} ${fmt(T.course.learningStreak, { streak: Math.min(r.streak || 0, need), need })}` : T.course.status[st];
-        return h('li', { class: 'line-row', dataset: { line: l.id, status: st } },
+        let label = st === 'learning' ? `${T.course.status.learning} ${fmt(T.course.learningStreak, { streak: Math.min(r.streak || 0, need), need })}` : T.course.status[st];
+        let dueAttr = null;
+        if (st === 'learned' && hasCard(r)) {
+          const today = isDueToday(r, now, dsh);
+          label += ` · ${today ? T.course.dueToday : fmt(T.course.dueIn, { when: whenText(r.due, now, dsh) })}`;
+          dueAttr = today ? 'today' : 'later';
+        }
+        return h('li', { class: 'line-row', dataset: { line: l.id, status: st, ...(dueAttr ? { due: dueAttr } : {}) } },
           h('a', { href: `${hrefFor('train', id, l.id)}?mode=learn` },
             h('span', { class: 'ln-n' }, String(l.n)),
             h('span', { class: 'ln-body' },

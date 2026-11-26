@@ -1,10 +1,15 @@
-// #/train/<courseId>/<lineId>?mode=learn — тренировка на линия (ARCH_T-014 §5.4, D-015, T-021).
+// #/train/<courseId>/<lineId>?mode=learn|review — тренировка на линия (ARCH_T-014 §5.4, D-015, T-021, T-020).
+// mode=review: един опит с автоматична оценка Again/Hard/Good (src/srs/review.js); след Again —
+// повторение до relearnStreak чисти пробега; после „Следваща за преговор“. Линия, която не е
+// за преговор днес, се отваря като упражнение (learn) с бележка.
 // Логиката е в src/train/session.js (без DOM); тук са само дъската, текстовете и записът в IndexedDB.
 import { T, fmt } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
 import { Position } from '../../chess/position.js';
 import { createSession, PHASE, lineFrames } from '../../train/session.js';
 import { nextAfter } from '../../data/progress.js';
+import { isDueToday, inRelearn } from '../../srs/review.js';
+import { loadToday, whenText } from '../../data/today.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 import { createBoard, orientationFor } from '../board.js';
 
@@ -36,7 +41,8 @@ export default {
     const timers = new Set();
     let abandon = null;
     const [courseId = '', lineId = ''] = route.parts;
-    const back = h('a', { class: 'back', href: hrefFor('course', courseId) }, T.course.back);
+    const wantReview = route.params.get('mode') === 'review';
+    const back = h('a', { class: 'back', href: wantReview ? hrefFor('review') : hrefFor('course', courseId) }, wantReview ? T.train.backReview : T.course.back);
     root.append(back);
 
     const later = (ms, fn) => {
@@ -50,9 +56,16 @@ export default {
       if (!line) { box.append(screenHeader(T.titles.train), h('p', { class: 'error' }, T.train.notFound)); return; }
       const S = ctx.settings;
       const need = S.get('learnStreak');
+      const dsh = S.get('dayStartHour');
       let row = row0;
-      back.textContent = fmt(T.train.back, { course: meta.name.bg });
-      const title = fmt(T.train.header, { course: meta.name.bg, n: line.n, total: course.lines.length });
+      const review = wantReview && isDueToday(row, ctx.now(), dsh);
+      const mode = review ? 'review' : 'learn';
+      let reviewOut = null; // резултатът от последния запис в режим review
+      let queueLeft = null; // колко остават в опашката (без текущата)
+      if (!review) back.textContent = fmt(T.train.back, { course: meta.name.bg });
+      const title = review
+        ? fmt(T.train.reviewHeader, { course: meta.name.bg, n: line.n })
+        : fmt(T.train.header, { course: meta.name.bg, n: line.n, total: course.lines.length });
       document.title = `${title} · ${T.appName}`;
 
       const session = createSession({
@@ -77,6 +90,7 @@ export default {
 
       box.append(...[
         screenHeader(title),
+        wantReview && !review ? h('p', { class: 'notice', id: 'practice-note' }, T.train.practice) : null,
         h('p', { class: 'hint course-sub' }, line.name ? `${line.eco || ''} ${line.name}` : (line.eco || meta.name.en)),
         streakEl,
         holder,
@@ -88,6 +102,16 @@ export default {
       ].filter(Boolean));
 
       function drawStreak(dirty = false) {
+        if (review) {
+          const k = inRelearn(row, ctx.now(), dsh) ? row.relearnLeft : 0;
+          streakEl.replaceChildren(h('span', { class: 'review-state' }, k > 0
+            ? fmt(T.train.relearnLeft, { k })
+            : (queueLeft !== null ? fmt(T.train.reviewLeft, { left: queueLeft + 1 }) : T.train.reviewOne)));
+          streakEl.dataset.mode = 'review';
+          streakEl.dataset.relearn = String(k);
+          streakEl.dataset.status = row?.status || 'new';
+          return;
+        }
         const cur = dirty ? 0 : (row?.streak || 0);
         const shown = Math.min(cur, need);
         const dots = '●'.repeat(shown) + '○'.repeat(Math.max(0, need - shown));
@@ -255,9 +279,11 @@ export default {
         try {
           const out = await ctx.userDb.recordAttempt({
             courseId, lineId, n: line.n, result: session.result(),
-            learnStreak: need, dayStartHour: S.get('dayStartHour'),
+            learnStreak: need, dayStartHour: dsh, mode, srs: ctx.srs(),
           });
           row = out.row;
+          if (out.review) reviewOut = out.review;
+          ctx.refreshBadge?.();
           rowsById.set(lineId, row);
           return out;
         } catch (e) {
@@ -280,6 +306,7 @@ export default {
         const res = session.result();
         const out = await record();
         if (!alive) return;
+        if (review) { await finishReview(res, out); return; }
         drawStreak();
         const st = out?.row || row;
         const streak = st?.streak || 0;
@@ -312,6 +339,53 @@ export default {
         donePanel.hidden = false;
       }
 
+      /** Следващата линия от опашката за днес (без текущата, освен ако е в повторение). */
+      async function nextInQueue() {
+        try {
+          const t = await loadToday(ctx);
+          const rest = t.items.filter((it) => !(it.courseId === courseId && it.lineId === lineId));
+          return { next: rest[0] || null, left: rest.length };
+        } catch (e) { console.error(e); return { next: null, left: 0 }; }
+      }
+
+      async function finishReview(res, out) {
+        const rv = out?.review || reviewOut;
+        const { next, left } = await nextInQueue();
+        if (!alive) return;
+        queueLeft = left;
+        drawStreak();
+        const k = rv ? rv.relearnLeft : 0;
+        const when = whenText(row?.due, ctx.now(), dsh);
+        let text;
+        let kind;
+        if (!rv) { text = T.train.saveError; kind = 'errors'; }
+        else if (rv.grade) {
+          kind = rv.gradeName;
+          text = rv.gradeName === 'again'
+            ? fmt(T.train.gradeAgain, { k })
+            : fmt(T.train.gradeDone, { grade: T.grade[rv.gradeName], when });
+        } else if (k > 0) { text = fmt(T.train.relearnMore, { k }); kind = 'again'; }
+        else { text = fmt(T.train.relearnDone, { when }); kind = 'good'; }
+        say('', '');
+        donePanel.dataset.kind = kind;
+        donePanel.dataset.grade = rv?.gradeName || (rv?.relearn ? 'relearn' : '');
+        donePanel.replaceChildren(...[
+          h('p', { class: 'done-text', id: 'done-text' }, text),
+          rv?.grade ? h('p', { class: 'hint', id: 'grade-why' }, T.train.gradeWhy[rv.gradeName] || '') : null,
+          res.errors.length ? h('p', { class: 'hint' }, fmt(T.train.errorsList, {
+            list: res.errors.map((e) => `${moveLabel(e.ply, e.played)} → ${e.expected}`).join(', '),
+          })) : null,
+          h('div', { class: 'btn-row' },
+            k > 0 ? h('button', { type: 'button', class: 'btn', id: 'again-btn', onclick: () => startAttempt(true) }, T.train.repeat) : null,
+            next
+              ? h('a', { class: k > 0 ? 'btn secondary' : 'btn', id: 'next-review-btn', href: `${hrefFor('train', next.courseId, next.lineId)}?mode=review` }, fmt(T.train.nextReview, { left }))
+              : h('a', { class: k > 0 ? 'btn secondary' : 'btn', id: 'next-review-btn', href: hrefFor('review') }, T.train.reviewDone),
+          ),
+          !next && k === 0 ? h('p', { class: 'hint', id: 'review-all-done' }, T.review.allDone) : null,
+        ].filter(Boolean));
+        donePanel.hidden = false;
+      }
+
       function startAttempt(again) {
         clearTimers();
         hintTimer = null;
@@ -329,8 +403,9 @@ export default {
       }
 
       // За e2e и отстраняване на проблеми.
-      ctx.train = { session, line, courseId };
+      ctx.train = { session, line, courseId, mode };
       startAttempt(false);
+      if (review) nextInQueue().then(({ left }) => { if (!alive) return; queueLeft = left; if (donePanel.hidden) drawStreak(session.dirty()); });
     }, () => alive);
 
     return () => {

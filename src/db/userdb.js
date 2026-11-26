@@ -3,6 +3,9 @@
 import { openDb } from './idb.js';
 import { DB_NAME, MIGRATIONS, SCHEMA_VERSION, STORES, lineKey } from './schema.js';
 import { applyAttempt, dayKey, newLineRow } from '../data/progress.js';
+import { applyReview, createCard, hasCard } from '../srs/review.js';
+
+const EMPTY_DAY = Object.freeze({ newLearned: 0, reviews: 0, reviewErrors: 0, plays: 0 });
 
 /** Ключ на старите настройки от T-002 (localStorage). */
 export const LEGACY_SETTINGS_KEY = 'lrnoldgame.settings.v1';
@@ -149,38 +152,91 @@ export function createUserDb(db, now = () => Date.now()) {
   }
 
   /**
-   * Записва един опит в режим learn: lineProgress + attempts + daily в една транзакция.
-   * @param {{courseId, lineId, n, result, learnStreak, dayStartHour?, mode?}} a
-   * @returns {Promise<{row: object, becameLearned: boolean, attemptId: number}>}
+   * Записва един опит: lineProgress + attempts + daily в една транзакция.
+   * mode 'learn': брояч до learnStreak; при „научена“ се създава FSRS картата (първи преглед Good).
+   * mode 'review': автоматична оценка Again/Hard/Good и нова дата (src/srs/review.js); след Again —
+   * повторения до relearnStreak чисти пробега, които не пипат картата.
+   * @param {{courseId, lineId, n, result, learnStreak, dayStartHour?, mode?, srs?: object}} a
+   *   srs: {retention, maxIntervalDays, reviewFuzz, relearnStreak, hardAfterSec, reviewErrorsForAgain}
+   * @returns {Promise<{row, becameLearned: boolean, attemptId: number, review: object|null}>}
    */
-  async function recordAttempt({ courseId, lineId, n, result, learnStreak, dayStartHour = 0, mode = 'learn' }) {
+  async function recordAttempt({ courseId, lineId, n, result, learnStreak, dayStartHour = 0, mode = 'learn', srs = {} }) {
     const ts = now();
     const key = lineKey(courseId, lineId);
+    const so = { ...srs, dayStartHour };
     return db.tx(['lineProgress', 'attempts', 'daily'], 'readwrite', async (t) => {
       const lp = t.store('lineProgress');
       const cur = await reqP(lp.get(key));
-      const { row, becameLearned } = applyAttempt(cur, result, { courseId, lineId, n, learnStreak, now: ts });
+      let row;
+      let becameLearned = false;
+      let review = null;
+      if (mode === 'review' && hasCard(cur)) {
+        review = applyReview(cur, result, { now: ts, ...so });
+        row = { ...review.row, n };
+      } else {
+        mode = 'learn';
+        ({ row, becameLearned } = applyAttempt(cur, result, { courseId, lineId, n, learnStreak, now: ts }));
+        if (becameLearned) row = createCard(row, ts, so);
+      }
       lp.put(row);
-      const attemptId = await reqP(t.store('attempts').add({
+      const att = {
         lineKey: key, ts, mode, ok: !!result.clean, done: !!result.done, ms: result.ms,
         errors: result.errors, hints: result.hints, plies: result.plies, total: result.total, userMoves: result.userMoves,
-        streakAfter: row.streak,
-      }));
+        maxMoveMs: result.maxMoveMs ?? null, streakAfter: row.streak,
+      };
+      if (review) {
+        att.relearn = review.relearn;
+        if (review.grade) { att.grade = review.gradeName; att.interval = review.interval; att.dueAfter = row.due; }
+        att.relearnLeft = review.relearnLeft;
+      }
+      const attemptId = await reqP(t.store('attempts').add(att));
       const day = dayKey(ts, dayStartHour);
       const dy = t.store('daily');
-      const d = (await reqP(dy.get(day))) || { day, newLearned: 0, reviews: 0, reviewErrors: 0, plays: 0 };
+      const d = { ...EMPTY_DAY, ...((await reqP(dy.get(day))) || {}), day };
       d.plays += 1;
       if (becameLearned) d.newLearned += 1;
+      if (review?.grade) {
+        d.reviews += 1;
+        if (review.gradeName === 'again') d.reviewErrors += 1;
+        d.grades = { ...(d.grades || {}), [review.gradeName]: ((d.grades || {})[review.gradeName] || 0) + 1 };
+      }
       dy.put(d);
-      return { row, becameLearned, attemptId };
+      return { row, becameLearned, attemptId, review };
     });
+  }
+
+  /**
+   * Миграция (T-010): научените линии без FSRS карта (от 0.3.0 или от стар бекъп) получават карта
+   * с първи преглед Good в learnedAt (или lastPlayed/сега). Връща броя създадени карти.
+   */
+  async function ensureCards(srs = {}) {
+    return db.tx(['lineProgress'], 'readwrite', async (t) => {
+      const os = t.store('lineProgress');
+      const rows = await reqP(os.index('status').getAll('learned'));
+      let k = 0;
+      for (const r of rows) {
+        if (r.fsrs && r.fsrs.reps > 0) continue;
+        os.put(createCard(r, r.learnedAt ?? r.lastPlayed ?? now(), srs));
+        k++;
+      }
+      return k;
+    });
+  }
+
+  /** Научените линии (с или без карта). */
+  const learnedRows = () => db.getAllByIndex('lineProgress', 'status', 'learned');
+
+  /** Записът в daily за деня на ts (или празен). */
+  async function dayStats(ts = now(), dayStartHour = 0) {
+    const day = dayKey(ts, dayStartHour);
+    return { ...EMPTY_DAY, ...((await db.get('daily', day)) || {}), day };
   }
 
   /** Опитите за линия (най-новите последни). */
   const attemptsFor = (courseId, lineId) => db.getAllByIndex('attempts', 'lineKey', lineKey(courseId, lineId));
 
   /** Целият бекъп като обикновен обект (D-010). */
-  async function exportBackup({ appVersion = '', dataVersion = null, withAttempts = true } = {}) {
+  async function exportBackup({ appVersion = '', dataVersion = null, withAttempts = true, touch = true } = {}) {
     const stores = {};
     await db.tx(STORES, 'readonly', async (t) => {
       await Promise.all(STORES.map((s) => new Promise((res, rej) => {
@@ -191,7 +247,7 @@ export function createUserDb(db, now = () => Date.now()) {
       })));
     });
     const exportedAt = now();
-    await setMeta('lastBackup', exportedAt);
+    if (touch) await setMeta('lastBackup', exportedAt);
     return {
       app: BACKUP_APP, kind: 'backup', schemaVersion: SCHEMA_VERSION, appVersion, dataVersion,
       exportedAt: new Date(exportedAt).toISOString(), stores,
@@ -220,7 +276,7 @@ export function createUserDb(db, now = () => Date.now()) {
   return {
     db, getMeta, setMeta, loadSettings, saveSettings, migrateLegacySettings,
     listMyCourses, selectedIds, setSelected, applyFirstRun, progressByCourse,
-    getLine, touchLine, recordAttempt, attemptsFor,
+    getLine, touchLine, recordAttempt, attemptsFor, ensureCards, learnedRows, dayStats,
     exportBackup, importBackup,
     /** Изчаква чакащите записи на настройки (за тестове). */
     flush: () => settingsQueue,

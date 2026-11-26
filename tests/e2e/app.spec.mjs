@@ -226,7 +226,7 @@ test('„Настройки → Данни“: версия, параметри,
   await expect(page.locator('.gen-params')).toContainText('Брой линии на курс');
   await expect(page.locator('#data-info')).not.toContainText('ТЕСТОВИ');
   await expect(page.locator('#data-info')).not.toContainText('null');
-  await expect(page.locator('#app-version')).toHaveText('0.3.0');
+  await expect(page.locator('#app-version')).toHaveText('0.4.0');
 });
 
 test('бекъп: изтегляне и зареждане (schemaVersion)', async ({ page }) => {
@@ -291,7 +291,7 @@ test.describe('обновяване', () => {
       bar.getByRole('button', { name: 'Обнови' }).click(),
     ]);
     await expect(page.locator('h1.screen-title')).toHaveText('Настройки');
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.3.0-e2e2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.4.0-e2e2']);
   });
 
   test('нови данни (нов manifest) запазват избора и настройките', async ({ page, request }) => {
@@ -319,6 +319,6 @@ test.describe('обновяване', () => {
     await expect(cards(page)).toHaveCount(9);
     await expect(page.locator('.course-card[data-course="ruy-lopez"]')).toBeVisible();
     await expect(page.locator('.course-card[data-course="slav"]')).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.3.0-data2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.4.0-data2']);
   });
 });

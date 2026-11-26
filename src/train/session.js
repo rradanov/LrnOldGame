@@ -70,6 +70,8 @@ export function createSession({
   let pendingError = false; // continue: чака се верният ход
   let startedAt = now();
   let finishedAt = null;
+  let lastEventAt = startedAt; // кога е изигран предишният полуход (за времето на моя ход)
+  let maxMoveMs = 0; // най-бавният верен мой ход (ARCH §4: hardAfterSec → „Трудно“)
   let attempt = 1;
 
   const isMine = (p) => colorAt(p) === side;
@@ -98,6 +100,7 @@ export function createSession({
     const f = frames[ply + 1];
     const ev = { ply, san: f.san, from: f.last.from, to: f.last.to, fen: f.fen, fromEngine: fromEngine(ply), auto: ph === PHASE.AUTO };
     ply++;
+    lastEventAt = now();
     finishIfDone();
     return ev;
   }
@@ -113,6 +116,9 @@ export function createSession({
     const f = frames[ply + 1];
     if (san === f.san) {
       const ev = { ok: true, ply, san: f.san, from: f.last.from, to: f.last.to, fen: f.fen, fromEngine: fromEngine(ply), corrected: pendingError };
+      const t = now();
+      if (!pendingError) maxMoveMs = Math.max(maxMoveMs, t - lastEventAt);
+      lastEventAt = t;
       pendingError = false;
       ply++;
       finishIfDone();
@@ -155,6 +161,7 @@ export function createSession({
       total,
       userMoves: sans.slice(0, ply).filter((_, i) => isMine(i) && !(i < startPly && autoPlayStart)).length,
       ms: (finishedAt ?? now()) - startedAt,
+      maxMoveMs,
       transposeTo: done ? transposeTo : null,
       attempt,
     };
@@ -170,6 +177,8 @@ export function createSession({
     pendingError = false;
     startedAt = now();
     finishedAt = null;
+    lastEventAt = startedAt;
+    maxMoveMs = 0;
     attempt++;
   }
 

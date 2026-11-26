@@ -29,6 +29,7 @@ test('подразбиращи се стойности от ARCH_T-014 §6.1', (
     learnStreak: 3, newLinesPerDay: 5, onError: 'continue', errorPauseMs: 1200,
     hintResetsStreak: true, autoPlayStart: false, hintAfterSec: 0,
     retention: 0.9, maxReviewsPerDay: 50, relearnStreak: 1, hardAfterSec: 15, dayStartHour: 4,
+    reviewErrorsForAgain: 1, maxIntervalDays: 3650, reviewFuzz: false,
     opponentDelayMs: 400, wrongMoveMs: 500, boardOrientation: 'auto', animationMs: 300,
     backupReminderDays: 14,
   });
