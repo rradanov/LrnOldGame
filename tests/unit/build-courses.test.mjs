@@ -236,6 +236,21 @@ test('T-022 край equal за черните (D-026): cp ≥ equalCpBlack, ply
   assert.equal(r.lines[0].end, 'depth');
 });
 
+test('T-024 край equal с отрицателен праг (D-029): equalCpBlack −25 приема −5 и −20, не и −30', async () => {
+  const tree = treeFromGames([['e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d3', 50]]);
+  const P = { linesPerCourse: 1, minPlyBlack: 4, equalCpBlack: -25 };
+  let r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator({ e4: [['e5', -20]], 'e4 e5 Nf3': [['Nc6', -5]] }, { tree }), params: P });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, r.lines[0].cp], [4, 'equal', -5]);
+  checkValid('test', 'b', '1. e4', r.lines);
+  // −30 < −25 → не е равно; стабилно чак при 4...Nf6 (предишният 3...Bc5 −10)
+  const t2 = { e4: [['e5', -20]], 'e4 e5 Nf3': [['Nc6', -30]], 'e4 e5 Nf3 Nc6 Bc4': [['Bc5', -10]], 'e4 e5 Nf3 Nc6 Bc4 Bc5 c3': [['Nf6', -24]] };
+  r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator(t2, { tree }), params: P });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, r.lines[0].cp], [8, 'equal', -24]);
+  // старото поведение с праг 0
+  r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator(t2, { tree }), params: { ...P, equalCpBlack: 0 } });
+  assert.notEqual(r.lines[0].end, 'equal');
+});
+
 test('T-022 валидатор: поле tail (незадължително) — в границите и сочи ход на противника; end equal', () => {
   const m = S('e4 e5 Nf3 Nc6 Bc4');
   const line = (extra) => ({ id: lineId('test', m), n: 1, m, p: 0.5, end: 'depth', cp: 10, c: null, ...extra });
@@ -440,7 +455,7 @@ test('конфиг: подразбиране по §6.2, входове на wor
   assert.equal(cfg.lines.linesPerCourse, 20);
   assert.equal(cfg.lines.advCpWhite, 80); // D-026
   assert.equal(cfg.lines.advCpBlack, 40);
-  assert.deepEqual([cfg.lines.equalCpBlack, cfg.lines.minPlyBlack, cfg.lines.tailMaxPly, cfg.lines.quietMaxPly], [0, 14, 18, 4]);
+  assert.deepEqual([cfg.lines.equalCpBlack, cfg.lines.minPlyBlack, cfg.lines.tailMaxPly, cfg.lines.quietMaxPly], [-25, 14, 18, 4]); // D-029
   assert.deepEqual([cfg.lines.oppMinGames, cfg.lines.oppMinMoveGames], [12, 6]);
   assert.equal(cfg.lines.myMoveToleranceCp, 25);
   assert.equal(cfg.engine.nodes, 500000);

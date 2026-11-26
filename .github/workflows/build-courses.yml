@@ -325,6 +325,12 @@ jobs:
           name: build-courses-${{ github.run_id }}
           path: .
 
+      # T023-D5.1: валидаторът и data-quality тестовете са без зависимости (без npm ci) —
+      # повторна проверка на данните от артефакта преди commit/push.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
       - name: Публикуване
         env:
           GH_TOKEN: ${{ github.token }}
@@ -332,6 +338,19 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           ls data/courses | wc -l
+          # T023-D5.1/D5.2: валидатор + data-quality; каталогът в работното дърво трябва да е
+          # същият, с който са генерирани данните (иначе book тестовете стават мълчаливо skip).
+          check_data() {
+            local want have
+            want=$(jq -r '.generator.catalogSha256 // empty' data/manifest.json)
+            have=$(sha256sum data/catalog.json | cut -d' ' -f1)
+            if [ "$want" != "$have" ]; then
+              echo "::error::data/catalog.json ($1) е различен от каталога на генерирането (catalogSha256 $want ≠ $have) — пусни генерирането наново"; return 1
+            fi
+            node tools/validate-data || { echo "::error::валидаторът отхвърли данните ($1)"; return 1; }
+            node --test tests/unit/data-quality.test.mjs || { echo "::error::data-quality тестовете паднаха ($1)"; return 1; }
+          }
+          check_data 'преди commit' || exit 1
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A data/manifest.json data/courses
@@ -360,6 +379,7 @@ jobs:
           if [ "$PUBLISH" = main ]; then
             git fetch -q origin main
             git rebase -q origin/main
+            check_data 'след rebase върху origin/main' || exit 1
             git push origin HEAD:main
             # Push с GITHUB_TOKEN не пуска CI, а CI, пуснат с GITHUB_TOKEN, не пуска deploy
             # (workflow_run) — затова: CI → изчакване → deploy → изчакване, всичко с workflow_dispatch.

@@ -40,11 +40,13 @@ npm run test:e2e     # Playwright, профил Pixel 7
 двигателя не се задават оттам). Резултатът отива направо в `main` → CI → deploy (`publish=main`,
 job-ът чака и двете), като PR от клон `data/update-<run>` (`publish=pr`; ако PR е забранен в
 настройките, job-ът пада и оставя клона — без commit в `main`) или само като артефакт
-(`publish=none`). Кешовете на дървото, оценките и Stockfish са в `actions/cache`, затова повторно
+(`publish=none`). Преди commit и след rebase върху `main` job-ът `publish` пуска наново валидатора и
+`tests/unit/data-quality.test.mjs` и пада, ако `data/catalog.json` се различава от каталога на
+генерирането (`manifest.generator.catalogSha256`). Кешовете на дървото, оценките и Stockfish са в `actions/cache`, затова повторно
 пускане с близки параметри отнема минути.
 
 **Край на линия (D-026, D-027):** бели — предимство `advCpWhite` (80); черни — `advCpBlack` (40)
-или „равно“ (`equal`: cp ≥ `equalCpBlack` 0 след ≥ `minPlyBlack` 14 полухода и при предишния
+или „равно“ (`equal`: cp ≥ `equalCpBlack` −25, D-029, след ≥ `minPlyBlack` 14 полухода и при предишния
 мой ход). Предимство/равенство не спира насред размяна или шах (до `quietMaxPly` 4 полухода
 довършване). Когато дървото свърши, линията продължава с най-добрите ходове на Stockfish до
 `tailMaxPly` 18 (край `depth`); тези ходове са маркирани с `tail` (индекс в `m`).

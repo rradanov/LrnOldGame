@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { lineId } from '../../src/chess/position.js';
+import { lineId, applySans, START_FEN } from '../../src/chess/position.js';
 import {
   parseStrictPgn, validateCatalog, validateCourse, validateManifest, validateAll,
 } from '../../tools/validate-data/validate.js';
@@ -51,7 +51,8 @@ test('data/catalog.json: 31 курса по ARCH_T-014 §7, 9 ★ (5 бели + 
   assert.equal(CATALOG.courses.find((c) => c.id === 'petrov').name.en, "Petrov's Defense");
   assert.equal(CATALOG.courses.find((c) => c.id === 'english').start, '');
   // T-017: гамбитът 2.f4 е повече от 60 cp под 2.Nf3 при 500k възли → по-широк допуск за book.
-  const PARAMS = { 'kings-gambit': { bookToleranceCp: 150 } };
+  // T-024 (T023-D2): по-нисък minLineProb за двата бели курса с < 20 линии.
+  const PARAMS = { 'kings-gambit': { bookToleranceCp: 150 }, 'pirc-austrian': { minLineProb: 0.001 }, 'caro-advance': { minLineProb: 0.001 } };
   for (const c of CATALOG.courses) assert.deepEqual(c.params, PARAMS[c.id] ?? {});
 });
 
@@ -283,4 +284,30 @@ test('CLI: 0 при валидни данни, 1 с грешки на бълга
   const usage = spawnSync(process.execPath, [cli, '--nope'], { encoding: 'utf8' });
   assert.equal(usage.status, 2);
   assert.match(usage.stderr, /непозната опция „--nope“/);
+});
+
+// ---- T-024 (T023-D1): идентичност на Pirc и Nimzo чрез book ----
+
+/** Моят book ход в позицията след `moves` (по ключ на позицията — хваща и транспозициите). */
+function bookMoveAfter(courseId, moves) {
+  const c = catalogCourses.get(courseId);
+  const target = applySans(moves.split(' '), START_FEN).keys.at(-1);
+  for (const b of c.book) {
+    const { keys } = applySans(b, START_FEN);
+    for (let i = 1; i < b.length; i++) if (keys[i - 1] === target) return b[i];
+  }
+  return null;
+}
+
+test('T-024 каталог: Pirc запазва ...g6 срещу 2.Nf3/2.Nc3/2.Bc4; Nimzo отговаря с ...e6 срещу 2.Bf4/2.Nf3/2.Bg5/2.e3', () => {
+  assert.equal(bookMoveAfter('pirc', 'e4 d6 d4 Nf6 Nc3'), 'g6'); // главният ред остава
+  assert.equal(bookMoveAfter('pirc', 'e4 d6 Nf3 Nf6 Nc3'), 'g6');
+  assert.equal(bookMoveAfter('pirc', 'e4 d6 Nc3 Nf6 Nf3'), 'g6'); // транспозиция
+  assert.equal(bookMoveAfter('pirc', 'e4 d6 Nf3 Nf6 d3'), 'g6');
+  assert.equal(bookMoveAfter('pirc', 'e4 d6 Bc4 Nf6 Nc3'), 'g6');
+  assert.equal(bookMoveAfter('nimzo', 'd4 Nf6 c4 e6 Nc3'), 'Bb4');
+  for (const w2 of ['Bf4', 'Nf3', 'Bg5', 'e3']) assert.equal(bookMoveAfter('nimzo', `d4 Nf6 ${w2}`), 'e6', `2.${w2}`);
+  assert.equal(bookMoveAfter('nimzo', 'd4 Nf6 Bf4 e6 Nf3'), 'c5'); // = 2.Nf3 e6 3.Bf4
+  // T023-D2: по-нисък minLineProb за двата бели курса с < 20 линии
+  for (const id of ['pirc-austrian', 'caro-advance']) assert.equal(catalogCourses.get(id).entry.params.minLineProb, 0.001, id);
 });
