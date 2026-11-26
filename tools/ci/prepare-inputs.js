@@ -53,6 +53,17 @@ export function prepare(inputs, month) {
     if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) throw new Error('вход overrides: очаква се JSON обект');
   }
   const { tree: treeOverrides = {}, ...courseOverrides } = overrides;
+  // T018-D8.1: от workflow-а — без секция output (пътища) и без идентичността на двигателя
+  // (name/version/url/sha256/path/binary/args); те са само в config.json / CLI.
+  const ENGINE_OK = new Set(['nodes', 'multiPV', 'workers', 'hashMb', 'timeoutMs', 'retries']);
+  for (const [s, vals] of Object.entries(courseOverrides)) {
+    if (!['lines', 'engine', 'cache'].includes(s)) throw new Error(`overrides.${s}: непозната или забранена секция (позволени: tree, lines, engine, cache)`);
+    if (s === 'engine') {
+      for (const k of Object.keys(vals ?? {})) {
+        if (!ENGINE_OK.has(k)) throw new Error(`overrides.engine.${k}: не може да се задава от workflow-а (позволени: ${[...ENGINE_OK].join(', ')})`);
+      }
+    }
+  }
   if (typeof treeOverrides !== 'object' || Array.isArray(treeOverrides)) throw new Error('overrides.tree: очаква се обект');
 
   // --- дърво

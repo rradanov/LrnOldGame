@@ -78,6 +78,7 @@ export const USAGE = `Употреба: node tools/build-courses [опции]
   --no-cache                не чети кеша (но го обнови)
   --data-version V          YYYY-MM-DD.N (по подразбиране днес.N, N расте спрямо стария manifest)
   --built ISO               време на генериране (по подразбиране сега)
+  --engine-nps N            nps от bench (за manifest.engine.nps, независимо от кеша)
   --quiet                   без прогрес в stderr
   --help`;
 
@@ -194,7 +195,7 @@ export function parseCli(argv) {
     config: { type: 'string' }, tree: { type: 'string' }, catalog: { type: 'string' }, out: { type: 'string' },
     report: { type: 'string' }, inputs: { type: 'string' }, overrides: { type: 'string' },
     'engine-path': { type: 'string' }, workers: { type: 'string' }, 'cache-dir': { type: 'string' },
-    'data-version': { type: 'string' }, built: { type: 'string' },
+    'data-version': { type: 'string' }, built: { type: 'string' }, 'engine-nps': { type: 'string' },
   };
   for (const f of Object.keys(FLAG_INPUTS)) options[f] = { type: 'string' };
   const { values } = parseArgs({ args: argv, options, allowPositionals: false, strict: true });
@@ -223,8 +224,14 @@ export function parseCli(argv) {
   if (values.built && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(values.built)) {
     throw new Error('--built: очаква се ISO UTC без милисекунди, напр. 2026-12-01T10:12:00Z');
   }
+  let engineNps = null;
+  if (values['engine-nps'] !== undefined && values['engine-nps'] !== '') {
+    if (!/^\d+$/.test(values['engine-nps'])) throw new Error('--engine-nps: очаква се цяло число (nps от bench)');
+    engineNps = Number(values['engine-nps']);
+  }
   return {
     help: false,
+    engineNps,
     quiet: !!values.quiet,
     catalog: values.catalog ?? null,
     dataVersion: values['data-version'] ?? null,

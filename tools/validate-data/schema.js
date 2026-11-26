@@ -116,7 +116,7 @@ export const LINE_ID_RE = /^[0-9a-f]{8}$/;
 export const DATA_VERSION_RE = /^\d{4}-\d{2}-\d{2}\.\d+$/;
 export const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 export const SHA256_RE = /^[0-9a-f]{64}$/;
-export const END_REASONS = ['adv', 'depth', 'data', 'transpose', 'mate', 'draw'];
+export const END_REASONS = ['adv', 'equal', 'depth', 'data', 'transpose', 'mate', 'draw']; // equal — D-026 (черни)
 
 const str = (extra = {}) => ({ type: 'string', min: 1, ...extra });
 
@@ -135,6 +135,11 @@ export const COURSE_PARAMS = {
   bookToleranceCp: { type: 'int', min: 0, max: 300 },
   maxTransposeShare: { type: 'number', min: 0, max: 1 },
   maxEvalsPerCourse: { type: 'int', min: 50, max: 5000 },
+  // T-022 (D-026, D-027)
+  equalCpBlack: { type: 'int', min: -300, max: 300 },
+  minPlyBlack: { type: 'int', min: 2, max: 40 }, // > maxPly = без край „equal“
+  tailMaxPly: { type: 'int', min: 0, max: 36 }, // 0 = без опашка
+  quietMaxPly: { type: 'int', min: 0, max: 8 }, // 0 = без довършване
 };
 
 export const CATALOG_SCHEMA = {
@@ -193,6 +198,8 @@ export const COURSE_SCHEMA = {
           end: { type: 'string', enum: END_REASONS },
           to: str({ re: LINE_ID_RE }),
           cp: { anyOf: [{ type: 'int', min: -LIMITS.maxAbsCp, max: LIMITS.maxAbsCp }, { type: 'null' }] },
+          // D-027: незадължително — индекс в m на първия ход без данни от партии (опашка от двигателя)
+          tail: { type: 'int', min: 0, max: LIMITS.maxPly - 1 },
           eco: str({ re: ECO_RE }),
           name: str({ max: 200 }),
           c: {

@@ -56,7 +56,8 @@ export async function buildCourses(opts) {
 
   // ---- каталог ----
   const openings = loadOpenings();
-  const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
+  const catalogText = readFileSync(catalogPath, 'utf8');
+  const catalog = JSON.parse(catalogText);
   const vc = validateCatalog(catalog, { openings, file: catalogPath });
   if (vc.errors.length) throw new Error(`каталогът не е валиден:\n  ${vc.errors.join('\n  ')}`);
   const wanted = cfg.lines.courses === 'all' ? catalog.courses.map((c) => c.id) : cfg.lines.courses;
@@ -71,6 +72,13 @@ export async function buildCourses(opts) {
   const warnings = [];
   const treeMaxPly = treeManifest.params?.maxPly;
   if (treeMaxPly && cfg.lines.maxPly > treeMaxPly) warnings.push(`lines.maxPly ${cfg.lines.maxPly} > tree.maxPly ${treeMaxPly}`);
+  // T018-D7: lossy броенето в дървото може да подброи всеки ход с до maxUndercount партии
+  // (и да изпусне редки позиции). Праговете под тази граница дават шумни дялове в края на линиите.
+  const undercount = treeManifest.stats?.lossy?.maxUndercount ?? 0;
+  if (undercount && cfg.lines.oppMinGames < undercount) {
+    warnings.push(`lines.oppMinGames ${cfg.lines.oppMinGames} < maxUndercount ${undercount} на дървото (lossy броене, T018-D7): `
+      + 'броят в позиции с малко партии е долна граница; там линията по-често минава в опашка от двигателя');
+  }
 
   // ---- двигател и кеш ----
   const engine = cfg.engine;
@@ -159,16 +167,26 @@ export async function buildCourses(opts) {
     v: 1,
     dataVersion,
     built,
-    generator: { tool: 'tools/build-courses', commit: gitCommit(), node: process.version },
+    generator: {
+      tool: 'tools/build-courses', commit: gitCommit(), node: process.version,
+      // T-022: с кой каталог са генерирани данните (тестовете за book го сверяват)
+      catalogSha256: createHash('sha256').update(catalogText).digest('hex'),
+    },
+    // T018-D5: id и nps не зависят от това дали всичко е дошло от кеша. id — от двигателя, ако е
+    // стартиран, иначе „name version“ (кешът е по префикс с версията, а пулът проверява, че id
+    // започва с нея); nps — от bench на workflow-а (--engine-nps), иначе измерено в пула.
     engine: {
-      name: engine.name, version: engine.version, id: pool?.idName ?? null, url: engine.url, sha256: engine.sha256,
+      name: engine.name, version: engine.version, id: pool?.idName ?? `${engine.name} ${engine.version}`,
+      url: engine.url, sha256: engine.sha256,
       nodes: engine.nodes, multiPV: engine.multiPV, hashMb: engine.hashMb, threads: 1, workers,
-      nps: pool && pool.nps() ? pool.nps() : null,
+      nps: opts.engineNps ?? (pool && pool.nps() ? pool.nps() : null),
+      npsSource: opts.engineNps ? 'bench' : pool && pool.nps() ? 'pool' : null,
     },
     source: {
       month: treeManifest.source?.month ?? null,
       gamesRead: s.gamesRead ?? null, gamesAccepted: s.gamesAccepted ?? null, stoppedBy: s.stoppedBy ?? null,
       positions: tree.size, treeParamsHash: treeManifest.paramsHash ?? null,
+      lossy: s.lossy ?? null,
       filters: {
         minElo: tp.minElo, maxElo: tp.maxElo, minBaseSec: tp.minBaseSec, maxBaseSec: tp.maxBaseSec,
         ratedOnly: tp.ratedOnly, maxPly: tp.maxPly, minGames: tp.minGames,
@@ -201,6 +219,28 @@ export async function buildCourses(opts) {
   return { manifest, report, results, totals, errors: vm.errors };
 }
 
+const REASONS_BG = { noPos: 'няма позиция', fewGames: '< oppMinGames', noMoves: 'няма ход ≥ oppMinShare/oppMinMoveGames', minLineProb: 'под minLineProb' };
+
+/** Обобщение по страна: линии, край, опашка, полуходове, cp; причини „няма данни“ (T018-D6). */
+export function summaryBySide(results) {
+  const L = ['## По страна', '', '| Страна | Курсове | Линии | < linesPerCourse | Ср. полуходове | adv | equal | depth | data | transpose | mate/draw | с опашка | ср. cp | cp < 0 |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|'];
+  const reasons = [];
+  for (const side of ['w', 'b']) {
+    const rs = results.filter((r) => r.cat.side === side);
+    const ls = rs.flatMap((r) => r.lines);
+    if (!ls.length) continue;
+    const pct = (k) => `${Math.round((100 * ls.filter((l) => l.end === k).length) / ls.length)}%`;
+    const md = `${Math.round((100 * ls.filter((l) => l.end === 'mate' || l.end === 'draw').length) / ls.length)}%`;
+    const avg = (f) => Math.round((ls.reduce((s, l) => s + f(l), 0) / ls.length) * 10) / 10;
+    L.push(`| ${side === 'w' ? 'бели' : 'черни'} | ${rs.length} | ${ls.length} | ${rs.filter((r) => r.lines.length < r.params.linesPerCourse).length} | ${avg((l) => l.m.length)} | ${pct('adv')} | ${pct('equal')} | ${pct('depth')} | ${pct('data')} | ${pct('transpose')} | ${md} | ${Math.round((100 * ls.filter((l) => l.tail != null).length) / ls.length)}% | ${avg((l) => l.cp)} | ${ls.filter((l) => l.cp < 0).length} |`);
+    const sum = (key) => Object.fromEntries(Object.keys(REASONS_BG).map((k) => [k, rs.reduce((s, r) => s + (r.stats[key]?.[k] ?? 0), 0)]));
+    const ts = sum('tailStarts');
+    const de = sum('dataEnds');
+    reasons.push(`- ${side === 'w' ? 'Бели' : 'Черни'} — начало на опашка: ${Object.entries(ts).map(([k, v]) => `${REASONS_BG[k]} ${v}`).join(', ')}; край data: ${Object.entries(de).map(([k, v]) => `${REASONS_BG[k]} ${v}`).join(', ')}`);
+  }
+  return [...L, '', ...reasons];
+}
+
 function renderReport({ manifest, results, prevCourses, totals, errors }) {
   const L = [];
   const e = manifest.engine;
@@ -216,8 +256,9 @@ function renderReport({ manifest, results, prevCourses, totals, errors }) {
     L.push(`- Двигател: ${p.analyses} изчисления, ${p.nps} nps на процес, рестарти ${p.restarts} (таймаути ${p.timeouts}, сривове ${p.crashes})`);
   }
   L.push(`- Общо време: ${totals.seconds} s`, '');
-  L.push('| Курс | Линии | adv | depth | data | transpose | mate/draw | Покритие Σp | Ср. полуходове | Оценки | book/попул./двиг. | Време s | Нови / махнати / същите |');
-  L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  L.push(...summaryBySide(results), '');
+  L.push('| Курс | Линии | adv | equal | depth | data | transpose | mate/draw | с опашка | довърш. | Покритие Σp | Ср. полуходове | Оценки | book/попул./двиг. | Време s | Нови / махнати / същите |');
+  L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of results) {
     const st = r.stats;
     const en = (k) => st.ends[k] ?? 0;
@@ -228,7 +269,7 @@ function renderReport({ manifest, results, prevCourses, totals, errors }) {
       const b = new Set(r.lines.map((l) => l.id));
       diff = `+${[...b].filter((x) => !a.has(x)).length} / −${[...a].filter((x) => !b.has(x)).length} / ${[...b].filter((x) => a.has(x)).length}`;
     }
-    L.push(`| ${r.id} | ${st.lines} | ${en('adv')} | ${en('depth')} | ${en('data')} | ${en('transpose')} | ${en('mate') + en('draw')} | ${st.coverage} | ${st.avgPly} | ${st.evals} | ${st.myMoves.book}/${st.myMoves.popular}/${st.myMoves.engine} | ${(st.ms / 1000).toFixed(1)} | ${diff} |`);
+    L.push(`| ${r.id} | ${st.lines} | ${en('adv')} | ${en('equal')} | ${en('depth')} | ${en('data')} | ${en('transpose')} | ${en('mate') + en('draw')} | ${st.tailLines} | ${st.quietLines} | ${st.coverage} | ${st.avgPly} | ${st.evals} | ${st.myMoves.book}/${st.myMoves.popular}/${st.myMoves.engine} | ${(st.ms / 1000).toFixed(1)} | ${diff} |`);
   }
   const warn = [...totals.warnings, ...results.flatMap((r) => r.stats.warnings.map((w) => `${r.id}: ${w}`))];
   if (totals.removed.length) warn.push(`махнати стари файлове: ${totals.removed.join(', ')}`);

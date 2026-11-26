@@ -2,7 +2,9 @@ name: Build courses
 
 # T-017 (ARCH_T-014 §1, §6, §8; D-007, D-013, D-014, D-019, D-022, D-024, D-025).
 # lichess архив (поточно, спира след maxGames) → дърво → Stockfish 19 → data/courses/*.json +
-# data/manifest.json → валидатор → PR към main (или commit в main, ако PR е забранен).
+# data/manifest.json → валидатор → commit в main (подразбиране) или PR (T018-D3: при забранен
+# PR пада ясно и оставя клона — без мълчалив commit в main).
+# T-022: job build е само с права за четене; публикуването е в отделен job publish (запис).
 # Празен вход = стойността от tools/build-courses/config.json (за линиите) — така
 # catalog.params на курса не се презаписва без нужда.
 on:
@@ -15,7 +17,7 @@ on:
       maxGames:
         description: 'Приети партии, след които четенето спира (D-014)'
         type: string
-        default: '2000000'
+        default: '4000000'
       minElo:
         description: 'Мин. рейтинг на двамата играчи'
         type: string
@@ -41,11 +43,11 @@ on:
         type: string
         default: ''
       advCpWhite:
-        description: 'Праг на предимство за белите, cp (празно = 100)'
+        description: 'Праг на предимство за белите, cp (празно = 80)'
         type: string
         default: ''
       advCpBlack:
-        description: 'Праг на предимство за черните, cp (празно = 60)'
+        description: 'Праг на предимство за черните, cp (празно = 40)'
         type: string
         default: ''
       maxPly:
@@ -61,19 +63,17 @@ on:
         type: string
         default: ''
       overrides:
-        description: 'JSON за всичко останало, напр. {"tree":{"minGames":20},"lines":{"myMoveToleranceCp":0},"engine":{"multiPV":4},"cache":{"use":false}}'
+        description: 'JSON: секции tree, lines, engine (nodes, multiPV, workers, hashMb, timeoutMs, retries), cache; напр. {"lines":{"tailMaxPly":20,"equalCpBlack":-10},"engine":{"multiPV":4},"cache":{"use":false}}'
         type: string
         default: '{}'
       publish:
-        description: 'Къде отиват данните: pr (клон + PR), main (commit в main), none (само артефакт)'
+        description: 'Къде отиват данните: main (commit в main → CI → deploy), pr (клон + PR; пада, ако PR е забранен), none (само артефакт)'
         type: choice
-        options: [pr, main, none]
-        default: pr
+        options: [main, pr, none]
+        default: main
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write   # gh workflow run ci.yml — push с GITHUB_TOKEN не пуска CI сам
+  contents: read
 
 concurrency:
   group: build-courses
@@ -87,10 +87,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    permissions:
+      contents: read   # npm ci и кодът на зависимостите вървят без права за запис (T018-D8.3)
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -111,13 +113,15 @@ jobs:
         run: |
           tpl=$(node -p "require('./tools/build-tree/config.json').source.urlTemplate")
           if [ -n "$MONTH_IN" ]; then
+            # T018-D8.2: проверка преди да влезе в $GITHUB_OUTPUT
+            [[ "$MONTH_IN" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]] || { echo "::error::month трябва да е YYYY-MM"; exit 2; }
             MONTH="$MONTH_IN"
           else
             # Архивът за месец M излиза в първите дни на M+1 → пробваме назад до 3 месеца.
             first=$(date -u +%Y-%m-01)
             for k in 1 2 3; do
               m=$(date -u -d "$first -$k month" +%Y-%m)
-              if curl -sfIL -o /dev/null --max-time 30 "${tpl/\{month\}/$m}"; then MONTH=$m; break; fi
+              if curl -sfIL -o /dev/null --max-time 30 --retry 2 "${tpl/\{month\}/$m}"; then MONTH=$m; break; fi
               echo "::notice::архивът за $m още го няма"
             done
             [ -n "${MONTH:-}" ] || { echo "::error::няма наличен месец в архива"; exit 1; }
@@ -131,7 +135,7 @@ jobs:
       # ---------- Stockfish 19 (D-019): фиксирана версия, sha256 спрямо digest на релийза
       - name: Кеш на Stockfish
         id: sfcache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/sf/${{ env.SF_ASSET }}
           key: sf-19-${{ steps.prep.outputs.sf_sha }}
@@ -158,7 +162,7 @@ jobs:
           fi
           mkdir -p build/sf
           if [ ! -f "build/sf/$SF_ASSET" ]; then
-            curl -sSfL --retry 3 -o "build/sf/$SF_ASSET" "$url"
+            curl -sSfL --retry 3 --retry-all-errors -o "build/sf/$SF_ASSET" "$url"
           fi
           echo "$want  build/sf/$SF_ASSET" | sha256sum -c
           tar -xzf "build/sf/$SF_ASSET" -C build/sf
@@ -173,7 +177,7 @@ jobs:
       # ---------- Дърво (T-004): кеш tree-<month>-<hash>, иначе поточно от lichess
       - name: Кеш на дървото
         id: treecache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/tree.jsonl.gz
           key: tree-${{ steps.prep.outputs.month }}-${{ steps.prep.outputs.tree_hash }}-${{ hashFiles('tools/build-tree/**', 'src/chess/**', 'vendor/chess.js/**') }}
@@ -189,7 +193,8 @@ jobs:
           set +e
           set -o pipefail
           t0=$(date +%s)
-          curl -sSL --retry 3 -w '%{stderr}curl: изтеглени %{size_download} B за %{time_total} s (%{speed_download} B/s)\n' "$URL" 2> build/curl.log \
+          # Без --retry: повтор по средата на поток към stdout би вмъкнал данните отначало (T018-D8.7).
+          curl -sSL --retry 0 -w '%{stderr}curl: изтеглени %{size_download} B за %{time_total} s (%{speed_download} B/s)\n' "$URL" 2> build/curl.log \
             | zstd -dc 2> build/zstd.log \
             | /usr/bin/time -v -o build/tree-time.txt \
                 node tools/build-tree --config build/tree-config.json --month "$MONTH" --out build/tree.jsonl.gz
@@ -224,7 +229,7 @@ jobs:
 
       # ---------- Линии (T-016) с кеш на оценките (D-024)
       - name: Кеш на оценките (възстановяване)
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/cache
           key: evals-sf19-${{ github.run_id }}
@@ -234,17 +239,19 @@ jobs:
         id: courses
         env:
           SF: ${{ steps.sf.outputs.path }}
+          NPS: ${{ steps.sf.outputs.nps }}
         run: |
           ls -l build/cache 2>/dev/null || echo "кешът на оценките е празен"
+          # --engine-nps: manifest.engine.nps от bench, независимо от кеша (T018-D5)
           /usr/bin/time -v -o build/courses-time.txt \
             node tools/build-courses --engine-path "$SF" --tree build/tree.jsonl.gz \
-              --inputs "$(cat build/courses-inputs.json)" --report build/report.md
+              --inputs "$(cat build/courses-inputs.json)" --report build/report.md --engine-nps "${NPS//[^0-9]/}"
           grep -E 'Maximum resident|Elapsed' build/courses-time.txt || true
           ls -l build/cache
 
       - name: Кеш на оценките (запис)
         if: always() && hashFiles('build/cache/*') != ''
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/cache
           key: evals-sf19-${{ github.run_id }}
@@ -280,7 +287,7 @@ jobs:
 
       - name: Артефакт (report, tree manifest)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build-courses-${{ github.run_id }}
           path: |
@@ -291,57 +298,95 @@ jobs:
             build/*-time.txt
             build/curl.log
             data/manifest.json
+            data/courses/*.json
           retention-days: 7
           if-no-files-found: warn
 
-      # ---------- Публикуване: клон data/update-<run> + PR; fallback — commit в main
+  # ---------- Публикуване (отделен job с права за запис; данните идват от артефакта на build)
+  publish:
+    needs: build
+    if: inputs.publish != 'none'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write   # gh workflow run ci.yml / deploy.yml — push с GITHUB_TOKEN не пуска CI сам
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Данните от build
+        run: rm -f data/courses/*.json
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: build-courses-${{ github.run_id }}
+          path: .
+
       - name: Публикуване
-        if: inputs.publish != 'none'
         env:
           GH_TOKEN: ${{ github.token }}
           PUBLISH: ${{ inputs.publish }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          ls data/courses | wc -l
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/manifest.json data/courses
+          git add -A data/manifest.json data/courses
           if git diff --cached --quiet; then echo "::notice::няма промени в данните"; exit 0; fi
-          dv=$(node -p "require('./data/manifest.json').dataVersion")
+          dv=$(jq -r .dataVersion data/manifest.json)
           git commit -q -m "Данни: курсове ${dv} (build-courses run ${{ github.run_id }})" -m "$RUN_URL"
           { echo "Генерирано от [build-courses run ${{ github.run_id }}]($RUN_URL)."; echo; cat build/report.md; } | head -c 60000 > build/pr-body.md
 
-          to_main() {
+          # Пуска workflow и връща id на run-а. `gh workflow run` невинаги дава URL — тогава
+          # търсим dispatch run, създаден след момента на пускането (T018-D8.8: без чужд run).
+          dispatch() {
+            local wf=$1 ref=$2 since out id=''
+            since=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            out=$(gh workflow run "$wf" --ref "$ref" 2>&1) || { echo "$out" >&2; return 1; }
+            echo "$out" >&2
+            id=$(echo "$out" | grep -oE '/runs/[0-9]+' | tail -1 | cut -d/ -f3 || true)
+            for _ in 1 2 3 4 5 6; do
+              [ -n "$id" ] && break
+              sleep 10
+              id=$(gh run list --workflow "$wf" --branch "$ref" --event workflow_dispatch -L 10 --json databaseId,createdAt \
+                --jq "[.[] | select(.createdAt >= \"$since\")] | last | .databaseId // empty")
+            done
+            [ -n "$id" ] && echo "$id"
+          }
+
+          if [ "$PUBLISH" = main ]; then
             git fetch -q origin main
             git rebase -q origin/main
             git push origin HEAD:main
             # Push с GITHUB_TOKEN не пуска CI, а CI, пуснат с GITHUB_TOKEN, не пуска deploy
-            # (workflow_run) — затова: CI → изчакване → deploy, и двата с workflow_dispatch.
-            out=$(gh workflow run ci.yml --ref main 2>&1); echo "$out"
-            id=$(echo "$out" | grep -oE '/runs/[0-9]+' | tail -1 | cut -d/ -f3)
-            if [ -z "$id" ]; then
-              sleep 10
-              id=$(gh run list --workflow ci.yml --branch main --event workflow_dispatch -L 1 --json databaseId --jq '.[0].databaseId')
+            # (workflow_run) — затова: CI → изчакване → deploy → изчакване, всичко с workflow_dispatch.
+            ci=$(dispatch ci.yml main) || { echo "::error::данните ${dv} са в main, но CI не можа да се пусне"; exit 1; }
+            if ! gh run watch "$ci" --interval 15 --exit-status > /dev/null; then
+              echo "::error::данните ${dv} са в main, но CI ($ci) падна — deploy не е пуснат"; exit 1
             fi
-            if gh run watch "$id" --interval 15 --exit-status > /dev/null; then
-              gh workflow run deploy.yml --ref main
-              echo "::notice::данните ${dv} са в main; CI ($id) е зелен, пуснат е deploy"
-            else
-              echo "::error::данните ${dv} са в main, но CI ($id) падна — deploy не е пуснат"
-              exit 1
+            dep=$(dispatch deploy.yml main) || { echo "::error::CI ($ci) е зелен, но deploy не можа да се пусне"; exit 1; }
+            # T018-D8.5: статусът на job-а следва и deploy
+            if ! gh run watch "$dep" --interval 15 --exit-status > /dev/null; then
+              echo "::error::данните ${dv} са в main и CI ($ci) е зелен, но deploy ($dep) падна — пусни Deploy to GitHub Pages ръчно"; exit 1
             fi
-            echo "- Публикувано: commit в main (${dv})" >> "$GITHUB_STEP_SUMMARY"
-          }
+            echo "::notice::данните ${dv} са в main; CI ($ci) ✓, deploy ($dep) ✓"
+            echo "- Публикувано: commit в main (${dv}); CI $ci ✓; deploy $dep ✓" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
-          if [ "$PUBLISH" = main ]; then to_main; exit 0; fi
+          # publish=pr (T018-D3): без fallback. Ако PR е забранен — грешка, клонът остава.
           branch="data/update-${{ github.run_id }}"
           git push -q origin "HEAD:refs/heads/$branch"
           if pr=$(gh pr create --base main --head "$branch" --title "Данни: курсове ${dv}" --body-file build/pr-body.md 2>build/pr-err.txt); then
             echo "::notice::PR: $pr"
             echo "- Публикувано: PR $pr" >> "$GITHUB_STEP_SUMMARY"
-            gh workflow run ci.yml --ref "$branch" || echo "::warning::CI не можа да се пусне за $branch"
+            dispatch ci.yml "$branch" > /dev/null || echo "::warning::CI не можа да се пусне за $branch"
           else
             cat build/pr-err.txt
-            echo "::warning::PR не може да се създаде (Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests). Fallback: commit в main."
-            git push -q origin --delete "$branch" || true
-            to_main
+            echo "::error::PR не може да се създаде. Данните са в клона $branch (НЕ са в main). Или включи Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests и пусни отново, или пусни с publish=main."
+            echo "- НЕ е публикувано: PR е забранен; клон $branch" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi

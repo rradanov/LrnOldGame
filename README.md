@@ -32,11 +32,20 @@ npm run test:e2e     # Playwright, профил Pixel 7
 репото; интеграционният тест се пуска с `STOCKFISH_PATH=<binary> npm run test:unit`.
 
 **Ново генериране:** Actions → **Build courses** → Run workflow (или
-`gh workflow run build-courses.yml -f maxGames=2000000`). Празните входове вземат стойностите от
-конфига; `overrides` е JSON за останалото (`{"tree":{…},"lines":{…},"engine":{…},"cache":{…}}`).
-Резултатът идва като PR от клон `data/update-<run>` (`publish=pr`), направо в `main`
-(`publish=main`) или само като артефакт (`publish=none`). Кешовете на дървото, оценките и Stockfish
-са в `actions/cache`, затова повторно пускане с близки параметри отнема минути.
+`gh workflow run build-courses.yml -f publish=main`). Подразбиране: 4 млн. партии, `publish=main`.
+Празните входове вземат стойностите от конфига; `overrides` е JSON за останалото
+(`{"tree":{…},"lines":{…},"engine":{nodes,multiPV,…},"cache":{…}}`; пътищата и идентичността на
+двигателя не се задават оттам). Резултатът отива направо в `main` → CI → deploy (`publish=main`,
+job-ът чака и двете), като PR от клон `data/update-<run>` (`publish=pr`; ако PR е забранен в
+настройките, job-ът пада и оставя клона — без commit в `main`) или само като артефакт
+(`publish=none`). Кешовете на дървото, оценките и Stockfish са в `actions/cache`, затова повторно
+пускане с близки параметри отнема минути.
+
+**Край на линия (D-026, D-027):** бели — предимство `advCpWhite` (80); черни — `advCpBlack` (40)
+или „равно“ (`equal`: cp ≥ `equalCpBlack` 0 след ≥ `minPlyBlack` 14 полухода и при предишния
+мой ход). Предимство/равенство не спира насред размяна или шах (до `quietMaxPly` 4 полухода
+довършване). Когато дървото свърши, линията продължава с най-добрите ходове на Stockfish до
+`tailMaxPly` 18 (край `depth`); тези ходове са маркирани с `tail` (индекс в `m`).
 
 Деплой: всеки push в `main` минава през CI, а след успех — към GitHub Pages.
 

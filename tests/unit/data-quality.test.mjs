@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { applySans, START_FEN } from '../../src/chess/position.js';
@@ -12,6 +13,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const readJson = (p) => JSON.parse(readFileSync(join(ROOT, p), 'utf8'));
 const HAS_DATA = existsSync(join(ROOT, 'data/manifest.json'));
 const CATALOG = readJson('data/catalog.json');
+// T-022: book проверките имат смисъл само за данни, генерирани със същия каталог
+// (manifest.generator.catalogSha256). След промяна в каталога и преди ново генериране — skip.
+const CATALOG_SHA = createHash('sha256').update(readFileSync(join(ROOT, 'data/catalog.json'))).digest('hex');
+const BOOK_SKIP = !HAS_DATA ? 'няма data/manifest.json'
+  : readJson('data/manifest.json').generator?.catalogSha256 !== CATALOG_SHA ? 'данните са генерирани с друг каталог (catalogSha256)' : false;
 
 function load() {
   const manifest = readJson('data/manifest.json');
@@ -24,18 +30,23 @@ function paramsOf(manifest, id) {
   return { ...manifest.params.lines, ...(manifest.params.courses?.[id] ?? {}) };
 }
 
-test('всеки курс с book има поне една линия с първия book ход (регресия: kings-gambit = копие на italian)',
-  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+test('всеки курс с book следва главния book ред до първия ми ход (регресия: kings-gambit = копие на italian)',
+  { skip: BOOK_SKIP }, () => {
     const { courses } = load();
     const bad = [];
     for (const course of courses) {
       const cat = CATALOG.courses.find((c) => c.id === course.id);
       const start = cat.start ? parseStrictPgn(cat.start) : [];
-      for (const b of cat.book) {
+      // T-022: първият book ред (главният вариант) трябва да е в курса до първия ми ход вкл.;
+      // за останалите (отклонения на противника) — само ако курсът изобщо стига до позицията.
+      cat.book.forEach((b, bi) => {
         const sans = applySans(parseStrictPgn(b), START_FEN).sans;
-        const first = sans[start.length];
-        if (!course.lines.some((l) => l.m[start.length] === first)) bad.push(`${course.id}: никоя линия не почва с ${first}`);
-      }
+        let i = start.length;
+        while (i < sans.length && (i % 2 === 0 ? 'w' : 'b') !== course.side) i++;
+        if (i >= sans.length) return;
+        const has = (n) => course.lines.some((l) => l.m.length >= n && sans.slice(0, n).every((x, j) => l.m[j] === x));
+        if ((bi === 0 || has(i)) && !has(i + 1)) bad.push(`${course.id}: никоя линия не следва book ${sans.slice(0, i + 1).join(' ')}`);
+      });
     }
     assert.deepEqual(bad, []);
   });
@@ -49,6 +60,10 @@ test('end/cp са в съгласие с праговете: adv ⇒ cp ≥ advC
       const adv = course.side === 'w' ? P.advCpWhite : P.advCpBlack;
       for (const l of course.lines) {
         if (l.end === 'adv' && l.cp < adv) bad.push(`${course.id} n=${l.n}: adv при cp ${l.cp} < ${adv}`);
+        // T-022 (D-026): equal — само черни, cp ≥ equalCpBlack, не по-рано от minPlyBlack
+        if (l.end === 'equal' && (course.side !== 'b' || l.cp < P.equalCpBlack || l.m.length < P.minPlyBlack)) {
+          bad.push(`${course.id} n=${l.n}: equal при cp ${l.cp}, ${l.m.length} полухода`);
+        }
         if ((l.end === 'data' || l.end === 'depth') && l.cp >= adv) bad.push(`${course.id} n=${l.n}: ${l.end} при cp ${l.cp} ≥ ${adv}`);
         if (l.m.length > P.maxPly) bad.push(`${course.id} n=${l.n}: ${l.m.length} полухода > maxPly ${P.maxPly}`);
       }
@@ -57,7 +72,7 @@ test('end/cp са в съгласие с праговете: adv ⇒ cp ≥ advC
   });
 
 test('в позициите от book линиите, до които курсът стига, моят ход е book ходът',
-  { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
+  { skip: BOOK_SKIP }, () => {
     const { courses } = load();
     const bad = [];
     for (const course of courses) {

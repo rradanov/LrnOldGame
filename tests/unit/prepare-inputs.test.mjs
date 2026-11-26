@@ -4,15 +4,15 @@ import assert from 'node:assert/strict';
 import { prepare } from '../../tools/ci/prepare-inputs.js';
 
 const DEFAULTS = {
-  month: '', maxGames: '2000000', minElo: '1200', maxElo: '1800', minBaseSec: '180', treeMaxPly: '28',
+  month: '', maxGames: '4000000', minElo: '1200', maxElo: '1800', minBaseSec: '180', treeMaxPly: '28',
   courses: '', linesPerCourse: '', advCpWhite: '', advCpBlack: '', maxPly: '', oppMinShare: '', engineNodes: '',
-  overrides: '{}', publish: 'pr',
+  overrides: '{}', publish: 'main',
 };
 
 test('prepare: подразбиране на workflow-а → конфиг на дървото и празни входове за курсовете', () => {
   const { treeConfig, coursesInputs, info } = prepare(DEFAULTS, '2026-10');
   assert.equal(treeConfig.source.month, '2026-10');
-  assert.equal(treeConfig.tree.maxGames, 2_000_000);
+  assert.equal(treeConfig.tree.maxGames, 4_000_000);
   assert.equal(treeConfig.tree.minElo, 1200);
   assert.equal(treeConfig.tree.maxElo, 1800);
   assert.equal(treeConfig.tree.maxPly, 28);
@@ -44,4 +44,8 @@ test('prepare: грешките се хващат преди тежките ст
   assert.throws(() => prepare({ ...DEFAULTS, treeMaxPly: '20' }, '2026-10'), /по-плитко/);
   assert.throws(() => prepare({ ...DEFAULTS, minElo: '1900' }, '2026-10'), /maxElo/);
   assert.throws(() => prepare({ ...DEFAULTS, extra: '1' }, '2026-10'), /непознат вход/);
+  // T018-D8.1: без output и без идентичността на двигателя от workflow-а
+  assert.throws(() => prepare({ ...DEFAULTS, overrides: '{"output":{"dir":"/tmp"}}' }, '2026-10'), /забранена секция/);
+  assert.throws(() => prepare({ ...DEFAULTS, overrides: '{"engine":{"path":"/bin/sh"}}' }, '2026-10'), /engine\.path/);
+  assert.doesNotThrow(() => prepare({ ...DEFAULTS, overrides: '{"engine":{"nodes":200000},"lines":{"tailMaxPly":0},"cache":{"use":false}}' }, '2026-10'));
 });

@@ -1,20 +1,24 @@
 {
-  "$comment": "Параметри на генератора на линии (T-016, D-013, ARCH_T-014 §6.2 lines.* / engine.* / cache.*). Сливане: този файл (или --config) → catalog.params на курса → входовете на workflow (--inputs JSON, --overrides JSON) → CLI флаговете. Резултатът се записва в manifest.params. engine.workers 0 = брой CPU (най-много 8); engine.timeoutMs 0 = автоматично (10 s + nodes/20 ms). sha256 е на архива stockfish-linux-x86-64-universal.tar.gz (sf_19).",
+  "$comment": "T-022 (D-026, D-027): advCp 80/40, equalCpBlack/minPlyBlack (край „equal“ за черните), tailMaxPly (опашка от двигателя; 0 = без), quietMaxPly (довършване до спокойна позиция; 0 = без), oppMinGames/oppMinMoveGames 12/6. Параметри на генератора на линии (T-016, D-013, ARCH_T-014 §6.2 lines.* / engine.* / cache.*). Сливане: този файл (или --config) → catalog.params на курса → входовете на workflow (--inputs JSON, --overrides JSON) → CLI флаговете. Резултатът се записва в manifest.params. engine.workers 0 = брой CPU (най-много 8); engine.timeoutMs 0 = автоматично (10 s + nodes/20 ms). sha256 е на архива stockfish-linux-x86-64-universal.tar.gz (sf_19).",
   "lines": {
     "courses": "all",
     "linesPerCourse": 20,
-    "advCpWhite": 100,
-    "advCpBlack": 60,
+    "advCpWhite": 80,
+    "advCpBlack": 40,
+    "equalCpBlack": 0,
+    "minPlyBlack": 14,
     "maxPly": 24,
     "oppMinShare": 0.1,
-    "oppMinMoveGames": 10,
-    "oppMinGames": 20,
+    "oppMinMoveGames": 6,
+    "oppMinGames": 12,
     "minLineProb": 0.002,
     "myMoveToleranceCp": 25,
     "myMoveMinGames": 50,
     "bookToleranceCp": 60,
     "maxTransposeShare": 0.3,
-    "maxEvalsPerCourse": 600
+    "maxEvalsPerCourse": 600,
+    "tailMaxPly": 18,
+    "quietMaxPly": 4
   },
   "engine": {
     "name": "Stockfish",

@@ -7,7 +7,17 @@
 //     се по EPD → една позиция има един и същ мой ход в целия курс.
 //   • ход на противника: от дървото, дял ≥ oppMinShare и брой ≥ oppMinMoveGames;
 //     дяловете НЕ се пренормират (Σp = покритие).
-//   • край (§2.4) след мой ход: mate / draw / adv / depth / data / transpose.
+//   • край (§2.4, D-026) след мой ход: mate / draw / adv / equal / depth / data / transpose.
+//     adv — cp ≥ advCpWhite/advCpBlack; equal — само за черните: cp ≥ equalCpBlack при
+//     ply ≥ minPlyBlack и предишният мой ход също ≥ equalCpBlack („стабилно“).
+//     adv/equal не спира насред размяна/шах: ако позицията след моя ход не е „спокойна“
+//     (шах на противника или най-добрият му отговор е взимане/шах/промоция), линията
+//     продължава до quietMaxPly полухода: най-добрият ход на противника + моят ход по
+//     правилото. Ако междувременно оценката падне под прага — линията продължава нормално.
+//   • опашка (D-027): когато дървото няма данни за противника (няма позиция, < oppMinGames,
+//     няма ход над прага или всички са под minLineProb), линията продължава с най-добрия ход
+//     на двигателя за противника и моя ход по правилото до tailMaxPly (край depth) или до
+//     край по D-026. Индексът на първия ход без данни се записва в линията като `tail`.
 import { Position, applySan, applySans, sanToUci, lineId, START_FEN } from '../../src/chess/position.js';
 import { lineName } from './names.js';
 
@@ -94,8 +104,14 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
   const stats = {
     evals: 0, myMoves: { book: 0, popular: 0, engine: 0 }, warnings: [], stoppedBy: null,
     droppedNodes: 0, extensionLines: 0, droppedTransposes: 0, ends: {},
+    // T018-D6: причина „няма данни“ — при начало на опашка и при край data
+    tailStarts: { noPos: 0, fewGames: 0, noMoves: 0, minLineProb: 0 },
+    dataEnds: { noPos: 0, fewGames: 0, noMoves: 0, minLineProb: 0 },
+    tailLines: 0, tailPlies: 0, quietLines: 0, unquiet: 0, oppEvals: 0,
   };
+  const minLineProbOk = (p) => p > 0 && p >= P.minLineProb;
   const myMove = new Map(); // EPD → {san, cp, reason}
+  const oppMove = new Map(); // EPD → най-добрият ход на противника {san, cp} (опашка, спокойствие)
   const expanded = new Set(); // EPD на позициите (противникът на ход), разгънати по някой път
   const heap = new Heap();
   const lines = [];
@@ -146,21 +162,78 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
     return pick;
   }
 
-  /** Край на линията след моя ход (§2.4) или null. */
-  function endOf(node, cp) {
+  /** Най-добрият ход на противника по двигателя (помни се по EPD). */
+  async function oppBest(node) {
+    const k = lastKey(node);
+    if (oppMove.has(k)) return oppMove.get(k);
+    stats.evals++;
+    stats.oppEvals++;
+    const cands = await evaluator.analyse(k);
+    if (!cands.length) throw new Error(`${courseId}: двигателят не върна ход за ${k}`);
+    const r = { san: cands[0].san, cp: cands[0].cp };
+    oppMove.set(k, r);
+    return r;
+  }
+
+  /** Защо дървото не дава ход на противника (противникът е на ход в node), или null. */
+  function dataReason(node) {
+    const tn = tree.get(lastKey(node));
+    if (!tn) return 'noPos';
+    if (tn.n < P.oppMinGames) return 'fewGames';
+    const kids = oppKids(tn);
+    if (!kids.length) return 'noMoves';
+    if (!kids.some(([, c]) => minLineProbOk(node.p * (c / tn.n)))) return 'minLineProb';
+    return null;
+  }
+
+  /**
+   * „Спокойна“ позиция след моя ход (D-026, T018-D2): противникът не е под шах и най-добрият
+   * му отговор не е взимане, шах или промоция (т.е. няма незавършена размяна).
+   */
+  async function isQuiet(node) {
+    if (/[+#]$/.test(node.sans[node.sans.length - 1])) return false;
+    const o = await oppBest(node);
+    return !/[x+#=]/.test(o.san);
+  }
+
+  /**
+   * Край на линията след моя ход (§2.4, D-026) или null. prevCp — оценката на предишния
+   * мой ход. Може да маркира възела за продължение: node.quiet (довършване до спокойна
+   * позиция) или node.tail (опашка от двигателя).
+   */
+  async function endOf(node, cp, prevCp) {
     const pos = new Position(node.fen);
     if (pos.isCheckmate()) return 'mate';
     const k = node.keys[node.keys.length - 1];
     if (pos.isDraw() || node.keys.filter((x) => x === k).length >= 3) return 'draw';
-    if (cp >= advCp) return 'adv';
-    if (node.sans.length >= P.maxPly) return 'depth';
-    const tn = tree.get(k);
-    if (!tn || tn.n < P.oppMinGames || !oppKids(tn).length) return 'data';
-    return null;
+    const ply = node.sans.length;
+    let cand = null;
+    if (cp >= advCp) cand = 'adv';
+    else if (side === 'b' && ply >= P.minPlyBlack && cp >= P.equalCpBlack && prevCp >= P.equalCpBlack) cand = 'equal';
+    if (cand) {
+      if (P.quietMaxPly === 0 || await isQuiet(node)) return cand;
+      if ((node.q ?? 0) + 2 > P.quietMaxPly || ply + 2 > P.maxPly) { stats.unquiet++; return cand; }
+      node.quiet = cand;
+      return null;
+    }
+    node.q = 0; // ако е било довършване — предимството изчезна; продължаваме нормално
+    if (ply >= P.maxPly) return 'depth';
+    // опашката не минава tailMaxPly: следващият ми ход би бил на ply + 2
+    if (node.tail != null) return ply + 2 > P.tailMaxPly ? 'depth' : null;
+    const why = dataReason(node);
+    if (!why) return null;
+    if (ply + 2 <= P.tailMaxPly) {
+      stats.tailStarts[why]++;
+      node.tail = ply;
+      return null;
+    }
+    stats.dataEnds[why]++;
+    return 'data';
   }
 
   const close = (node, end, cp, toKey = null) => {
-    const l = { sans: node.sans, keys: node.keys, p: node.p, end, cp, toKey, str: node.str };
+    const l = { sans: node.sans, keys: node.keys, p: node.p, end, cp, toKey, str: node.str, tail: node.tail ?? null };
+    if ((end === 'adv' || end === 'equal') && node.q > 0) stats.quietLines++;
     lines.push(l);
     return l;
   };
@@ -172,7 +245,9 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
       if (pos.isGameOver()) { stats.droppedNodes++; return null; } // противникът ме матира / пат — не е линия
       const m = await chooseMyMove(n);
       const c = child(n, m.san, n.p, m.cp);
-      const end = endOf(c, m.cp);
+      c.tail = n.tail;
+      c.q = n.q;
+      const end = await endOf(c, m.cp, n.cp);
       if (end) return close(c, end, m.cp);
       const k = c.keys[c.keys.length - 1];
       if (expanded.has(k)) return close(c, 'transpose', m.cp, k);
@@ -183,10 +258,21 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
     // противникът е на ход
     const k = lastKey(n);
     const tn = tree.get(k);
+    if (n.quiet || n.tail != null) {
+      // довършване или опашка: един ход — най-добрият по двигателя; p не се променя
+      if (pos.isGameOver()) { stats.droppedNodes++; return null; }
+      const o = await oppBest(n);
+      const c = child(n, o.san, n.p, n.cp);
+      const fromData = oppKids(tn).some(([s]) => s === c.sans[c.sans.length - 1]);
+      c.tail = n.tail ?? (fromData ? null : n.sans.length);
+      c.q = n.quiet ? (n.q ?? 0) + 2 : 0;
+      heap.push(c);
+      return null;
+    }
     let pushed = 0;
     for (const [san, cnt] of oppKids(tn)) {
       const p = n.p * (cnt / tn.n);
-      if (!(p > 0) || p < P.minLineProb) continue;
+      if (!minLineProbOk(p)) continue;
       heap.push(child(n, san, p, n.cp));
       pushed++;
     }
@@ -251,6 +337,11 @@ export async function generateCourse({ courseId, side, startSans, bookLines = []
     const o = { id: lineId(courseId, l.sans), n: i + 1, m: l.sans, p: Number(l.p.toPrecision(6)), end: l.end };
     if (l.end === 'transpose') o.to = lineId(courseId, target(l).sans);
     o.cp = Math.round(l.cp);
+    if (l.tail != null && l.tail < l.sans.length) {
+      o.tail = l.tail; // D-027: ходовете от m[tail] нататък са от двигателя (без данни от партии)
+      stats.tailLines++;
+      stats.tailPlies += l.sans.length - l.tail;
+    }
     const nm = names ? lineName(names, l.sans, l.keys) : null;
     if (nm) { o.eco = nm.eco; o.name = nm.name; }
     o.c = null; // коментари — след MVP (D-018)

@@ -91,4 +91,6 @@ export const TEST_PARAMS = {
   linesPerCourse: 20, advCpWhite: 100, advCpBlack: 60, maxPly: 24, oppMinShare: 0.1, oppMinMoveGames: 1,
   oppMinGames: 1, minLineProb: 0, myMoveToleranceCp: 25, myMoveMinGames: 1, bookToleranceCp: 60,
   maxTransposeShare: 0.3, maxEvalsPerCourse: 600,
+  // T-022: опашка, довършване и край equal са изключени тук; тестват се отделно
+  equalCpBlack: 0, minPlyBlack: 40, tailMaxPly: 0, quietMaxPly: 0,
 };

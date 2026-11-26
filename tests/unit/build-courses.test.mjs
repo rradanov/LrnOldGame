@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { applySans, tokenizeMoves } from '../../src/chess/position.js';
+import { applySans, tokenizeMoves, lineId } from '../../src/chess/position.js';
 import { loadOpenings, deepestName } from '../../tools/validate-data/openings.js';
 import { validateCatalog, validateCourse, validateManifest } from '../../tools/validate-data/validate.js';
 import { generateCourse } from '../../tools/build-courses/generate.js';
@@ -155,6 +155,97 @@ test('край: adv (бели/черни праг), depth, data, mate', async ()
   r = await gen({ side: 'b', start: 'f3', tree, evaluator: memoryEvaluator({ 'f3 e5 g4': [['Qh4#', 29999]] }, { tree }) });
   assert.deepEqual([r.lines[0].m.join(' '), r.lines[0].end], ['f3 e5 g4 Qh4#', 'mate']);
   checkValid('test', 'b', 'f3', r.lines);
+});
+
+test('T-022 опашка (D-027): без данни → най-добрите ходове на двигателя до tailMaxPly; tail в линията; причини', async () => {
+  const tree = treeFromGames([['e4 e5 Nf3 Nc6', 50]]);
+  // без опашка: край data, причина „няма позиция“
+  let r = await gen({ start: 'e4 e5', tree, params: { linesPerCourse: 1 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, 'tail' in r.lines[0]], [5, 'data', false]);
+  assert.equal(r.stats.dataEnds.noPos, 1);
+  // с опашка до 10 полухода: бели свършват на 9 (следващият ми ход би бил 11 > 10)
+  const ev = memoryEvaluator({}, { tree });
+  r = await gen({ start: 'e4 e5', tree, evaluator: ev, params: { linesPerCourse: 1, tailMaxPly: 10 } });
+  const l = r.lines[0];
+  assert.deepEqual([l.m.length, l.end, l.tail], [9, 'depth', 5]);
+  assert.deepEqual(l.m.slice(0, 5), S('e4 e5 Nf3 Nc6'.concat(' ', l.m[4])));
+  assert.equal(r.stats.tailStarts.noPos, 1);
+  assert.deepEqual([r.stats.tailLines, r.stats.tailPlies], [1, 4]);
+  checkValid('test', 'w', '1. e4 e5', r.lines);
+  // опашка, когато ходът на противника е под oppMinGames → причина fewGames; черни до 10 точно
+  const tree2 = treeFromGames([['e4 e5 Nf3 Nc6', 5]]);
+  r = await gen({ side: 'b', start: 'e4', tree: tree2, params: { linesPerCourse: 1, tailMaxPly: 10, oppMinGames: 6 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, r.lines[0].tail], [10, 'depth', 2]);
+  assert.equal(r.stats.tailStarts.fewGames, 1);
+  checkValid('test', 'b', '1. e4', r.lines);
+  // данните свършват след tailMaxPly → обикновен край data
+  r = await gen({ start: 'e4 e5', tree, params: { linesPerCourse: 1, tailMaxPly: 6 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end], [5, 'data']);
+});
+
+test('T-022 довършване до спокойна позиция (D-026): adv не спира насред размяна; изчезнало предимство → продължава', async () => {
+  const tree = treeFromGames([['e4 d5 exd5 Qxd5', 50]]);
+  const table = {
+    'e4 d5': [['exd5', 120]],
+    'e4 d5 exd5': [['Qxd5', -120]], // най-добрият отговор е взимане → не е спокойно
+    'e4 d5 exd5 Qxd5': [['Nc3', 110]],
+    'e4 d5 exd5 Qxd5 Nc3': [['Qa5', -110]], // спокойно
+  };
+  let r = await gen({ start: 'e4 d5', tree, evaluator: memoryEvaluator(table, { tree }), params: { linesPerCourse: 1, quietMaxPly: 4 } });
+  let l = r.lines[0];
+  assert.deepEqual([l.m.join(' '), l.end, l.cp, 'tail' in l], ['e4 d5 exd5 Qxd5 Nc3', 'adv', 110, false]); // Qxd5 е от партиите
+  assert.equal(r.stats.quietLines, 1);
+  checkValid('test', 'w', '1. e4 d5', r.lines);
+  // без довършване — старото поведение
+  r = await gen({ start: 'e4 d5', tree, evaluator: memoryEvaluator(table, { tree }), params: { linesPerCourse: 1, quietMaxPly: 0 } });
+  assert.deepEqual([r.lines[0].m.join(' '), r.lines[0].end], ['e4 d5 exd5', 'adv']);
+  // шах също не е спокоен; бюджетът 2 полухода стига само за един отговор
+  const t2 = { ...table, 'e4 d5 exd5 Qxd5 Nc3': [['Qe5+', -110]] };
+  r = await gen({ start: 'e4 d5', tree, evaluator: memoryEvaluator(t2, { tree }), params: { linesPerCourse: 1, quietMaxPly: 2 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end], [5, 'adv']);
+  assert.equal(r.stats.unquiet, 1);
+  // предимството изчезва при довършването → линията продължава нормално (тук: data)
+  const t3 = { ...table, 'e4 d5 exd5 Qxd5': [['Nc3', 50]] };
+  r = await gen({ start: 'e4 d5', tree, evaluator: memoryEvaluator(t3, { tree }), params: { linesPerCourse: 1, quietMaxPly: 4 } });
+  assert.deepEqual([r.lines[0].m.join(' '), r.lines[0].end, r.lines[0].cp], ['e4 d5 exd5 Qxd5 Nc3', 'data', 50]);
+  // без данни за отговора → ходът е от двигателя и е маркиран като опашка
+  const tree3 = treeFromGames([['e4 d5 exd5', 50]]);
+  r = await gen({ start: 'e4 d5', tree: tree3, evaluator: memoryEvaluator(table, { tree: tree3 }), params: { linesPerCourse: 1, quietMaxPly: 4 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, r.lines[0].tail], [5, 'adv', 3]);
+  checkValid('test', 'w', '1. e4 d5', r.lines);
+});
+
+test('T-022 край equal за черните (D-026): cp ≥ equalCpBlack, ply ≥ minPlyBlack, стабилно; не и за белите', async () => {
+  const tree = treeFromGames([['e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d3', 50]]);
+  const P = { linesPerCourse: 1, minPlyBlack: 4, equalCpBlack: 0 };
+  let r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator({ e4: [['e5', 10]], 'e4 e5 Nf3': [['Nc6', 5]] }, { tree }), params: P });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end, r.lines[0].cp], [4, 'equal', 5]);
+  checkValid('test', 'b', '1. e4', r.lines);
+  // не е стабилно (предишният ход < 0) → продължава до следващия мой ход ≥ 0 с предишен ≥ 0
+  const t2 = { e4: [['e5', 10]], 'e4 e5 Nf3': [['Nc6', -5]], 'e4 e5 Nf3 Nc6 Bc4': [['Bc5', 0]], 'e4 e5 Nf3 Nc6 Bc4 Bc5 c3': [['Nf6', 3]] };
+  r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator(t2, { tree }), params: P });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end], [8, 'equal']);
+  // преди minPlyBlack — не
+  r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator(t2, { tree }), params: { ...P, minPlyBlack: 12, maxPly: 10 } });
+  assert.notEqual(r.lines[0].end, 'equal');
+  // advCpBlack по-рано: 1...e5 с 45 ≥ 40
+  r = await gen({ side: 'b', start: 'e4', tree, evaluator: memoryEvaluator({ e4: [['e5', 45]] }, { tree }), params: { ...P, advCpBlack: 40 } });
+  assert.deepEqual([r.lines[0].m.length, r.lines[0].end], [2, 'adv']);
+  // белите нямат край equal
+  r = await gen({ side: 'w', start: 'e4 e5', tree, params: { ...P, maxPly: 9 } });
+  assert.equal(r.lines[0].end, 'depth');
+});
+
+test('T-022 валидатор: поле tail (незадължително) — в границите и сочи ход на противника; end equal', () => {
+  const m = S('e4 e5 Nf3 Nc6 Bc4');
+  const line = (extra) => ({ id: lineId('test', m), n: 1, m, p: 0.5, end: 'depth', cp: 10, c: null, ...extra });
+  const errs = (l) => validateCourse(asCourse('test', 'w', '1. e4 e5', [l]), { openings }).errors.join('\n');
+  assert.equal(errs(line({ tail: 3 })), '');
+  assert.equal(errs(line({ end: 'equal' })), '');
+  assert.match(errs(line({ tail: 4 })), /ход на противника/);
+  assert.match(errs(line({ tail: 5 })), /извън/);
+  assert.match(errs(line({ tail: 1 })), /извън/);
+  assert.match(errs(line({ tail: 'x' })), /tail/);
 });
 
 test('транспозиция: линията се затваря с „to“ към линията, която продължава; един мой ход на позиция', async () => {
@@ -347,8 +438,10 @@ test('конфиг: подразбиране по §6.2, входове на wor
   const base = loadConfigFile();
   const cfg = resolveConfig(base);
   assert.equal(cfg.lines.linesPerCourse, 20);
-  assert.equal(cfg.lines.advCpWhite, 100);
-  assert.equal(cfg.lines.advCpBlack, 60);
+  assert.equal(cfg.lines.advCpWhite, 80); // D-026
+  assert.equal(cfg.lines.advCpBlack, 40);
+  assert.deepEqual([cfg.lines.equalCpBlack, cfg.lines.minPlyBlack, cfg.lines.tailMaxPly, cfg.lines.quietMaxPly], [0, 14, 18, 4]);
+  assert.deepEqual([cfg.lines.oppMinGames, cfg.lines.oppMinMoveGames], [12, 6]);
   assert.equal(cfg.lines.myMoveToleranceCp, 25);
   assert.equal(cfg.engine.nodes, 500000);
   assert.equal(cfg.engine.multiPV, 3);
@@ -361,7 +454,7 @@ test('конфиг: подразбиране по §6.2, входове на wor
   const c2 = resolveConfig(base, forced);
   assert.deepEqual(c2.lines.courses, ['italian', 'slav']);
   assert.equal(c2.lines.linesPerCourse, 12);
-  assert.equal(c2.lines.advCpWhite, 100); // празен вход = подразбиране
+  assert.equal(c2.lines.advCpWhite, 80); // празен вход = подразбиране
   assert.equal(c2.engine.nodes, 300000);
   assert.equal(c2.engine.multiPV, 4);
   assert.equal(c2.cache.use, false);
@@ -433,7 +526,7 @@ test('CLI: дърво → курсове + manifest (минава валидат
     assert.equal(readFileSync(join(out2, 'courses', f), 'utf8'), readFileSync(join(out1, 'courses', f), 'utf8'));
   }
   const m2 = JSON.parse(readFileSync(join(out2, 'manifest.json'), 'utf8'));
-  assert.equal(m2.engine.id, null);
+  assert.equal(m2.engine.id, 'FakeFish 1'); // T018-D5: и при топъл кеш
   assert.deepEqual(m2.courses, manifest.courses);
   // трети пуск в същата папка само с един курс: старите файлове се махат, dataVersion расте, отчетът има разлика
   const r3 = runCli([...common, '--courses', 'italian', '--out', out1, '--report', join(dir, 'a', 'report3.md')], { FAKE_UCI_LOG: log });

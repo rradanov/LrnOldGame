@@ -26,6 +26,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
 try {
   const r = await buildCourses({
     config: cli.config, catalogPath: cli.catalog, dataVersion: cli.dataVersion, built: cli.built, log, signal: ac.signal,
+    engineNps: cli.engineNps,
   });
   const t = r.totals;
   log(`готово: ${r.manifest.courses.length} курса, ${r.manifest.courses.reduce((s, c) => s + c.lines, 0)} линии, `

@@ -250,6 +250,13 @@ export function validateCourse(course, ctx = {}) {
     } else if ('to' in line) {
       lerr(`поле „to“ е позволено само при end „transpose“ (тук е „${line.end}“)`);
     }
+    if (Number.isInteger(line.tail)) {
+      if (line.tail < start.length || line.tail >= line.m.length) {
+        lerr(`tail ${line.tail} е извън ходовете след start (${start.length}…${line.m.length - 1})`);
+      } else if ((side === 'w' || side === 'b') && moverAt(line.tail) === side) {
+        lerr(`tail ${line.tail} трябва да сочи ход на противника (опашката почва с неговия ход)`);
+      }
+    }
     if (Array.isArray(line.c) && line.c.length !== line.m.length) {
       lerr(`c (коментари) има ${line.c.length} елемента, а ходовете са ${line.m.length}`);
     }
