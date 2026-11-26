@@ -119,7 +119,7 @@ test('избор и махане на курс → „Моите курсове�
   await expect(page.locator('h1.screen-title')).toHaveText('Каталог');
 });
 
-test('курс → линии (всички нови) → преглед на линия ход по ход', async ({ page }) => {
+test('курс → линии (всички нови) → тренировка на линия', async ({ page }) => {
   await open(page);
   await page.locator('.course-card[data-course="italian"] a').click();
   await expect(page).toHaveURL(/#\/course\/italian$/);
@@ -133,14 +133,10 @@ test('курс → линии (всички нови) → преглед на л
   await expect(page).toHaveURL(/#\/train\/italian\/[0-9a-f]{8}\?mode=learn$/);
   await expect(page.locator('h1.screen-title')).toHaveText(`Италианска партия · линия 1/${LINES.italian}`);
   await expect(page.locator('.board-wrap g[data-piece]')).toHaveCount(32);
-  await expect(page.locator('#ply-counter')).toHaveText('Начална позиция');
-  await expect(page.locator('#nav-prev')).toBeDisabled();
-  await page.locator('#nav-next').click();
-  await page.locator('#nav-next').click();
-  await expect(page.locator('#ply-counter')).toContainText('Ход 2 от');
-  await expect(page.locator('.mv[aria-current]')).toHaveText('e5');
-  await page.locator('#nav-last').click();
-  await expect(page.locator('#nav-next')).toBeDisabled();
+  // T-021: тренировка вместо преглед — брояч, съобщение „Твой ход“, без изиграни ходове.
+  await expect(page.locator('#streak .streak-n')).toHaveText('0/3');
+  await expect(page.locator('#train-msg')).toHaveAttribute('data-kind', 'turn');
+  await expect(page.locator('#played .mv')).toHaveCount(0);
   // дъската се побира в ширината на телефона
   const box = await page.locator('.board-wrap').boundingBox();
   expect(box.width).toBeLessThanOrEqual(page.viewportSize().width);
@@ -230,7 +226,7 @@ test('„Настройки → Данни“: версия, параметри,
   await expect(page.locator('.gen-params')).toContainText('Брой линии на курс');
   await expect(page.locator('#data-info')).not.toContainText('ТЕСТОВИ');
   await expect(page.locator('#data-info')).not.toContainText('null');
-  await expect(page.locator('#app-version')).toHaveText('0.2.0');
+  await expect(page.locator('#app-version')).toHaveText('0.3.0');
 });
 
 test('бекъп: изтегляне и зареждане (schemaVersion)', async ({ page }) => {
@@ -295,7 +291,7 @@ test.describe('обновяване', () => {
       bar.getByRole('button', { name: 'Обнови' }).click(),
     ]);
     await expect(page.locator('h1.screen-title')).toHaveText('Настройки');
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.2.0-e2e2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.3.0-e2e2']);
   });
 
   test('нови данни (нов manifest) запазват избора и настройките', async ({ page, request }) => {
@@ -323,6 +319,6 @@ test.describe('обновяване', () => {
     await expect(cards(page)).toHaveCount(9);
     await expect(page.locator('.course-card[data-course="ruy-lopez"]')).toBeVisible();
     await expect(page.locator('.course-card[data-course="slav"]')).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.2.0-data2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.3.0-data2']);
   });
 });

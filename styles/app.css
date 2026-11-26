@@ -248,3 +248,38 @@ body {
 .gen-params dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .gen-params summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
 .saved.error { color: #b3261e; }
+
+/* --- T-021: тренировка --- */
+.board-wrap { position: relative; }
+.streak { display: flex; align-items: center; gap: 6px; margin: -4px 0 8px; font-weight: 600; }
+.streak .dots { letter-spacing: 2px; color: var(--accent); font-size: 1.1rem; }
+.streak .learned-badge { color: var(--accent); font-weight: 500; }
+.train-msg { min-height: 1.5em; text-align: center; font-weight: 600; margin: 0 0 6px; }
+.train-msg[data-kind="ok"] { color: var(--accent); }
+.train-msg[data-kind="bad"], .train-msg[data-kind="correct"] { color: #b3261e; }
+.train-msg[data-kind="wait"] { color: var(--muted); font-weight: 400; }
+.train-actions { justify-content: center; }
+.train-done {
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: 12px; padding: 10px 12px; margin: 8px 0 12px;
+}
+.train-done[hidden] { display: none; }
+.train-done[data-kind="errors"] { border-left-color: #b3261e; }
+.done-text { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
+.train-done .btn-row .btn { flex: 1; }
+.move-list.played .mv { display: inline-block; }
+.course-progress { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; color: var(--muted); font-size: .85rem; }
+.course-progress .progress { flex: 1; }
+.cm-chessboard .markers .marker.marker-ok { fill: #3a9d5d; opacity: .45; }
+.cm-chessboard .markers .marker.marker-bad { fill: #d33; opacity: .5; }
+.cm-chessboard .markers .marker.marker-from { fill: #e0c341; opacity: .45; }
+.cm-chessboard .markers .marker.marker-hint { stroke: #2f6b4f; stroke-width: 3px; opacity: .8; }
+.promo-dialog {
+  position: absolute; inset: 25% 10%; z-index: 5;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-content: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+}
+.promo-btn { min-height: 56px; font-size: 2.2rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg); }
+.promo-btn.promo-w { color: #fff; text-shadow: 0 0 2px #000, 0 0 1px #000; }
+.promo-cancel { grid-column: 1 / -1; min-height: 40px; border: 0; background: transparent; color: var(--accent); font: inherit; }

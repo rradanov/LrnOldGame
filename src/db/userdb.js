@@ -1,7 +1,8 @@
 // Потребителските данни: избрани курсове, прогрес, настройки, meta, бекъп.
 // Над src/db/idb.js; без DOM (localStorage и indexedDB се подават отвън).
 import { openDb } from './idb.js';
-import { DB_NAME, MIGRATIONS, SCHEMA_VERSION, STORES } from './schema.js';
+import { DB_NAME, MIGRATIONS, SCHEMA_VERSION, STORES, lineKey } from './schema.js';
+import { applyAttempt, dayKey, newLineRow } from '../data/progress.js';
 
 /** Ключ на старите настройки от T-002 (localStorage). */
 export const LEGACY_SETTINGS_KEY = 'lrnoldgame.settings.v1';
@@ -132,6 +133,52 @@ export function createUserDb(db, now = () => Date.now()) {
   /** Редовете на прогреса за курс (линиите без ред са „new“). */
   const progressByCourse = (courseId) => db.getAllByIndex('lineProgress', 'courseId', courseId);
 
+  /** Редът на една линия (или null). */
+  const getLine = async (courseId, lineId) => (await db.get('lineProgress', lineKey(courseId, lineId))) ?? null;
+
+  /** Първо отваряне на линията: създава реда (ARCH §4), ако го няма. Връща реда. */
+  async function touchLine(courseId, lineId, n) {
+    return db.tx(['lineProgress'], 'readwrite', async (t) => {
+      const os = t.store('lineProgress');
+      const cur = await reqP(os.get(lineKey(courseId, lineId)));
+      if (cur) return cur;
+      const row = newLineRow({ courseId, lineId, n }, now());
+      os.put(row);
+      return row;
+    });
+  }
+
+  /**
+   * Записва един опит в режим learn: lineProgress + attempts + daily в една транзакция.
+   * @param {{courseId, lineId, n, result, learnStreak, dayStartHour?, mode?}} a
+   * @returns {Promise<{row: object, becameLearned: boolean, attemptId: number}>}
+   */
+  async function recordAttempt({ courseId, lineId, n, result, learnStreak, dayStartHour = 0, mode = 'learn' }) {
+    const ts = now();
+    const key = lineKey(courseId, lineId);
+    return db.tx(['lineProgress', 'attempts', 'daily'], 'readwrite', async (t) => {
+      const lp = t.store('lineProgress');
+      const cur = await reqP(lp.get(key));
+      const { row, becameLearned } = applyAttempt(cur, result, { courseId, lineId, n, learnStreak, now: ts });
+      lp.put(row);
+      const attemptId = await reqP(t.store('attempts').add({
+        lineKey: key, ts, mode, ok: !!result.clean, done: !!result.done, ms: result.ms,
+        errors: result.errors, hints: result.hints, plies: result.plies, total: result.total, userMoves: result.userMoves,
+        streakAfter: row.streak,
+      }));
+      const day = dayKey(ts, dayStartHour);
+      const dy = t.store('daily');
+      const d = (await reqP(dy.get(day))) || { day, newLearned: 0, reviews: 0, reviewErrors: 0, plays: 0 };
+      d.plays += 1;
+      if (becameLearned) d.newLearned += 1;
+      dy.put(d);
+      return { row, becameLearned, attemptId };
+    });
+  }
+
+  /** Опитите за линия (най-новите последни). */
+  const attemptsFor = (courseId, lineId) => db.getAllByIndex('attempts', 'lineKey', lineKey(courseId, lineId));
+
   /** Целият бекъп като обикновен обект (D-010). */
   async function exportBackup({ appVersion = '', dataVersion = null, withAttempts = true } = {}) {
     const stores = {};
@@ -173,11 +220,16 @@ export function createUserDb(db, now = () => Date.now()) {
   return {
     db, getMeta, setMeta, loadSettings, saveSettings, migrateLegacySettings,
     listMyCourses, selectedIds, setSelected, applyFirstRun, progressByCourse,
+    getLine, touchLine, recordAttempt, attemptsFor,
     exportBackup, importBackup,
     /** Изчаква чакащите записи на настройки (за тестове). */
     flush: () => settingsQueue,
     close: () => db.close(),
   };
+}
+
+function reqP(r) {
+  return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
 }
 
 /** Проверява формата на бекъп; връща {store: брой редове}. */

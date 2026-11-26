@@ -50,6 +50,11 @@ export const SETTINGS_SCHEMA = Object.freeze([
     key: 'autoPlayStart', type: 'bool', default: false,
     group: 'learn', label: 'Изиграй автоматично стартовите ходове на курса',
   },
+  {
+    key: 'hintAfterSec', type: 'int', default: 0, min: 0, max: 120, step: 1, unit: 'сек.',
+    group: 'learn', label: 'Покажи подсказка сама след',
+    help: '0 = никога. Автоматичната подсказка се брои като подсказка.',
+  },
   // Преговор
   {
     key: 'retention', type: 'number', default: 0.9, min: 0.7, max: 0.99, step: 0.01,
@@ -78,6 +83,11 @@ export const SETTINGS_SCHEMA = Object.freeze([
   {
     key: 'opponentDelayMs', type: 'int', default: 400, min: 0, max: 3000, step: 100, unit: 'ms',
     group: 'board', label: 'Пауза преди хода на противника',
+  },
+  {
+    key: 'wrongMoveMs', type: 'int', default: 500, min: 0, max: 3000, step: 100, unit: 'ms',
+    group: 'board', label: 'Колко дълго се вижда грешният ход',
+    help: 'После фигурата се връща и се показва верният ход.',
   },
   {
     key: 'boardOrientation', type: 'enum', default: 'auto',

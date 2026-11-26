@@ -2,7 +2,7 @@
 import { T, fmt } from '../../i18n/bg.js';
 import { hrefFor } from '../../router.js';
 import { formatMoves, fullMoves } from '../../data/courseStore.js';
-import { lineStatus, nextToLearn } from '../../data/progress.js';
+import { lineStatus, nextToLearn, courseProgress } from '../../data/progress.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
 
 const STATUS_ICON = { new: '○', learning: '◐', learned: '●' };
@@ -38,6 +38,14 @@ export default {
           }, T.course.add));
         box.append(note);
       }
+      const need = ctx.settings.get('learnStreak');
+      const ids = new Set(course.lines.map((l) => l.id));
+      const prog = courseProgress(course.lines.length, [...rowsById.values()], ids);
+      const pct = prog.total ? Math.round((100 * prog.learned) / prog.total) : 0;
+      box.append(h('div', { class: 'course-progress' },
+        h('span', { class: 'progress', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': prog.total, 'aria-valuenow': prog.learned },
+          h('span', { class: 'progress-fill', style: `width:${pct}%` })),
+        h('span', { id: 'course-learned' }, fmt(T.course.learnedCount, { learned: prog.learned, total: prog.total }))));
       const next = nextToLearn(course.lines, rowsById);
       box.append(next
         ? h('a', { class: 'btn block', id: 'learn-next', href: `${hrefFor('train', id, next.id)}?mode=learn` }, `${T.course.learnNext} (${next.n})`)
@@ -45,7 +53,9 @@ export default {
 
       box.append(h('h2', { class: 'section-title' }, `${T.course.lines} (${course.lines.length})`));
       box.append(h('ol', { class: 'line-list' }, course.lines.map((l) => {
-        const st = lineStatus(rowsById.get(l.id));
+        const r = rowsById.get(l.id);
+        const st = lineStatus(r);
+        const label = st === 'learning' ? `${T.course.status.learning} ${fmt(T.course.learningStreak, { streak: Math.min(r.streak || 0, need), need })}` : T.course.status[st];
         return h('li', { class: 'line-row', dataset: { line: l.id, status: st } },
           h('a', { href: `${hrefFor('train', id, l.id)}?mode=learn` },
             h('span', { class: 'ln-n' }, String(l.n)),
@@ -57,7 +67,7 @@ export default {
                 l.toN ? h('span', { class: 'ln-to' }, ` · ${fmt(T.course.transpose, { n: l.toN })}`) : null),
             ),
             h('span', { class: `ln-status st-${st}`, title: T.course.status[st] },
-              h('span', { 'aria-hidden': 'true' }, STATUS_ICON[st]), ' ', T.course.status[st]),
+              h('span', { 'aria-hidden': 'true' }, STATUS_ICON[st]), ' ', label),
           ));
       })));
     }, () => alive);

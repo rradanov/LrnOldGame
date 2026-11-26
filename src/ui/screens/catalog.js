@@ -34,7 +34,12 @@ export default {
           h('span', {}, T.catalog.suggested),
           h('button', {
             type: 'button', class: 'btn secondary small',
-            onclick: async () => { bar.remove(); await ctx.userDb.setMeta('suggestedBanner', false); },
+            onclick: async (e) => {
+              // T-024: първо записът (иначе бързо затваряне/презареждане връща банера), после махането.
+              e.currentTarget.disabled = true;
+              try { await ctx.userDb.setMeta('suggestedBanner', false); } catch (err) { console.error(err); }
+              bar.remove();
+            },
           }, T.catalog.dismiss));
         box.append(bar);
       }

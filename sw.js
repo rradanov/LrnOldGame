@@ -4,7 +4,7 @@
  * всеки деплой сменя байтовете на sw.js → браузърът инсталира новата версия,
  * а приложението показва „Има нова версия — Обнови“.
  */
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.3.0';
 const BUILD = 'dev';
 const CACHE_PREFIX = 'lrnoldgame-shell-';
 const CACHE = `${CACHE_PREFIX}${APP_VERSION}-${BUILD}`;
@@ -31,6 +31,7 @@ const SHELL = [
   'src/db/userdb.js',
   'src/data/courseStore.js',
   'src/data/progress.js',
+  'src/train/session.js',
   'src/chess/position.js',
   'src/ui/dom.js',
   'src/ui/board.js',
@@ -51,10 +52,13 @@ const SHELL = [
   'vendor/cm-chessboard/src/view/PositionAnimationsQueue.js',
   'vendor/cm-chessboard/src/view/VisualMoveInput.js',
   'vendor/cm-chessboard/src/extensions/markers/Markers.js',
+  'vendor/cm-chessboard/src/extensions/arrows/Arrows.js',
   'vendor/cm-chessboard/assets/chessboard.css',
   'vendor/cm-chessboard/assets/pieces/standard.svg',
   'vendor/cm-chessboard/assets/extensions/markers/markers.css',
   'vendor/cm-chessboard/assets/extensions/markers/markers.svg',
+  'vendor/cm-chessboard/assets/extensions/arrows/arrows.css',
+  'vendor/cm-chessboard/assets/extensions/arrows/arrows.svg',
 ];
 
 // Данните на курсовете (D-023): catalog + manifest + всички файлове от manifest.courses.
