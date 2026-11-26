@@ -394,7 +394,7 @@ a { color: var(--accent); }
   .screen[data-screen="train"] .streak { line-height: 1.2; margin: 0 0 1px; }
   .screen[data-screen="train"] .streak .dots { font-size: 1rem; }
   .screen[data-screen="train"] .board-wrap { margin-bottom: 4px; }
-  .screen[data-screen="train"] .train-msg { min-height: 1.3em; margin: 0; }
+  .screen[data-screen="train"] .train-msg { font-size: .8125rem; min-height: 1.3em; margin: 0; }
   .screen[data-screen="train"] .train-actions { margin: 2px 0 0; }
   .screen[data-screen="train"] .icon-bar { margin: 2px 0 4px; }
   .screen[data-screen="train"] .icon-btn { min-height: 44px; padding: 0 4px; }
