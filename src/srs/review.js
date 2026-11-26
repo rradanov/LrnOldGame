@@ -6,7 +6,7 @@
 //   - иначе → Good.
 // След Again линията се играе веднага отново, докато не мине relearnStreak пъти чисто
 // (същия ден). Тези повторения не променят картата — FSRS вижда един преглед на ден.
-import { next, GRADE, GRADE_NAME, dayNumber, emptyCard } from './fsrs.js';
+import { next, GRADE, GRADE_NAME, dayNumber, dayStart, emptyCard } from './fsrs.js';
 
 /** Оценка (1..3) на един опит в режим преговор. */
 export function gradeAttempt(res, { hardAfterSec = 15, reviewErrorsForAgain = 1 } = {}) {
@@ -38,6 +38,17 @@ export function createCard(row, at, opts = {}) {
   if (row.fsrs && row.fsrs.reps > 0) return row;
   const o = fsrsOpts(opts);
   const r = next(null, GRADE.good, at, { ...o, fuzzSeed: o.fuzz ? seedFor(row, 0) : null });
+  // D-030: първият преговор е след firstReviewDays дни (параметър), а не след интервала, който FSRS
+  // изчислява от началната стабилност (3 дни при retention 0,9). Паметта (stability, difficulty) остава
+  // тази на FSRS; при следващия преговор FSRS ползва реално изминалите дни, така че по-ранен или
+  // по-късен първи преговор се отчита коректно (по-висока/по-ниска retrievability → друга нова стабилност).
+  const fd = Number.isInteger(opts.firstReviewDays) && opts.firstReviewDays > 0 ? Math.min(opts.firstReviewDays, o.maxInterval) : null;
+  if (fd) {
+    return {
+      ...row, fsrs: { ...r.card, scheduledDays: fd }, due: dayStart(dayNumber(at, o.dayStartHour) + fd, o.dayStartHour),
+      relearnLeft: 0, relearnDay: null,
+    };
+  }
   return { ...row, fsrs: r.card, due: r.due, relearnLeft: 0, relearnDay: null };
 }
 

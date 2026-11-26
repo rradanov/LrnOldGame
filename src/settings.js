@@ -86,6 +86,11 @@ export const SETTINGS_SCHEMA = Object.freeze([
     help: '1 = всяка грешка дава „Отново“ и линията се повтаря веднага. При 2 една грешка дава „Трудно“.',
   },
   {
+    key: 'firstReviewDays', type: 'int', default: 3, min: 1, max: 14, step: 1, unit: 'дни',
+    group: 'review', label: 'Първи преговор след (дни)',
+    help: 'Колко дни след „научена“ линията идва за първи преговор. После интервалите са по FSRS.',
+  },
+  {
     key: 'maxIntervalDays', type: 'int', default: 3650, min: 7, max: 36500, step: 1, unit: 'дни',
     group: 'review', label: 'Най-дълъг интервал между преговорите',
   },

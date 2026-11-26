@@ -291,3 +291,28 @@ test('офлайн: преговор след 3 дни без мрежа', async
   await expect(page.locator('#review-empty')).toContainText('Преговорът за днес е готов');
   await context.setOffline(false);
 });
+
+test('D-030: „Първи преговор след (дни)“ = 5 → научената линия идва за преговор след 5 дни', async ({ page }) => {
+  await page.clock.setFixedTime(T0);
+  await open(page, '#/settings');
+  const inp = page.locator('#set-firstReviewDays');
+  await expect(inp).toHaveValue('3');
+  await expect(page.locator('.field[data-key="firstReviewDays"]')).toContainText('Първи преговор след (дни)');
+  await inp.fill('5');
+  await inp.blur();
+  await expect.poll(() => page.evaluate(async () => (await globalThis.__lrn.userDb.loadSettings()).firstReviewDays)).toBe(5);
+  await fast(page);
+  await learn(page, 'italian', L1, 'w');
+  const r0 = await row(page, 'italian', L1.id);
+  expect(r0.due).toBe(new Date(2026, 11, 1, 4).getTime()); // 26.11 + 5 = 01.12, 04:00
+  expect(r0.fsrs.scheduledDays).toBe(5);
+  await open(page, '#/course/italian');
+  await expect(page.locator(`.line-row[data-line="${L1.id}"]`)).toContainText('научена · преговор след 5 дни (1 дек.)');
+  await page.clock.setFixedTime(at(4));
+  await open(page, '#/review');
+  await expect(page.locator('#review-badge')).toBeHidden();
+  await page.clock.setFixedTime(at(5));
+  await open(page, '#/courses');
+  await expect(page.locator('#review-badge')).toHaveText('1');
+  await expect(page.locator('#today-line')).toContainText('Днес: 1 за преговор');
+});

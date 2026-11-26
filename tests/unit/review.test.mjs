@@ -267,3 +267,35 @@ test('dayNumber/dayStart са обратни при dayStartHour', () => {
   assert.equal(dayStart(n, 4), Date.UTC(2026, 10, 26) + H4);
   assert.ok(next(null, GRADE.good, T0, { dayStartHour: 4 }).due > T0);
 });
+
+test('D-030: firstReviewDays — първият преговор след N дни; паметта е тази на FSRS; ensureCards го ползва', async () => {
+  const base = { ...newLineRow({ courseId: 'italian', lineId: 'f1', n: 1 }, T0), status: 'learned', learnedAt: T0 };
+  const plain = createCard(base, T0, { dayStartHour: 4 });
+  for (const fd of [1, 3, 7, 14]) {
+    const c = createCard(base, T0, { dayStartHour: 4, firstReviewDays: fd });
+    assert.equal(c.due, dayStart(dayNumber(T0, 4) + fd, 4), `due след ${fd} дни`);
+    assert.equal(c.fsrs.scheduledDays, fd);
+    assert.equal(c.fsrs.stability, plain.fsrs.stability, 'стабилността не се пипа');
+    assert.equal(c.fsrs.difficulty, plain.fsrs.difficulty);
+    assert.equal(c.fsrs.reps, 1);
+  }
+  // 3 дни = досегашното поведение (FSRS при retention 0,9)
+  assert.equal(createCard(base, T0, { dayStartHour: 4, firstReviewDays: 3 }).due, plain.due);
+  // ограничено от maxIntervalDays
+  assert.equal(createCard(base, T0, { dayStartHour: 0, firstReviewDays: 14, maxIntervalDays: 7 }).fsrs.scheduledDays, 7);
+  // следващият преговор (Good) смята с реално изминалите дни: ранен първи преговор → по-малка нова стабилност
+  const early = createCard(base, T0, { dayStartHour: 0, firstReviewDays: 1 });
+  const late = createCard(base, T0, { dayStartHour: 0, firstReviewDays: 7 });
+  const OKR = { clean: true, done: true, errors: [], hints: 0, maxMoveMs: 1000 };
+  const e = applyReview(early, OKR, { now: early.due + 3600_000, dayStartHour: 0 });
+  const l = applyReview(late, OKR, { now: late.due + 3600_000, dayStartHour: 0 });
+  assert.ok(e.row.fsrs.stability < l.row.fsrs.stability);
+  assert.equal(e.gradeName, 'good');
+
+  // Миграция: научена линия без карта получава due = learnedAt + firstReviewDays.
+  const udb = await openUserDb({ indexedDB: new IDBFactory(), now: () => T0 + 10 * DAY });
+  await udb.db.put('lineProgress', { ...base, key: 'italian/f1' });
+  assert.equal(await udb.ensureCards({ dayStartHour: 4, firstReviewDays: 5 }), 1);
+  assert.equal((await udb.getLine('italian', 'f1')).due, dayStart(dayNumber(T0, 4) + 5, 4));
+  udb.close();
+});

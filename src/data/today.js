@@ -10,7 +10,7 @@ export function srsSettings(settings) {
   return {
     retention: g('retention'), maxIntervalDays: g('maxIntervalDays'), reviewFuzz: g('reviewFuzz'),
     relearnStreak: g('relearnStreak'), hardAfterSec: g('hardAfterSec'), reviewErrorsForAgain: g('reviewErrorsForAgain'),
-    dayStartHour: g('dayStartHour'),
+    dayStartHour: g('dayStartHour'), firstReviewDays: g('firstReviewDays'),
   };
 }
 
