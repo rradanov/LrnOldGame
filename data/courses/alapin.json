@@ -2,7 +2,7 @@
   "v": 1,
   "id": "alapin",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": ["e4","c5"],
   "lines": [
     {"id":"b06eaf2a","n":1,"m":["e4","c5","c3","d6","d4","cxd4","cxd4"],"p":0.132987,"end":"adv","cp":83,"eco":"B22","name":"Sicilian Defense: Alapin Variation","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "queens-gambit",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": ["d4","d5"],
   "lines": [
     {"id":"1092224d","n":1,"m":["d4","d5","c4","Nf6","cxd5","Nxd5","e4","Nb6","Nc3"],"p":0.0572455,"end":"adv","cp":80,"eco":"D06","name":"Queen's Gambit Declined: Marshall Defense","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "london-nf6",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": ["d4","Nf6"],
   "lines": [
     {"id":"b7ecc94f","n":1,"m":["d4","Nf6","Bf4","d5","e3","e6","Nf3"],"p":0.0650299,"end":"transpose","to":"cba3c2a8","cp":12,"eco":"A45","name":"Indian Defense: Accelerated London System","c":null},

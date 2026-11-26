@@ -2,7 +2,7 @@
   "v": 1,
   "id": "english",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": [],
   "lines": [
     {"id":"3444b4ad","n":1,"m":["c4","e5","Nc3","Bc5","e3","d6","d4"],"p":0.0178518,"end":"adv","cp":80,"eco":"A21","name":"English Opening: King's English Variation, Reversed Sicilian","c":null},

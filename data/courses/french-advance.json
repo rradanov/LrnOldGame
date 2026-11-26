@@ -2,7 +2,7 @@
   "v": 1,
   "id": "french-advance",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": ["e4","e6"],
   "lines": [
     {"id":"4c2dee29","n":1,"m":["e4","e6","d4","d5","e5","c5","c3","Qb6","Nf3","Nc6","Be2"],"p":0.0507523,"end":"transpose","to":"fa5c2f2e","cp":24,"eco":"C02","name":"French Defense: Advance Variation","c":null},

@@ -2,7 +2,7 @@
   "v": 1,
   "id": "italian",
   "side": "w",
-  "dataVersion": "2026-11-26.1",
+  "dataVersion": "2026-11-26.2",
   "start": ["e4","e5"],
   "lines": [
     {"id":"8e89627b","n":1,"m":["e4","e5","Nf3","Nc6","Bc4","h6","d4","exd4","Nxd4","Nxd4","Qxd4"],"p":0.0383367,"end":"adv","cp":122,"eco":"C50","name":"Italian Game: Anti-Fried Liver Defense","c":null},
