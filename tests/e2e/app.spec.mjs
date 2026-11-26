@@ -369,6 +369,8 @@ test.describe('обновяване', () => {
     await page.goto('./#/courses');
     await page.locator('#data-update button').click();
     await expect(page.locator('#data-update')).toHaveCount(0);
+    // Изчакваме записа в IndexedDB преди reload (както при банера в каталога, T-024).
+    await expect.poll(() => page.evaluate(async () => (await globalThis.__lrn.userDb.getMeta('dataUpdate'))?.seen)).toBe(true);
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-ready', '1');
     await expect(cards(page).first()).toBeVisible();
