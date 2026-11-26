@@ -226,7 +226,7 @@ test('„Настройки → Данни“: версия, параметри,
   await expect(page.locator('.gen-params')).toContainText('Брой линии на курс');
   await expect(page.locator('#data-info')).not.toContainText('ТЕСТОВИ');
   await expect(page.locator('#data-info')).not.toContainText('null');
-  await expect(page.locator('#app-version')).toHaveText('0.4.0');
+  await expect(page.locator('#app-version')).toHaveText('0.5.0');
 });
 
 test('бекъп: изтегляне и зареждане (schemaVersion)', async ({ page }) => {
@@ -291,7 +291,7 @@ test.describe('обновяване', () => {
       bar.getByRole('button', { name: 'Обнови' }).click(),
     ]);
     await expect(page.locator('h1.screen-title')).toHaveText('Настройки');
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.4.0-e2e2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.5.0-e2e2']);
   });
 
   test('нови данни (нов manifest) запазват избора и настройките', async ({ page, request }) => {
@@ -319,6 +319,107 @@ test.describe('обновяване', () => {
     await expect(cards(page)).toHaveCount(9);
     await expect(page.locator('.course-card[data-course="ruy-lopez"]')).toBeVisible();
     await expect(page.locator('.course-card[data-course="slav"]')).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.4.0-data2']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['lrnoldgame-shell-0.5.0-data2']);
   });
+
+  test('T-012: нови данни — научена линия изчезва → „вече не е в курса“, новата е „ново“, резюме +1/−1', async ({ page, request }) => {
+    const ITALIAN = JSON.parse(readFileSync(new URL('../../data/courses/italian.json', import.meta.url), 'utf8'));
+    const L1 = ITALIAN.lines.find((l) => l.n === 1);
+    await open(page, '#/course/italian');
+    await waitForSW(page);
+    // Линия 1 става научена (през истинския запис на опит).
+    await page.evaluate(async ([lineId, m]) => {
+      const u = globalThis.__lrn.userDb;
+      await u.touchLine('italian', lineId, 1, { m, name: 'Italian Game', eco: 'C50' });
+      const res = { clean: true, done: true, errors: [], hints: 0, ms: 1000, plies: m.length, total: m.length, userMoves: 3, maxMoveMs: 300 };
+      await u.recordAttempt({ courseId: 'italian', lineId, n: 1, result: res, learnStreak: 1, dayStartHour: 4, srs: globalThis.__lrn.srs() });
+    }, [L1.id, L1.m]);
+    await expect.poll(() => page.evaluate(async () => (await globalThis.__lrn.userDb.learnedRows()).length)).toBe(1);
+    // Снимката на линиите (meta.lineIds) се прави на заден план при първото пускане.
+    await expect.poll(() => page.evaluate(async () => !!(await globalThis.__lrn.userDb.getMeta('lineIds'))?.italian)).toBe(true);
+
+    await request.get('/__test/data-version?v=2099-02-01.1&retire=italian:1');
+    await request.get('/__test/sw-build?b=data3');
+    await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).update());
+    const bar = page.locator('#update-bar');
+    await expect(bar).toBeVisible();
+    await Promise.all([page.waitForEvent('load'), bar.getByRole('button', { name: 'Обнови' }).click()]);
+    await expect(page.locator('html')).toHaveAttribute('data-ready', '1');
+
+    await page.goto('./#/courses');
+    const note = page.locator('#data-update');
+    await expect(note).toContainText('Курсовете са обновени: +1 нови, −1 оттеглени линии.');
+    await expect(page.locator('.course-card[data-course="italian"] .cc-progress')).toContainText('научени 0/');
+    // Линията вече не е за преговор: картата ѝ не е в индекса на научените.
+    expect(await page.evaluate(async () => (await globalThis.__lrn.userDb.learnedRows()).length)).toBe(0);
+
+    await page.goto('./#/course/italian');
+    await expect(page.locator('#course-updated')).toContainText('+1 нови, −1 оттеглени');
+    await expect(page.locator('.line-row')).toHaveCount(LINES.italian);
+    await expect(page.locator('.line-row[data-line="e2e00001"] .badge-new')).toHaveText('ново');
+    await expect(page.locator('#course-learned')).toHaveText(`научени 0/${LINES.italian}`);
+    const orph = page.locator('#orphans');
+    await expect(orph.locator('summary')).toHaveText('Вече не са в курса (1)');
+    await expect(orph.locator('.orphan-row')).toBeHidden();
+    await orph.locator('summary').click();
+    await expect(orph.locator(`.orphan-row[data-line="${L1.id}"]`)).toContainText('беше: научена');
+    await expect(orph.locator('.orphan-row')).toContainText('2099-02-01.1');
+
+    // „Разбрах“ скрива резюмето и то не се връща след презареждане.
+    await page.goto('./#/courses');
+    await page.locator('#data-update button').click();
+    await expect(page.locator('#data-update')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-ready', '1');
+    await expect(cards(page).first()).toBeVisible();
+    await expect(page.locator('#data-update')).toHaveCount(0);
+  });
+});
+
+test('T-012: първо отваряне без мрежа до данните → ясно съобщение; „Опитай пак“ зарежда предложените курсове', async ({ page }) => {
+  await page.route(/\/LrnOldGame\/data\//, (r) => r.abort('internetdisconnected'));
+  await open(page, '#/courses');
+  await expect(page.locator('#offline-first')).toContainText('Няма връзка с интернет');
+  await expect(page.locator('.error-box')).toContainText('Данните на курсовете не се заредиха.');
+  await page.unroute(/\/LrnOldGame\/data\//);
+  await page.getByRole('button', { name: 'Опитай пак' }).click();
+  await expect(cards(page)).toHaveCount(DEFAULTS.length);
+});
+
+test('T-012: „Настройки → За приложението“: версия, версия на данните, лицензи, репо', async ({ page }) => {
+  await open(page, '#/settings');
+  const about = page.locator('#about');
+  await expect(about.locator('#app-version')).toHaveText('0.5.0');
+  await expect(about.locator('#about-data-version')).toHaveText(MANIFEST.dataVersion);
+  for (const [lib, lic] of [['lichess-db', 'CC0'], ['chess-openings', 'CC0'], ['chess.js', 'BSD-2-Clause'], ['cm-chessboard', 'MIT'], ['pieces', 'CC BY-SA 3.0']]) {
+    await expect(about.locator(`li[data-lib="${lib}"]`)).toContainText(lic);
+  }
+  await expect(about.locator('li[data-lib="pieces"]')).toContainText('Cburnett');
+  await expect(about).toContainText('Stockfish 19 (GPL-3.0');
+  await expect(about).toContainText('не е част от приложението');
+  await expect(about.locator('a[href="https://github.com/rradanov/LrnOldGame"]')).toBeVisible();
+});
+
+test('T-012: бутоните са поне 44 px (тъч), напомняне за бекъп', async ({ page }) => {
+  await open(page, '#/catalog');
+  for (const sel of ['.seg', '.chip', '.cr-pick']) {
+    const b = await page.locator(sel).first().boundingBox();
+    expect(b.height, sel).toBeGreaterThanOrEqual(44 - (sel === '.cr-pick' ? 18 : 0));
+  }
+  await page.goto('./#/courses');
+  const btn = await page.locator('.today-summary .btn').boundingBox();
+  expect(btn.height).toBeGreaterThanOrEqual(44);
+  // Научена линия преди 20 дни и никакъв бекъп → напомняне (backupReminderDays 14).
+  await page.evaluate(async () => {
+    const u = globalThis.__lrn.userDb;
+    await u.db.put('lineProgress', { key: 'italian/x', courseId: 'italian', lineId: 'x', n: 99, status: 'learned', learnedAt: Date.now() - 20 * 86400000, fsrs: { reps: 1 }, due: Date.now() + 86400000 * 30 });
+  });
+  await page.reload();
+  await expect(page.locator('#backup-reminder')).toContainText('Още нямаш бекъп');
+  await page.locator('#backup-reminder a').click();
+  await expect(page.locator('h1.screen-title')).toHaveText('Настройки');
+  await page.locator('#backup-export').click();
+  await page.goto('./#/courses');
+  await expect(cards(page).first()).toBeVisible();
+  await expect(page.locator('#backup-reminder')).toHaveCount(0);
 });

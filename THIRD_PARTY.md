@@ -4,7 +4,7 @@
 |---|---|---|---|
 | chess.js | 1.4.0 | BSD-2-Clause, © 2025 Jeff Hlywa | https://github.com/jhlywa/chess.js — `vendor/chess.js/LICENSE` |
 | cm-chessboard | 8.15.8 | MIT, © 2017 Stefan Haack | https://github.com/shaack/cm-chessboard — `vendor/cm-chessboard/LICENSE` |
-| Шахматни фигури „standard“ (спрайт в cm-chessboard) | — | CC BY-SA 3.0, автори от Wikimedia Commons | https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces |
+| Шахматни фигури „standard“ (спрайт в cm-chessboard) | — | CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/); автори Cburnett (https://en.wikipedia.org/wiki/User:Cburnett) и Rfc1394 (https://en.wikipedia.org/wiki/User:Rfc1394); адаптирани от shaack за cm-chessboard | https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces/Standard — бележката е и в `vendor/cm-chessboard/assets/pieces/standard.svg` |
 
 Само за тестовете (devDependencies, не влизат в сайта):
 - **ts-fsrs** 6.0.1 (MIT, © open-spaced-repetition) с `@open-spaced-repetition/srs-kit` 1.0.1 (BSD-3-Clause) — референция за `src/srs/fsrs.js` в `tests/unit/fsrs.test.mjs`. Тежестите на FSRS-6 по подразбиране в `src/srs/fsrs.js` са взети от него.
@@ -16,3 +16,5 @@
 - Дъмповете на партиите от lichess.org (https://database.lichess.org/) са CC0; използват се само в CI и не влизат в сайта.
 
 Иконките в `icons/` са създадени за този проект и са под MIT като останалия код.
+
+Същите атрибуции, с линкове, са в приложението: **Настройки → За приложението**.

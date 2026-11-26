@@ -16,6 +16,8 @@ const TEST_MODE = process.argv.includes('--test');
 let swBuildOverride = '';
 // GET /__test/data-version?v=2026-12-01.1 подменя dataVersion в data/manifest.json (нов деплой на данни).
 let dataVersionOverride = '';
+// …&retire=italian:1 (T-012): в data/courses/italian.json линия n=1 получава нов id → „−1 оттеглена, +1 нова“.
+let retire = null;
 const BLOCKED = ['node_modules', '.git', 'tests', 'test-results', 'playwright-report'];
 
 const TYPES = {
@@ -41,6 +43,8 @@ createServer(async (req, res) => {
     }
     if (TEST_MODE && url.pathname === '/__test/data-version') {
       dataVersionOverride = (url.searchParams.get('v') || '').replace(/[^\w.-]/g, '');
+      const m = /^([\w-]+):(\d+)$/.exec(url.searchParams.get('retire') || '');
+      retire = m ? { course: m[1], n: Number(m[2]) } : null;
       res.writeHead(200, { 'Content-Type': 'text/plain' });
       return res.end(dataVersionOverride || '-');
     }
@@ -69,6 +73,11 @@ createServer(async (req, res) => {
       const man = JSON.parse(body.toString('utf8'));
       man.dataVersion = dataVersionOverride;
       body = Buffer.from(JSON.stringify(man));
+    }
+    if (retire && rel === `data/courses/${retire.course}.json`) {
+      const c = JSON.parse(body.toString('utf8'));
+      for (const l of c.lines) if (l.n === retire.n) l.id = `e2e${String(retire.n).padStart(5, '0')}`;
+      body = Buffer.from(JSON.stringify(c));
     }
     res.writeHead(200, {
       'Content-Type': TYPES[extname(file)] || 'application/octet-stream',

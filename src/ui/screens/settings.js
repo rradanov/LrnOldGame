@@ -43,6 +43,31 @@ function dataSection(ctx, isAlive) {
   return sec;
 }
 
+/** Външна връзка (отваря се в браузъра, не в приложението). */
+const ext = (href, text) => h('a', { href, target: '_blank', rel: 'noopener' }, text);
+
+/** „За приложението“ (T-012): версия, версия на данните, лицензи и атрибуции, репо. */
+function aboutSection(ctx, offline, isAlive) {
+  const A = T.about;
+  const dataV = h('span', { id: 'about-data-version' }, '…');
+  ctx.data().then(({ manifest }) => { if (isAlive()) dataV.textContent = manifest?.dataVersion || '—'; }, () => { dataV.textContent = '—'; });
+  const items = A.items.map((it) => h('li', { dataset: { lib: it.id } },
+    h('strong', {}, it.href ? ext(it.href, it.name) : it.name),
+    ` — ${it.license}`,
+    it.licenseHref ? [' ', h('span', { class: 'nowrap' }, '(', ext(it.licenseHref, A.licenseText), ')')] : null,
+    it.note ? h('span', { class: 'hint about-note' }, ` ${it.note}`) : null));
+  return h('section', { class: 'about', id: 'about' },
+    h('h2', {}, T.settings.about),
+    h('p', {}, `${T.settings.version} `, h('strong', { id: 'app-version' }, APP_VERSION), ` (${BUILD})`),
+    h('p', {}, `${A.dataVersion}: `, dataV),
+    offline,
+    h('p', {}, A.appLicense, ' ', ext(A.repo, A.repoText)),
+    h('h3', { class: 'about-h3' }, A.licensesTitle),
+    h('ul', { class: 'about-list', id: 'licenses' }, items),
+    h('p', { class: 'hint' }, A.stockfish),
+  );
+}
+
 function download(name, text) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const a = h('a', { href: url, download: name });
@@ -195,13 +220,14 @@ export default {
       resetBtn,
       dataSection(ctx, () => alive),
       backupSection(ctx),
-      h('section', { class: 'about' },
-        h('h2', {}, T.settings.about),
-        h('p', {}, `${T.settings.version} `, h('span', { id: 'app-version' }, APP_VERSION), ` (${BUILD})`),
-        offline,
-        h('p', { class: 'hint' }, T.settings.licenses),
-      ),
+      aboutSection(ctx, offline, () => alive),
     );
+    // „Към бекъпа“ от напомнянето в „Курсове“.
+    if (ctx.scrollTo) {
+      const target = ctx.scrollTo;
+      ctx.scrollTo = null;
+      setTimeout(() => { if (alive) document.getElementById(target)?.scrollIntoView({ block: 'start' }); }, 0);
+    }
     return () => { alive = false; clearTimeout(timer); };
   },
 };

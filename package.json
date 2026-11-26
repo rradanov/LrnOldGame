@@ -1,13 +1,13 @@
 {
   "name": "lrnoldgame",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "LrnOldGame — PWA за учене на шахматни дебюти",
   "license": "MIT",
   "author": "rradanov",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "serve": "node tools/serve.mjs",

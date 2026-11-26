@@ -38,9 +38,22 @@ export function asyncBlock(root, load, fill, isAlive = () => true) {
     }, (err) => {
       if (!isAlive()) return;
       console.error(err);
+      const retry = () => {
+        globalThis.removeEventListener?.('online', onOnline);
+        if (!isAlive() || !box.isConnected) return;
+        box.replaceChildren(h('p', { class: 'hint loading' }, T.loading));
+        run();
+      };
+      const onOnline = () => retry();
+      // Без мрежа (напр. първо отваряне в самолетен режим): ясно съобщение и сам повторен опит,
+      // когато връзката се върне.
+      const offline = globalThis.navigator?.onLine === false || (err?.name === 'DataError' && /Няма връзка/.test(err.message || ''));
+      if (offline) globalThis.addEventListener?.('online', onOnline, { once: true });
       box.replaceChildren(
-        h('p', { class: 'error' }, T.dataError, ' ', err?.message ? `(${err.message})` : ''),
-        h('button', { type: 'button', class: 'btn secondary', onclick: () => { box.replaceChildren(h('p', { class: 'hint loading' }, T.loading)); run(); } }, T.retry),
+        h('div', { class: 'error-box', role: 'alert' },
+          h('p', { class: 'error' }, T.dataError, ' ', offline ? '' : (err?.message ? `(${err.message})` : '')),
+          offline ? h('p', { class: 'hint', id: 'offline-first' }, T.offlineFirst) : null,
+          h('button', { type: 'button', class: 'btn secondary', onclick: retry }, T.retry)),
       );
     });
   };

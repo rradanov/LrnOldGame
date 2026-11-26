@@ -144,15 +144,54 @@ function showSimBar(clock) {
   document.body.prepend(bar);
 }
 
+/**
+ * Зарежда всички курсове от manifest и прилага обновяването на данните (src/data/dataUpdate.js).
+ * Ако някой курс не се зареди (напр. офлайн без кеш), нищо не се записва — опитваме при следващо пускане.
+ */
+async function runDataUpdate(ctx, manifest) {
+  try {
+    const courses = await Promise.all(manifest.courses.map((c) => ctx.store.loadCourse(c.id)));
+    const res = await ctx.userDb.applyDataUpdate({ dataVersion: manifest.dataVersion, courses });
+    if (res.update) console.info(`Данни ${res.update.from} → ${res.update.to}: променени редове ${res.puts}`);
+    return res;
+  } catch (e) {
+    console.warn('Обновяването на данните ще се опита пак при следващо пускане:', e);
+    return null;
+  }
+}
+
+/** След първото успешно зареждане на данните: ★ курсовете при първо пускане и миграция при нов dataVersion. */
+async function initUserData(ctx, { manifest, view }) {
+  // Първо пускане (D-017): предварително избраните ★ курсове, които имат данни.
+  await ctx.userDb.applyFirstRun(view.courses.filter((c) => c.default && c.available).map((c) => c.id));
+  // T-012 (D-023): нов dataVersion → миграция на прогреса (orphan / нови линии / резюме).
+  const prev = await ctx.userDb.getMeta('dataVersion');
+  const snap = await ctx.userDb.getMeta('lineIds');
+  if (prev && prev !== manifest.dataVersion) {
+    // Чакаме: екраните трябва да видят вече мигрирания прогрес.
+    await runDataUpdate(ctx, manifest);
+  } else if (!prev || !snap) {
+    // Първо пускане или надграждане от < 0.5.0: само снимка на линиите, на заден план.
+    runDataUpdate(ctx, manifest).then(() => ctx.refreshBadge());
+  }
+}
+
 async function boot() {
   const params = new URLSearchParams(location.search);
   const clock = createClock(parseNowParam(params.get('now')));
-  const ctx = { userDb: null, settings: null, store: createCourseStore(), persisted: null, dataUpdated: null, now: clock.now, clock };
+  const ctx = { userDb: null, settings: null, store: createCourseStore(), persisted: null, now: clock.now, clock };
   ctx.refreshBadge = () => refreshBadge(ctx);
   ctx.srs = () => srsSettings(ctx.settings);
 
   let viewP = null;
-  ctx.data = () => (viewP ||= ctx.store.loadView().catch((e) => { viewP = null; throw e; }));
+  let dataReady = false;
+  ctx.data = () => (viewP ||= ctx.store.loadView().then(async (d) => {
+    if (!dataReady && ctx.userDb) {
+      dataReady = true;
+      await initUserData(ctx, d).catch((e) => console.error('Първо пускане / обновяване на данните:', e));
+    }
+    return d;
+  }).catch((e) => { viewP = null; throw e; }));
 
   try {
     ctx.userDb = clock.simulated ? await openSimDb(clock, params.has('simreset')) : await openUserDb();
@@ -173,19 +212,9 @@ async function boot() {
   if (clock.simulated) showSimBar(clock);
   if (ctx.userDb) {
     if (!clock.simulated) requestPersist().then((v) => { ctx.persisted = v; });
-    try {
-      const { manifest, view } = await ctx.data();
-      // Първо пускане (D-017): предварително избраните ★ курсове, които имат данни.
-      await ctx.userDb.applyFirstRun(view.courses.filter((c) => c.default && c.available).map((c) => c.id));
-      const prev = await ctx.userDb.getMeta('dataVersion');
-      if (prev !== manifest.dataVersion) {
-        if (prev) ctx.dataUpdated = manifest.dataVersion;
-        await ctx.userDb.setMeta('dataVersion', manifest.dataVersion);
-      }
-    } catch (err) {
-      // Няма данни (напр. първо пускане без мрежа) — екраните показват „Опитай пак“.
-      console.warn('Данните не се заредиха:', err);
-    }
+    // Няма данни (напр. първо пускане без мрежа) — екраните показват „Опитай пак“; първото успешно
+    // зареждане (ctx.data) довършва първото пускане и обновяването на данните.
+    await ctx.data().catch((err) => console.warn('Данните не се заредиха:', err));
   }
 
   const main = document.getElementById('screen');

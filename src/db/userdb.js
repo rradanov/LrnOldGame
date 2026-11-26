@@ -4,6 +4,7 @@ import { openDb } from './idb.js';
 import { DB_NAME, MIGRATIONS, SCHEMA_VERSION, STORES, lineKey } from './schema.js';
 import { applyAttempt, dayKey, newLineRow } from '../data/progress.js';
 import { applyReview, createCard, hasCard } from '../srs/review.js';
+import { planDataUpdate } from '../data/dataUpdate.js';
 
 const EMPTY_DAY = Object.freeze({ newLearned: 0, reviews: 0, reviewErrors: 0, plays: 0 });
 
@@ -139,13 +140,20 @@ export function createUserDb(db, now = () => Date.now()) {
   /** Редът на една линия (или null). */
   const getLine = async (courseId, lineId) => (await db.get('lineProgress', lineKey(courseId, lineId))) ?? null;
 
-  /** Първо отваряне на линията: създава реда (ARCH §4), ако го няма. Връща реда. */
-  async function touchLine(courseId, lineId, n) {
+  /**
+   * Първо отваряне на линията: създава реда (ARCH §4), ако го няма. Връща реда.
+   * info = {m, name, eco} (T-012) — пази се в реда, за да се покаже линията, ако изчезне от данните.
+   */
+  async function touchLine(courseId, lineId, n, info = null) {
     return db.tx(['lineProgress'], 'readwrite', async (t) => {
       const os = t.store('lineProgress');
       const cur = await reqP(os.get(lineKey(courseId, lineId)));
-      if (cur) return cur;
+      if (cur) {
+        if (info && !cur.info) { const upd = { ...cur, info }; os.put(upd); return upd; }
+        return cur;
+      }
       const row = newLineRow({ courseId, lineId, n }, now());
+      if (info) row.info = info;
       os.put(row);
       return row;
     });
@@ -223,6 +231,37 @@ export function createUserDb(db, now = () => Date.now()) {
     });
   }
 
+  /**
+   * Обновяване на данните (T-012, D-023): прилага planDataUpdate върху всички редове в една транзакция
+   * и записва meta.dataVersion, meta.lineIds (снимка на линиите) и meta.dataUpdate (резюме).
+   * courses — всички курсове от новия manifest (нормализирани: {id, lines}).
+   * @returns {Promise<{prev: string|null, update: object|null, puts: number}>} update е null, ако версията не е сменена.
+   */
+  async function applyDataUpdate({ dataVersion, courses }) {
+    const ts = now();
+    return db.tx(['lineProgress', 'meta'], 'readwrite', async (t) => {
+      const meta = t.store('meta');
+      const prev = (await reqP(meta.get('dataVersion')))?.value ?? null;
+      const prevLineIds = (await reqP(meta.get('lineIds')))?.value ?? null;
+      const lp = t.store('lineProgress');
+      const rows = await reqP(lp.getAll());
+      const plan = planDataUpdate({ courses, rows, prevLineIds, dataVersion, prevDataVersion: prev, now: ts });
+      for (const r of plan.puts) lp.put(r);
+      // Снимката пази и курсовете, които сега липсват в manifest (за да се сравнят, ако се върнат).
+      meta.put({ key: 'lineIds', value: { ...(prevLineIds || {}), ...plan.lineIds } });
+      meta.put({ key: 'dataVersion', value: dataVersion });
+      let update = null;
+      if (prev && prev !== dataVersion) {
+        update = { from: prev, to: dataVersion, at: ts, courses: plan.courses, seen: false };
+        meta.put({ key: 'dataUpdate', value: update });
+      }
+      return { prev, update, puts: plan.puts.length };
+    });
+  }
+
+  /** Линиите „вече не са в курса“ (orphan) за курс. */
+  const orphanRows = async (courseId) => (await progressByCourse(courseId)).filter((r) => r.status === 'orphan');
+
   /** Научените линии (с или без карта). */
   const learnedRows = () => db.getAllByIndex('lineProgress', 'status', 'learned');
 
@@ -277,6 +316,7 @@ export function createUserDb(db, now = () => Date.now()) {
     db, getMeta, setMeta, loadSettings, saveSettings, migrateLegacySettings,
     listMyCourses, selectedIds, setSelected, applyFirstRun, progressByCourse,
     getLine, touchLine, recordAttempt, attemptsFor, ensureCards, learnedRows, dayStats,
+    applyDataUpdate, orphanRows,
     exportBackup, importBackup,
     /** Изчаква чакащите записи на настройки (за тестове). */
     flush: () => settingsQueue,

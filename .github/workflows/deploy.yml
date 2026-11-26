@@ -19,16 +19,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Два job-а, както в шаблона на GitHub Pages: артефактът github-pages е готов (финализиран), преди
+  # deploy-pages да го потърси. В един job deploy-pages понякога не го виждаше („No artifacts named
+  # github-pages“, T-002/T-019) — тогава помагаше само повторът след пауза. Повторът остава като резерва.
+  build:
+    # T023-D5.3: ръчен deploy само от main (без него workflow_dispatch можеше да деплойне произволен ref без CI).
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       (github.event.workflow_run.conclusion == 'success' &&
        (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url || steps.deployment2.outputs.page_url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -53,13 +54,19 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment2.outputs.page_url }}
+    steps:
       - name: Деплой
         id: deployment
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
-      # deploy-pages понякога не вижда току-що каченото github-pages („Found 0 artifact(s)“,
-      # 2 от 5 пускания на 2026-11-25) — изчакваме и пробваме още веднъж.
       - name: Пауза преди повтор
         if: steps.deployment.outcome == 'failure'
         run: sleep 45

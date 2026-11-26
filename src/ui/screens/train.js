@@ -8,6 +8,7 @@ import { hrefFor } from '../../router.js';
 import { Position } from '../../chess/position.js';
 import { createSession, PHASE, lineFrames } from '../../train/session.js';
 import { nextAfter } from '../../data/progress.js';
+import { lineInfo } from '../../data/dataUpdate.js';
 import { isDueToday, inRelearn } from '../../srs/review.js';
 import { loadToday, whenText } from '../../data/today.js';
 import { h, screenHeader, asyncBlock } from '../dom.js';
@@ -25,7 +26,7 @@ async function load(ctx, courseId, lineId) {
   let rowsById = new Map();
   if (line && ctx.userDb) {
     try {
-      row = await ctx.userDb.touchLine(courseId, lineId, line.n);
+      row = await ctx.userDb.touchLine(courseId, lineId, line.n, lineInfo(line));
       rowsById = new Map((await ctx.userDb.progressByCourse(courseId)).map((r) => [r.lineId, r]));
     } catch (e) { console.error(e); }
   }

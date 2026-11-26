@@ -7,6 +7,8 @@
   --accent: #2f6b4f;
   --accent-fg: #ffffff;
   --border: #d9d3c4;
+  --danger: #b3261e;
+  --warn: #8a5a00;
   --tabs-h: 60px;
   --maxw: 600px;
   color-scheme: light dark;
@@ -20,6 +22,8 @@
     --accent: #5fae86;
     --accent-fg: #0d140f;
     --border: #39413a;
+    --danger: #ff8a80;
+    --warn: #f0b85a;
   }
 }
 
@@ -42,7 +46,7 @@ body {
 }
 .screen-title { font-size: 1.4rem; margin: 4px 0 12px; outline: none; }
 .empty-note { color: var(--muted); }
-.error { color: #b3261e; }
+.error { color: var(--danger); }
 .hint { color: var(--muted); font-size: .875rem; margin: 4px 0 0; }
 
 /* Дъска: квадрат на цялата ширина; без скролиране при тъч (ARCH §6). */
@@ -149,7 +153,7 @@ body {
   clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; margin: -1px;
 }
 .btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-.btn.small { min-height: 36px; padding: 4px 12px; font-size: .875rem; }
+.btn.small { min-height: 44px; padding: 4px 12px; font-size: .875rem; }
 .btn.block { display: flex; width: 100%; margin: 8px 0 16px; }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
@@ -194,7 +198,7 @@ body {
 .seg[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .chip {
-  flex: 0 0 auto; min-height: 36px; padding: 4px 12px; border-radius: 18px;
+  flex: 0 0 auto; min-height: 44px; padding: 4px 14px; border-radius: 22px;
   border: 1px solid var(--border); background: var(--surface); color: var(--fg); font: inherit; font-size: .85rem;
 }
 .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-fg); }
@@ -230,7 +234,7 @@ body {
 .ply-counter { flex: 1; text-align: center; margin: 0; font-size: .85rem; color: var(--muted); }
 .move-list { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 4px; }
 .mv {
-  min-height: 34px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+  min-height: 40px; min-width: 40px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
   background: var(--surface); color: var(--fg); font: inherit; font-size: .9rem;
 }
 .mv-start { color: var(--muted); }
@@ -247,7 +251,7 @@ body {
 .gen-params dt code { color: var(--muted); font-size: .75rem; }
 .gen-params dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 .gen-params summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--accent); }
-.saved.error { color: #b3261e; }
+.saved.error { color: var(--danger); }
 
 /* --- T-021: тренировка --- */
 .board-wrap { position: relative; }
@@ -256,7 +260,7 @@ body {
 .streak .learned-badge { color: var(--accent); font-weight: 500; }
 .train-msg { min-height: 1.5em; text-align: center; font-weight: 600; margin: 0 0 6px; }
 .train-msg[data-kind="ok"] { color: var(--accent); }
-.train-msg[data-kind="bad"], .train-msg[data-kind="correct"] { color: #b3261e; }
+.train-msg[data-kind="bad"], .train-msg[data-kind="correct"] { color: var(--danger); }
 .train-msg[data-kind="wait"] { color: var(--muted); font-weight: 400; }
 .train-actions { justify-content: center; }
 .train-done {
@@ -264,7 +268,7 @@ body {
   border-radius: 12px; padding: 10px 12px; margin: 8px 0 12px;
 }
 .train-done[hidden] { display: none; }
-.train-done[data-kind="errors"] { border-left-color: #b3261e; }
+.train-done[data-kind="errors"] { border-left-color: var(--danger); }
 .done-text { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
 .train-done .btn-row .btn { flex: 1; }
 .move-list.played .mv { display: inline-block; }
@@ -300,13 +304,35 @@ body {
 .review-count { font-size: 1.1rem; font-weight: 600; margin: 0 0 10px; }
 .review-list { margin-top: 14px; }
 .review-course { font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
-.st-due { color: #b3261e; }
+.st-due { color: var(--danger); }
 .course-review {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
   margin: 0 0 12px; font-weight: 500;
 }
 .course-review .btn { margin-left: auto; }
-.cc-due { color: #b3261e; font-weight: 600; }
+.cc-due { color: var(--danger); font-weight: 600; }
 .review-state { font-weight: 600; }
-.train-done[data-kind="again"] { border-left-color: #b3261e; }
-.train-done[data-kind="hard"] { border-left-color: #b97a00; }
+.train-done[data-kind="again"] { border-left-color: var(--danger); }
+.train-done[data-kind="hard"] { border-left-color: var(--warn); }
+
+/* --- T-012: полиране, обновяване на данните, „За приложението“ --- */
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:focus-visible, .seg:focus-visible, .chip:focus-visible, .mv:focus-visible { outline-offset: 2px; }
+.error-box { padding: 8px 0; }
+.error-box .btn { margin-top: 10px; }
+.notice .btn { flex: 0 0 auto; }
+.badge-new {
+  display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 8px;
+  background: var(--accent); color: var(--accent-fg); font-size: .7rem; font-weight: 700; line-height: 1.5;
+}
+.orphans { margin: 16px 0 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 0 12px; }
+.orphans summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; color: var(--muted); font-weight: 600; }
+.orphans .hint { margin: 0 0 8px; }
+.orphan-row { display: flex; gap: 10px; padding: 8px 2px; border-top: 1px solid var(--border); color: var(--muted); }
+.about-h3 { font-size: 1rem; margin: 14px 0 6px; }
+.about-list { margin: 0 0 8px; padding-left: 18px; }
+.about-list li { margin: 0 0 6px; }
+.about-list a { min-height: 24px; display: inline-block; }
+.about-note { display: block; margin: 0; }
+.nowrap { white-space: nowrap; }
