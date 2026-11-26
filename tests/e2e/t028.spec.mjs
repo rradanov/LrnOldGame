@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 import { mkdirSync, readFileSync } from 'node:fs';
 import {
   course, lineN, open, fast, move, turn, playLine, row, legalWrong, iconBar, againBtn, nextBtn, hintBtn,
-  backBtn, fwdBtn, checks, doneKind, firstMine,
+  backBtn, fwdBtn, checks, doneKind, firstMine, boardSpan,
 } from './helpers.mjs';
 
 const ITALIAN = course('italian');
@@ -281,8 +281,11 @@ test.describe('D-035: оценка от Stockfish (fixture с ev)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('без ev в данните (истинските курсове) — без число и без грешка', async ({ page }) => {
+  test('без ev в данните (стари данни) — без число и без грешка', async ({ page }) => {
     const errors = await watch(page);
+    // T-027: истинските курсове вече имат ev — подаваме италианската без полето
+    const noEv = { ...ITALIAN, lines: ITALIAN.lines.map(({ ev, ...l }) => l) };
+    await page.route('**/data/courses/italian.json', (r) => r.fulfill({ body: JSON.stringify(noEv), contentType: 'application/json' }));
     await open(page, `#/train/italian/${I1.id}?mode=learn`);
     await expect(page.locator('.board-wrap')).toBeVisible();
     await expect(page.locator('#eval')).toHaveCount(0);
@@ -305,7 +308,7 @@ for (const [name, w, h] of [['320x568', 320, 568], ['360x640', 360, 640], ['pixe
       return r.y >= 0 && r.y + r.height <= tabsTop && u.y + u.height <= r.y + 1 && sw <= vw;
     };
     expect(await fits()).toBe(true);
-    expect((await page.locator('.board-wrap').boundingBox()).width).toBeGreaterThanOrEqual(280);
+    expect(await boardSpan(page)).toBeGreaterThanOrEqual(280); // дъската + колоната с оценката (D-035)
     // грешка при „Започни веднага отначало“: съобщението е 1 ред, нищо не слиза под менюто
     await playLine(page, I1, 'w', { stopAt: 2 });
     const wr = await legalWrong(page);

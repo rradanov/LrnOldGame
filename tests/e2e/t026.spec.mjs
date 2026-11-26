@@ -2,7 +2,7 @@
 // Pixel 7, истинските данни. Снимки: T026_SCREENS=/home/claude/t026 npx playwright test t026
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
-import { course, lineN, open, fast, playLine, iconBar, againBtn, nextBtn, checks, doneKind, backBtn, fwdBtn } from './helpers.mjs';
+import { course, lineN, open, fast, playLine, iconBar, againBtn, nextBtn, checks, doneKind, backBtn, fwdBtn, boardSpan } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const I1 = lineN(ITALIAN, 1);
@@ -102,7 +102,7 @@ for (const [name, w, h] of [['320x568', 320, 568], ['360x640', 360, 640], ['pixe
     const barBox = await iconBar(page).boundingBox();
     const board = await page.locator('.board-wrap').boundingBox();
     console.log(name, 'board', board.width, 'bar bottom', barBox.y + barBox.height, 'tabs', tabsTop);
-    expect(board.width).toBeGreaterThanOrEqual(280);
+    expect(await boardSpan(page)).toBeGreaterThanOrEqual(280); // дъската + колоната с оценката (D-035)
     expect(barBox.y + barBox.height).toBeLessThanOrEqual(tabsTop);
     await playLine(page, I1, 'w');
     await expect.poll(async () => {

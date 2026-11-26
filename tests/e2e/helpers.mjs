@@ -121,6 +121,17 @@ export async function legalWrong(page) {
 }
 
 // T-026: лентата с иконки под дъската — търсене по роля и aria-label, не по текст/id.
+/**
+ * Ширина на дъската заедно с колоната с оценката (D-035), ако я има: от левия край на
+ * .board-wrap до десния на #eval. T-027: истинските данни вече имат `ev`, затова
+ * проверките „дъската е широка“ на малки екрани мерят двете заедно.
+ */
+export async function boardSpan(page) {
+  const b = await page.locator('.board-wrap').boundingBox();
+  const e = (await page.locator('#eval').count()) ? await page.locator('#eval').boundingBox() : null;
+  return e ? Math.max(b.x + b.width, e.x + e.width) - b.x : b.width;
+}
+
 export const iconBar = (page) => page.getByRole('toolbar', { name: 'Действия с линията' });
 export const againBtn = (page) => iconBar(page).getByRole('button', { name: 'Пак — повтори линията' });
 /** „Следваща“: aria-label е „Следваща линия (n)“, „Към курса“, „Следваща за преговор (n)“ или „Към „Преговор““. */

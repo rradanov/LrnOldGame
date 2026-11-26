@@ -1,7 +1,7 @@
 // T-013: пълно приемане на MVP (тестер) — потребителски сценарий от първо пускане до бекъп.
 // Pixel 7, портрет, истинските данни. Независим от останалите spec-ове.
 import { test, expect } from '@playwright/test';
-import { MANIFEST, course, lineN, shot, open, waitForSW, fast, move, turn, playLine, row, legalWrong, firstMine, againBtn, nextBtn, checks, doneKind, hintBtn } from './helpers.mjs';
+import { MANIFEST, course, lineN, shot, open, waitForSW, fast, move, turn, playLine, row, legalWrong, firstMine, againBtn, nextBtn, checks, doneKind, hintBtn, boardSpan } from './helpers.mjs';
 
 const ITALIAN = course('italian');
 const CARO = course('caro-kann');
@@ -487,7 +487,7 @@ test.describe('T-013 устойчивост', () => {
       }
       const b = await page.locator('.board-wrap').boundingBox();
       const tabsTop = await page.locator('#tabs').evaluate((e) => e.getBoundingClientRect().top);
-      expect(b.width).toBeGreaterThanOrEqual(w - 40);
+      expect(await boardSpan(page)).toBeGreaterThanOrEqual(w - 40); // дъската + колоната с оценката (D-035)
       expect(b.y + b.height).toBeLessThanOrEqual(tabsTop);
       await shot(page, `20-trenirovka-${w}x${h}`);
     });
