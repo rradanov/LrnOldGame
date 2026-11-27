@@ -43,15 +43,15 @@ on:
         type: string
         default: ''
       advCpWhite:
-        description: 'Праг на предимство за белите, cp (празно = 80)'
+        description: 'Праг на предимство за белите след рокада, cp (празно = 150; без рокада — advCpWhiteNoCastle 220)'
         type: string
         default: ''
       advCpBlack:
-        description: 'Праг на предимство за черните, cp (празно = 40)'
+        description: 'Праг на предимство за черните след рокада, cp (празно = 60; без рокада — advCpBlackNoCastle 150)'
         type: string
         default: ''
       maxPly:
-        description: 'Макс. полуходове на линия (празно = 24)'
+        description: 'Макс. полуходове на линия (празно = 26; ≤ treeMaxPly − 2)'
         type: string
         default: ''
       oppMinShare:
@@ -63,7 +63,7 @@ on:
         type: string
         default: ''
       overrides:
-        description: 'JSON: секции tree, lines, engine (nodes, multiPV, workers, hashMb, timeoutMs, retries), cache; напр. {"lines":{"tailMaxPly":20,"equalCpBlack":-10},"engine":{"multiPV":4},"cache":{"use":false}}'
+        description: 'JSON: секции tree, lines, engine (nodes, multiPV, workers, hashMb, timeoutMs, retries), cache; напр. {"lines":{"castleBonusCp":0,"rejectWeak":false,"tailOppMinGames":0},"engine":{"multiPV":4},"cache":{"use":false}}'
         type: string
         default: '{}'
       publish:

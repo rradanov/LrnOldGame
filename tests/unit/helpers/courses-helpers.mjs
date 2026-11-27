@@ -93,4 +93,7 @@ export const TEST_PARAMS = {
   maxTransposeShare: 0.3, maxEvalsPerCourse: 600,
   // T-022: опашка, довършване и край equal са изключени тук; тестват се отделно
   equalCpBlack: 0, minPlyBlack: 40, tailMaxPly: 0, quietMaxPly: 0,
+  // T-030: рокада, прагове по рокада, типичен ход в опашката и подмяна на слабите — изключени тук
+  castleBonusCp: 0, advCpWhiteNoCastle: 0, advCpBlackNoCastle: 0, equalNeedsCastle: false,
+  rejectWeak: false, weakCpWhite: 80, weakCpBlack: -25, tailOppMinGames: 0, tailOppMaxLossCp: 100,
 };

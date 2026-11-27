@@ -51,18 +51,33 @@ test('всеки курс с book следва главния book ред до �
     assert.deepEqual(bad, []);
   });
 
-test('end/cp са в съгласие с праговете: adv ⇒ cp ≥ advCp; data/depth ⇒ cp < advCp',
+/** T-030: моята страна е рокирала в ходовете на линията. */
+const castled = (m, side) => m.some((s, i) => (i % 2 === 0 ? 'w' : 'b') === side && s.startsWith('O-O'));
+
+test('end/cp са в съгласие с праговете: adv ⇒ cp ≥ advCp (според рокадата, T-030); data/depth ⇒ cp < advCp',
   { skip: !HAS_DATA && 'няма data/manifest.json' }, () => {
     const { manifest, courses } = load();
     const bad = [];
     for (const course of courses) {
       const P = paramsOf(manifest, course.id);
-      const adv = course.side === 'w' ? P.advCpWhite : P.advCpBlack;
+      const advC = course.side === 'w' ? P.advCpWhite : P.advCpBlack;
+      const advN = (course.side === 'w' ? P.advCpWhiteNoCastle : P.advCpBlackNoCastle) || advC; // стари данни: няма
+      const N = P.linesPerCourse;
+      const maxT = Math.floor(P.maxTransposeShare * N);
+      const weakCp = course.side === 'w' ? P.weakCpWhite : P.weakCpBlack;
+      const nT = course.lines.filter((l) => l.end === 'transpose').length;
+      const counted = course.lines.length - nT + Math.min(nT, maxT);
       for (const l of course.lines) {
-        if (l.end === 'adv' && l.cp < adv) bad.push(`${course.id} n=${l.n}: adv при cp ${l.cp} < ${adv}`);
-        // T-022 (D-026): equal — само черни, cp ≥ equalCpBlack, не по-рано от minPlyBlack
-        if (l.end === 'equal' && (course.side !== 'b' || l.cp < P.equalCpBlack || l.m.length < P.minPlyBlack)) {
-          bad.push(`${course.id} n=${l.n}: equal при cp ${l.cp}, ${l.m.length} полухода`);
+        const isC = castled(l.m, course.side);
+        const adv = isC ? advC : advN;
+        if (l.end === 'adv' && l.cp < adv) bad.push(`${course.id} n=${l.n}: adv при cp ${l.cp} < ${adv} (рокада: ${isC})`);
+        // T-022 (D-026): equal — само черни, cp ≥ equalCpBlack, не по-рано от minPlyBlack; T-030 — с рокада
+        if (l.end === 'equal' && (course.side !== 'b' || l.cp < P.equalCpBlack || l.m.length < P.minPlyBlack || (P.equalNeedsCastle && !isC))) {
+          bad.push(`${course.id} n=${l.n}: equal при cp ${l.cp}, ${l.m.length} полухода, рокада: ${isC}`);
+        }
+        // T-030: слаба линия остава само ако няма с какво да се замени (курсът не надхвърля linesPerCourse)
+        if (P.rejectWeak && (l.end === 'data' || l.end === 'depth') && l.cp < weakCp && counted > N) {
+          bad.push(`${course.id} n=${l.n}: слаба линия (cp ${l.cp} < ${weakCp}) при ${counted} > ${N} линии`);
         }
         if ((l.end === 'data' || l.end === 'depth') && l.cp >= adv) bad.push(`${course.id} n=${l.n}: ${l.end} при cp ${l.cp} ≥ ${adv}`);
         if (l.m.length > P.maxPly) bad.push(`${course.id} n=${l.n}: ${l.m.length} полухода > maxPly ${P.maxPly}`);

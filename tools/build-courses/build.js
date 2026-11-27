@@ -14,7 +14,7 @@ import { EvalCache, cachePrefix } from './eval-cache.js';
 import { Evaluator } from './evaluator.js';
 import { EnginePool } from './pool.js';
 import { buildNameIndex } from './names.js';
-import { generateCourse } from './generate.js';
+import { generateCourse, hasCastled } from './generate.js';
 
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -223,9 +223,24 @@ export async function buildCourses(opts) {
 
 const REASONS_BG = { noPos: 'няма позиция', fewGames: '< oppMinGames', noMoves: 'няма ход ≥ oppMinShare/oppMinMoveGames', minLineProb: 'под minLineProb' };
 
+/** T-030: последната оценка на линията (ev) от гледна точка на моята страна; мат = ±10000; null без ev. */
+export function finalEv(line, side) {
+  const v = line.ev?.[line.ev.length - 1];
+  if (v === null || v === undefined) return null;
+  const w = typeof v === 'string' ? (v.startsWith('#-') ? -10000 : 10000) : v;
+  return side === 'w' ? w : -w;
+}
+
+const median = (xs) => {
+  if (!xs.length) return null;
+  const a = [...xs].sort((x, y) => x - y);
+  const h = a.length >> 1;
+  return a.length % 2 ? a[h] : Math.round((a[h - 1] + a[h]) / 2);
+};
+
 /** Обобщение по страна: линии, край, опашка, полуходове, cp; причини „няма данни“ (T018-D6). */
 export function summaryBySide(results) {
-  const L = ['## По страна', '', '| Страна | Курсове | Линии | < linesPerCourse | Ср. полуходове | adv | equal | depth | data | transpose | mate/draw | с опашка | ср. cp | cp < 0 |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|'];
+  const L = ['## По страна', '', '| Страна | Курсове | Линии | < linesPerCourse | Ср. полуходове | adv | equal | depth | data | transpose | mate/draw | с опашка | ср. cp | cp < 0 | рокирани | медиана ev[-1] | под weakCp | типичен ход в опашката |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|'];
   const reasons = [];
   for (const side of ['w', 'b']) {
     const rs = results.filter((r) => r.cat.side === side);
@@ -234,7 +249,17 @@ export function summaryBySide(results) {
     const pct = (k) => `${Math.round((100 * ls.filter((l) => l.end === k).length) / ls.length)}%`;
     const md = `${Math.round((100 * ls.filter((l) => l.end === 'mate' || l.end === 'draw').length) / ls.length)}%`;
     const avg = (f) => Math.round((ls.reduce((s, l) => s + f(l), 0) / ls.length) * 10) / 10;
-    L.push(`| ${side === 'w' ? 'бели' : 'черни'} | ${rs.length} | ${ls.length} | ${rs.filter((r) => r.lines.length < r.params.linesPerCourse).length} | ${avg((l) => l.m.length)} | ${pct('adv')} | ${pct('equal')} | ${pct('depth')} | ${pct('data')} | ${pct('transpose')} | ${md} | ${Math.round((100 * ls.filter((l) => l.tail != null).length) / ls.length)}% | ${avg((l) => l.cp)} | ${ls.filter((l) => l.cp < 0).length} |`);
+    // T-030: рокада на моята страна, крайна оценка (ev), слаби линии, типичен ход в опашката
+    const castled = ls.filter((l) => hasCastled(l.m, side)).length;
+    const fins = ls.map((l) => finalEv(l, side)).filter((x) => x !== null);
+    const weak = rs.reduce((a, r) => {
+      const w = side === 'w' ? r.params.weakCpWhite : r.params.weakCpBlack;
+      return a + (Number.isFinite(w) ? r.lines.filter((l) => (l.end === 'depth' || l.end === 'data') && l.cp < w).length : 0);
+    }, 0);
+    const tOpp = rs.reduce((a, r) => a + (r.stats.tailOppPlies ?? 0), 0);
+    const tTyp = rs.reduce((a, r) => a + (r.stats.tailTypicalPlies ?? 0), 0);
+    const tSw = rs.reduce((a, r) => a + (r.stats.tailTypicalSwaps ?? 0), 0);
+    L.push(`| ${side === 'w' ? 'бели' : 'черни'} | ${rs.length} | ${ls.length} | ${rs.filter((r) => r.lines.length < r.params.linesPerCourse).length} | ${avg((l) => l.m.length)} | ${pct('adv')} | ${pct('equal')} | ${pct('depth')} | ${pct('data')} | ${pct('transpose')} | ${md} | ${Math.round((100 * ls.filter((l) => l.tail != null).length) / ls.length)}% | ${avg((l) => l.cp)} | ${ls.filter((l) => l.cp < 0).length} | ${Math.round((100 * castled) / ls.length)}% | ${median(fins) ?? '—'} | ${weak} | ${tOpp ? `${Math.round((100 * tTyp) / tOpp)}% (${tTyp}/${tOpp}; ≠ най-добрия ${tSw})` : '—'} |`);
     const sum = (key) => Object.fromEntries(Object.keys(REASONS_BG).map((k) => [k, rs.reduce((s, r) => s + (r.stats[key]?.[k] ?? 0), 0)]));
     const ts = sum('tailStarts');
     const de = sum('dataEnds');
@@ -263,8 +288,8 @@ function renderReport({ manifest, results, prevCourses, totals, errors }) {
   L.push(`- ev (T-027): ${evPlies} хода, ${evPos} позиции по курсове, null ${evNulls}`);
   L.push(`- Общо време: ${totals.seconds} s`, '');
   L.push(...summaryBySide(results), '');
-  L.push('| Курс | Линии | adv | equal | depth | data | transpose | mate/draw | с опашка | довърш. | Покритие Σp | Ср. полуходове | Оценки | book/попул./двиг. | Време s | Нови / махнати / същите |');
-  L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  L.push('| Курс | Линии | adv | equal | depth | data | transpose | mate/draw | с опашка | довърш. | Покритие Σp | Ср. полуходове | Оценки | book/попул./двиг./рокада | рокирани линии | слаби: отхв./доп. | Време s | Нови / махнати / същите |');
+  L.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of results) {
     const st = r.stats;
     const en = (k) => st.ends[k] ?? 0;
@@ -275,7 +300,7 @@ function renderReport({ manifest, results, prevCourses, totals, errors }) {
       const b = new Set(r.lines.map((l) => l.id));
       diff = `+${[...b].filter((x) => !a.has(x)).length} / −${[...a].filter((x) => !b.has(x)).length} / ${[...b].filter((x) => a.has(x)).length}`;
     }
-    L.push(`| ${r.id} | ${st.lines} | ${en('adv')} | ${en('equal')} | ${en('depth')} | ${en('data')} | ${en('transpose')} | ${en('mate') + en('draw')} | ${st.tailLines} | ${st.quietLines} | ${st.coverage} | ${st.avgPly} | ${st.evals} | ${st.myMoves.book}/${st.myMoves.popular}/${st.myMoves.engine} | ${(st.ms / 1000).toFixed(1)} | ${diff} |`);
+    L.push(`| ${r.id} | ${st.lines} | ${en('adv')} | ${en('equal')} | ${en('depth')} | ${en('data')} | ${en('transpose')} | ${en('mate') + en('draw')} | ${st.tailLines} | ${st.quietLines} | ${st.coverage} | ${st.avgPly} | ${st.evals} | ${st.myMoves.book}/${st.myMoves.popular}/${st.myMoves.engine}/${st.myMoves.castle ?? 0} | ${st.castledLines ?? 0} | ${st.rejected ?? 0}/${st.refilled ?? 0} | ${(st.ms / 1000).toFixed(1)} | ${diff} |`);
   }
   const warn = [...totals.warnings, ...results.flatMap((r) => r.stats.warnings.map((w) => `${r.id}: ${w}`))];
   if (totals.removed.length) warn.push(`махнати стари файлове: ${totals.removed.join(', ')}`);

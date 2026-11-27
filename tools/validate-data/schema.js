@@ -145,6 +145,16 @@ export const COURSE_PARAMS = {
   minPlyBlack: { type: 'int', min: 2, max: 40 }, // > maxPly = без край „equal“
   tailMaxPly: { type: 'int', min: 0, max: 36 }, // 0 = без опашка
   quietMaxPly: { type: 'int', min: 0, max: 8 }, // 0 = без довършване
+  // T-030 (D-038): рокада и предимство
+  castleBonusCp: { type: 'int', min: 0, max: 200 }, // 0 = без предпочитание към рокада
+  advCpWhiteNoCastle: { type: 'int', min: 0, max: 1000 }, // праг adv за белите без рокада; 0 = като advCpWhite
+  advCpBlackNoCastle: { type: 'int', min: 0, max: 1000 }, // праг adv за черните без рокада; 0 = като advCpBlack
+  equalNeedsCastle: { type: 'bool' }, // край equal (черни) само при рокада
+  rejectWeak: { type: 'bool' }, // depth/data под weakCp* → резерв; на мястото им — следващите линии
+  weakCpWhite: { type: 'int', min: -1000, max: 1000 },
+  weakCpBlack: { type: 'int', min: -1000, max: 1000 },
+  tailOppMinGames: { type: 'int', min: 0, max: 1000 }, // 0 = в опашката противникът играе най-добрия ход
+  tailOppMaxLossCp: { type: 'int', min: 0, max: 1000 }, // типичният ход — само ако губи ≤ N cp спрямо най-добрия
 };
 
 export const CATALOG_SCHEMA = {

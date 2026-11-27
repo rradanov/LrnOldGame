@@ -453,9 +453,11 @@ test('конфиг: подразбиране по §6.2, входове на wor
   const base = loadConfigFile();
   const cfg = resolveConfig(base);
   assert.equal(cfg.lines.linesPerCourse, 20);
-  assert.equal(cfg.lines.advCpWhite, 80); // D-026
-  assert.equal(cfg.lines.advCpBlack, 40);
-  assert.deepEqual([cfg.lines.equalCpBlack, cfg.lines.minPlyBlack, cfg.lines.tailMaxPly, cfg.lines.quietMaxPly], [-25, 14, 18, 4]); // D-029
+  // T-030 (D-038): вариант F
+  assert.deepEqual([cfg.lines.advCpWhite, cfg.lines.advCpWhiteNoCastle, cfg.lines.advCpBlack, cfg.lines.advCpBlackNoCastle], [150, 220, 60, 150]);
+  assert.deepEqual([cfg.lines.equalCpBlack, cfg.lines.equalNeedsCastle, cfg.lines.minPlyBlack, cfg.lines.maxPly, cfg.lines.tailMaxPly, cfg.lines.quietMaxPly], [0, true, 14, 26, 24, 4]);
+  assert.deepEqual([cfg.lines.castleBonusCp, cfg.lines.rejectWeak, cfg.lines.weakCpWhite, cfg.lines.weakCpBlack], [50, true, 80, -25]);
+  assert.deepEqual([cfg.lines.tailOppMinGames, cfg.lines.tailOppMaxLossCp, cfg.lines.maxEvalsPerCourse], [6, 100, 2500]);
   assert.deepEqual([cfg.lines.oppMinGames, cfg.lines.oppMinMoveGames], [12, 6]);
   assert.equal(cfg.lines.myMoveToleranceCp, 25);
   assert.equal(cfg.engine.nodes, 500000);
@@ -469,7 +471,7 @@ test('конфиг: подразбиране по §6.2, входове на wor
   const c2 = resolveConfig(base, forced);
   assert.deepEqual(c2.lines.courses, ['italian', 'slav']);
   assert.equal(c2.lines.linesPerCourse, 12);
-  assert.equal(c2.lines.advCpWhite, 80); // празен вход = подразбиране
+  assert.equal(c2.lines.advCpWhite, 150); // празен вход = подразбиране
   assert.equal(c2.engine.nodes, 300000);
   assert.equal(c2.engine.multiPV, 4);
   assert.equal(c2.cache.use, false);
