@@ -248,6 +248,8 @@ jobs:
               --inputs "$(cat build/courses-inputs.json)" --report build/report.md --engine-nps "${NPS//[^0-9]/}"
           grep -E 'Maximum resident|Elapsed' build/courses-time.txt || true
           ls -l build/cache
+          # T-030: отчетът и в лога (артефактът не винаги е достъпен — напр. през proxy)
+          echo "--- build/report.md"; cat build/report.md
 
       - name: Кеш на оценките (запис)
         if: always() && hashFiles('build/cache/*') != ''
