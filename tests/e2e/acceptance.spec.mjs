@@ -9,7 +9,9 @@ const LINES = Object.fromEntries(MANIFEST.courses.map((c) => [c.id, c.lines]));
 const I1 = lineN(ITALIAN, 1);
 const I2 = lineN(ITALIAN, 2);
 const I3 = lineN(ITALIAN, 3);
-const C1 = lineN(CARO, 1); // транспозиция → линия 3
+const C1 = lineN(CARO, 1); // транспозиция
+// T-030: целта на транспозицията се взима от данните (зависи от генерирането)
+const C1T = CARO.lines.find((l) => l.id === C1.to);
 
 function collect(page) {
   const errors = [];
@@ -111,10 +113,10 @@ test('T-013 сценарий: първо пускане → каталог → �
   await page.locator('#learn-next').click();
   await expect(page.locator('h1.screen-title')).toHaveText(`Италианска партия · линия 2/${LINES.italian}`);
 
-  // Черен курс (Каро-Кан), линия 1 е транспозиция → линия 3; тап-тап
+  // Черен курс (Каро-Кан), линия 1 е транспозиция → линия C1T.n; тап-тап
   await open(page, '#/course/caro-kann');
   await fast(page);
-  await expect(page.locator(`.line-row[data-line="${C1.id}"]`)).toContainText(`→ продължава като линия ${lineN(CARO, 3).n}`);
+  await expect(page.locator(`.line-row[data-line="${C1.id}"]`)).toContainText(`→ продължава като линия ${C1T.n}`);
   await page.locator('#learn-next').click();
   await expect(page.locator('h1.screen-title')).toHaveText(`Каро-Кан · линия 1/${LINES['caro-kann']}`);
   // черните долу
@@ -123,11 +125,11 @@ test('T-013 сценарий: първо пускане → каталог → �
   expect(a1.y).toBeLessThan(a8.y);
   await playLine(page, C1, 'b');
   await doneKind(page, 'clean'); await checks(page, 1, 3);
-  await expect(page.locator('#transpose-go')).toHaveText('→ линия 3');
-  await expect(page.locator('#transpose-go')).toHaveAccessibleName('Линията продължава като линия 3 — продължи с нея');
+  await expect(page.locator('#transpose-go')).toHaveText(`→ линия ${C1T.n}`);
+  await expect(page.locator('#transpose-go')).toHaveAccessibleName(`Линията продължава като линия ${C1T.n} — продължи с нея`);
   await shot(page, '11-cherni-transpoziciya');
   await page.locator('#transpose-go').click();
-  await expect(page.locator('h1.screen-title')).toHaveText(`Каро-Кан · линия 3/${LINES['caro-kann']}`);
+  await expect(page.locator('h1.screen-title')).toHaveText(`Каро-Кан · линия ${C1T.n}/${LINES['caro-kann']}`);
 
   expect(errors).toEqual([]);
   expect(foreign).toEqual([]);

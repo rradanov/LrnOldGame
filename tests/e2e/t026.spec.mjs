@@ -2,6 +2,7 @@
 // Pixel 7, истинските данни. Снимки: T026_SCREENS=/home/claude/t026 npx playwright test t026
 import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
+import { lineId } from '../../src/chess/position.js';
 import { course, lineN, open, fast, playLine, iconBar, againBtn, nextBtn, checks, doneKind, backBtn, fwdBtn, boardSpan } from './helpers.mjs';
 
 const ITALIAN = course('italian');
@@ -115,8 +116,21 @@ for (const [name, w, h] of [['320x568', 320, 568], ['360x640', 360, 640], ['pixe
   });
 }
 
-test('D-032: взети фигури и „+N“ (Италианска, линия 1 — вземания на d4); изключване от „Настройки“', async ({ page }) => {
+// T-030: линиите на истинските данни се сменят при всяко генериране — тестът за взетите фигури
+// ползва фиксирана линия с размяна на d4 (italian, през page.route; без SW).
+const CAP_M = ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'h6', 'd4', 'exd4', 'Nxd4', 'Nxd4', 'Qxd4'];
+const CAP = {
+  id: lineId('italian', CAP_M), n: 1, m: CAP_M, p: 0.5, end: 'adv', cp: 131, c: null,
+  ev: [27, 39, 30, 27, 15, 56, 66, 68, 62, 122, 131],
+};
+const CAP_COURSE = { ...ITALIAN, lines: [CAP] };
+
+test.describe('D-032 (фиксирана линия)', () => {
+  test.use({ serviceWorkers: 'block' });
+test('D-032: взети фигури и „+N“ (Италианска, линия с вземания на d4); изключване от „Настройки“', async ({ page }) => {
   const errors = await watch(page);
+  await page.route('**/data/courses/italian.json', (r) => r.fulfill({ body: JSON.stringify(CAP_COURSE), contentType: 'application/json' }));
+  const I1 = CAP;
   await open(page);
   await fast(page);
   await open(page, `#/train/italian/${I1.id}?mode=learn`);
@@ -161,6 +175,7 @@ test('D-032: взети фигури и „+N“ (Италианска, лини
   await expect(page.locator('.captured')).toHaveCount(0);
   expect(await page.evaluate(() => globalThis.__csp)).toEqual([]);
   expect(errors).toEqual([]);
+});
 });
 
 test('снимки: светла и тъмна тема (Pixel 7), позиция с взети фигури и „+N“', async ({ page }) => {
